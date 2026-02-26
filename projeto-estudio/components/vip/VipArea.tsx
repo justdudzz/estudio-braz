@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async'; // Importação do Helmet
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Star, Gift, ShieldCheck, Lock, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,65 +12,42 @@ import { useAuth } from '../../contexts/AuthContext';
 const VipArea: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [mutationStatus, setMutationStatus] = useState<'idle' | 'authenticating'>('idle');
   
   const navigate = useNavigate();
-  const { user, login, logout, isAuthenticated } = useAuth();
+  const { user, login, logout, isAuthenticated, hydrationStatus } = useAuth();
 
-  // Redirecionar Admin se tentar aceder à área de cliente
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (hydrationStatus === 'hydrated' && isAuthenticated && user?.role === 'admin') {
       navigate('/admin');
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, hydrationStatus]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    // Segurança: Rate limiting
     if (!checkRateLimit('vip_login', 5)) {
-      setError('Muitas tentativas. Por favor, tente novamente mais tarde.');
+      setError('Anomalia detetada. Registo bloqueado temporariamente.');
       return;
     }
 
     const sanitizedEmail = sanitizeInput(email);
     if (!validateEmail(sanitizedEmail)) {
-      setError('Por favor, insira um endereço de email válido.');
+      setError('Formato de identidade inválido.');
       return;
     }
 
-    setIsLoading(true);
+    setMutationStatus('authenticating');
     try {
-      // Simulação de chamada de API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Lógica de demonstração (Mock)
-      if (sanitizedEmail === 'maria.antunes@example.com') {
-        login({
-          id: '101',
-          email: sanitizedEmail,
-          name: 'Maria Antunes',
-          role: 'client'
-        });
-      } else if (sanitizedEmail === 'admin@estudiobraz.pt') {
-        login({
-          id: '000',
-          email: sanitizedEmail,
-          name: BUSINESS_INFO.owner,
-          role: 'admin'
-        });
-      } else {
-        setError('Acesso não autorizado. Verifique se o email está registado no estúdio.');
-      }
+      await login(sanitizedEmail);
     } catch (err) {
-      setError('Ocorreu um erro de sistema. Por favor, contacte o suporte.');
+      setError('Acesso negado pela soberania da rede.');
     } finally {
-      setIsLoading(false);
+      setMutationStatus('idle');
     }
   };
 
-  // Dados VIP temporários (Mock)
   const mockVipDetails = {
     points: 750,
     nextReward: 'Voucher 20€',
@@ -80,18 +57,16 @@ const VipArea: React.FC = () => {
     ]
   };
 
+  if (hydrationStatus === 'pending') return <div className="min-h-screen bg-braz-black" />;
+
   return (
     <div className="min-h-screen bg-braz-black pt-32 pb-16 px-8">
-      
-      {/* Gestão de Meta Tags: Área Privada (NoIndex) */}
       <Helmet>
-        <title>Área de Cliente VIP | {BUSINESS_INFO.name}</title>
+        <title>Área VIP | {BUSINESS_INFO.name}</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container mx-auto max-w-4xl">
-        
-        {/* Cabeçalho da Área VIP */}
         <motion.div 
             className="text-center mb-12" 
             initial={{ opacity: 0, y: -20 }} 
@@ -108,7 +83,6 @@ const VipArea: React.FC = () => {
         </motion.div>
 
         {!isAuthenticated || !user ? (
-          /* Formulário de Login VIP */
           <motion.div 
             className="bg-[#171717] p-10 rounded-2xl border border-white/5 max-w-md mx-auto shadow-2xl"
             initial={{ y: 20, opacity: 0 }} 
@@ -117,7 +91,7 @@ const VipArea: React.FC = () => {
             <form onSubmit={handleLogin} className="space-y-6">
               <Input 
                 id="vip-email" 
-                label="Email de Registo" 
+                label="Identidade Digital" 
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -141,26 +115,24 @@ const VipArea: React.FC = () => {
                 type="submit" 
                 variant="primary" 
                 className="w-full bg-braz-pink text-braz-black font-bold uppercase py-4" 
-                disabled={isLoading}
+                disabled={mutationStatus === 'authenticating'}
               >
-                {isLoading ? 'A autenticar...' : 'Entrar na Área VIP'}
+                {mutationStatus === 'authenticating' ? 'A validar rede...' : 'Entrar na Área VIP'}
               </Button>
               
               <p className="text-center text-white/30 text-[10px] uppercase tracking-widest flex items-center justify-center space-x-2">
                 <Lock className="w-3 h-3" />
-                <span>Os seus dados estão encriptados e seguros</span>
+                <span>Assinatura via Edge Functions</span>
               </p>
             </form>
           </motion.div>
         ) : (
-          /* Dashboard do Cliente VIP */
           <AnimatePresence>
             <motion.div 
               className="space-y-8"
               initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }}
             >
-              {/* Cartões de Estatísticas */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#171717] p-8 rounded-2xl border border-white/5 text-center shadow-xl">
                   <User className="w-10 h-10 text-braz-pink mx-auto mb-4" />
@@ -179,7 +151,6 @@ const VipArea: React.FC = () => {
                 </div>
               </div>
 
-              {/* Histórico de Visitas */}
               <div className="bg-[#171717] p-8 rounded-2xl border border-white/5 shadow-xl">
                 <h3 className="text-2xl font-bold mb-8 text-white flex items-center">
                     <span className="w-2 h-2 bg-braz-pink rounded-full mr-3" />
@@ -200,7 +171,6 @@ const VipArea: React.FC = () => {
                 </div>
               </div>
               
-              {/* Botão de Logout Global */}
               <div className="text-center">
                 <button 
                     onClick={logout}

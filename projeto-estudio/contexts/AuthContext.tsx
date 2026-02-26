@@ -1,6 +1,5 @@
-  import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
-// 1. Definimos o tipo de utilizador (Admin ou Cliente)
 export interface User {
   id: string;
   email: string;
@@ -8,47 +7,73 @@ export interface User {
   name: string;
 }
 
-// 2. Definimos o que o nosso contexto vai partilhar
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
+  hydrationStatus: 'pending' | 'hydrated';
+  login: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-// 3. Criamos o contexto propriamente dito
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 4. Componente Provider: Vai "envolver" a nossa app e fornecer os dados
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // O estado inicial procura no localStorage para ver se o utilizador já tinha feito login antes
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('braz_user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [hydrationStatus, setHydrationStatus] = useState<'pending' | 'hydrated'>('pending');
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('braz_user', JSON.stringify(userData)); // Guarda a sessão
+  const executeHydration = useCallback(async () => {
+    try {
+      const response = await fetch('/.netlify/functions/auth');
+      if (response.ok) {
+        const { user: verifiedUser } = await response.json();
+        setUser(verifiedUser);
+      }
+    } catch {
+      // Loop de Vácuo: Ignora falhas de rede e assume estado unauthenticated
+    } finally {
+      setHydrationStatus('hydrated');
+    }
+  }, []);
+
+  useEffect(() => {
+    executeHydration();
+  }, [executeHydration]);
+
+  const login = async (email: string) => {
+    const response = await fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    if (!response.ok) throw new Error('AUTHORITY_DENIED');
+    
+    const { user: verifiedUser } = await response.json();
+    setUser(verifiedUser);
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    localStorage.removeItem('braz_user'); // Limpa a sessão
+    await fetch('/.netlify/functions/auth', { method: 'DELETE' }).catch(() => {});
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated: !!user, 
+      hydrationStatus, 
+      login, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// 5. Um "Hook" personalizado para ser fácil aceder a estes dados noutros ficheiros
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('FATAL: useAuth fora do escopo de AuthProvider');
   }
   return context;
 };

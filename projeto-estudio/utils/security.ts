@@ -1,20 +1,14 @@
 /**
- * Utilitários de Segurança para o Estúdio Braz
+ * Soberania Ontológica: Limpeza de dependências e falsos estados no frontend.
+ * O Rate Limiting foi migrado na totalidade para as Edge Functions.
  */
-export const sanitizeInput = (input: string) => input.replace(/[<>]/g, '');
 
-export const validateEmail = (email: string) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export const sanitizeInput = (input: string): string => {
+  if (!input) return '';
+  return input.replace(/[<>]/g, '').trim();
 };
 
-export const checkRateLimit = (key: string, limit: number) => {
-  const now = Date.now();
-  const attempts = JSON.parse(localStorage.getItem(`rate_${key}`) || '[]');
-  const validAttempts = attempts.filter((timestamp: number) => now - timestamp < 60000);
-  
-  if (validAttempts.length >= limit) return false;
-  
-  validAttempts.push(now);
-  localStorage.setItem(`rate_${key}`, JSON.stringify(validAttempts));
-  return true;
+export const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
