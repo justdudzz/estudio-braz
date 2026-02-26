@@ -2,7 +2,8 @@
 import { BUSINESS_INFO, SERVICES_CONFIG } from './constants';
 
 export const generateLocalBusinessSchema = () => {
-  return JSON.stringify({
+  // Retorna o objeto puro, o App.tsx trata de fazer o JSON.stringify
+  return {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     "@id": BUSINESS_INFO.addressUrl,
@@ -37,5 +38,5 @@ export const generateLocalBusinessSchema = () => {
         "position": index + 1
       }))
     }
-  });
+  };
 };
