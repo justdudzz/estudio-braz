@@ -140,7 +140,7 @@ const BookingForm: React.FC = () => {
         {
           client_name: sanitizeInput(formData.name),
           email: formData.email,
-          phone: formData.phone,
+          phone: formData.phone,  
           service: SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service,
           date: formData.date,
           time: formData.time
