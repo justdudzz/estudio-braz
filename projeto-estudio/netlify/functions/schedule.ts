@@ -115,7 +115,7 @@ export const handler: Handler = async (event) => {
 
       const safeDuration = serviceRule.duration + serviceRule.buffer;
 
-      // Strings puras (Lisboa)
+      // Strings puras para o Google (Timezone é gerida pelo Calendar)
       const startDateTimeStr = `${date}T${time}:00`;
       const [h, m] = time.split(':').map(Number);
       const totalEndMin = h * 60 + m + safeDuration;
@@ -125,42 +125,38 @@ export const handler: Handler = async (event) => {
 
       const calendar = google.calendar({ version: 'v3', auth });
 
-      // Query dia inteiro + comparação absoluta (sem bug de fuso no servidor)
-      const conflictCheck = await calendar.events.list({
+      // Query dia inteiro para comparação segura de conflitos
+      const response = await calendar.events.list({
         calendarId,
         timeMin: `${date}T00:00:00Z`,
         timeMax: `${date}T23:59:59Z`,
         singleEvents: true
       });
 
-      // Query dia inteiro 
-      const conflictCheck = await calendar.events.list({
-        calendarId,
-        timeMin: `${date}T00:00:00Z`,
-        timeMax: `${date}T23:59:59Z`,
-        singleEvents: true
-      });
-
-      const hasConflict = conflictCheck.data.items?.some((event: any) => {
+      const hasConflict = response.data.items?.some((event: any) => {
         const evStart = new Date(event.start?.dateTime || event.start?.date);
         const evEnd = new Date(event.end?.dateTime || event.end?.date);
 
-        const formatter = new Intl.DateTimeFormat('pt-PT', { timeZone: 'Europe/Lisbon', hour: '2-digit', minute: '2-digit' });
+        // Formatador para garantir que comparamos minutos na hora de Lisboa
+        const formatter = new Intl.DateTimeFormat('pt-PT', {
+          timeZone: 'Europe/Lisbon',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
 
         const getLisbonMinutes = (d: Date) => {
-          const [hours, minutes] = formatter.format(d).split(':').map(Number);
+          const formatted = formatter.format(d);
+          const [hours, minutes] = formatted.split(':').map(Number);
           return hours * 60 + minutes;
         };
 
         const evStartMins = getLisbonMinutes(evStart);
         const evEndMins = getLisbonMinutes(evEnd);
 
-        // O nosso slot em minutos
-        const [h, m] = time.split(':').map(Number);
         const slotStartMins = h * 60 + m;
         const slotEndMins = slotStartMins + safeDuration;
 
-        // Compara puramente minutos contra minutos. Sem bugs de fuso horário!
         return slotStartMins < evEndMins && slotEndMins > evStartMins;
       }) || false;
 
