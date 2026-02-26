@@ -1,0 +1,10 @@
+# Regras para todos os crawlers (Googlebot, Bingbot, etc.)
+User-agent: *
+Allow: /
+
+# Bloquear indexação da área administrativa para segurança
+Disallow: /admin
+Disallow: /admin/*
+
+# Indicar a localização do mapa do site
+Sitemap: https://estudiobraz.pt/sitemap.xml

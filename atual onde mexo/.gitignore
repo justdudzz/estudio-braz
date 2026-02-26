@@ -1,0 +1,35 @@
+# Logs e ficheiros de sistema
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.DS_Store
+
+# Dependências (não queremos enviar milhares de ficheiros para o GitHub)
+node_modules
+package-lock.json
+# (Nota: Algumas pessoas enviam o package-lock.json, mas se der conflitos podes ignorar aqui. 
+# O padrão é enviar, mas se quiseres evitar problemas agora, podes deixar descomentado. 
+# Para já, remove a linha 'package-lock.json' se quiseres seguir o padrão estrito, 
+# mas vou deixar o node_modules que é o OBRIGATÓRIO).
+
+# Build (ficheiros gerados automaticamente)
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor de Código (configurações pessoais do VS Code)
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# --- SEGURANÇA (O MAIS IMPORTANTE) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

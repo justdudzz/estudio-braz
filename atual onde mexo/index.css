@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-montserrat bg-[#0A0A0A] text-white antialiased;
+  }
+
+  /* Melhorar visibilidade do foco para navegação por teclado */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-[#C5A059] ring-offset-4 ring-offset-[#0A0A0A];
+  }
+}
+
+@layer components {
+  /* Classes de Identidade Visual */
+  .bg-braz-black {
+    @apply bg-[#0A0A0A];
+  }
+
+  /* CORRIGIDO: De #D495A5 para #C5A059 (Dourado) */
+  .text-braz-pink {
+    @apply text-[#C5A059];
+  }
+
+  .bg-braz-pink {
+    @apply bg-[#C5A059];
+  }
+
+  .border-braz-pink {
+    @apply border-[#C5A059];
+  }
+
+  .bg-braz-cream {
+    @apply bg-[#F5F5F5];
+  }
+
+  .font-montserrat {
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-[#1A1A1A] rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[#333333] rounded-full border-2 border-[#1A1A1A];
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    /* CORRIGIDO: Dourado no scroll */
+    @apply bg-[#C5A059];
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
