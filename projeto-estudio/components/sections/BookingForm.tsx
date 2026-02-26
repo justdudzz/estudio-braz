@@ -133,10 +133,21 @@ const BookingForm: React.FC = () => {
       const resData = await response.json();
       if (!response.ok || resData.mockFallback) throw new Error('API Fallback');
 
-      emailjs.send(import.meta.env.VITE_EMAILJS_SERVICE_ID, import.meta.env.VITE_EMAILJS_TEMPLATE_ID, { ...formData, client_name: sanitizeInput(formData.name) }, import.meta.env.VITE_EMAILJS_PUBLIC_KEY).catch(() => { });
+      // O EmailJS agora recebe todos os campos com os nomes corretos para o Template
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          client_name: sanitizeInput(formData.name),
+          email: formData.email,
+          phone: formData.phone,
+          service: SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service,
+          date: formData.date,
+          time: formData.time
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      ).catch((err) => { console.error("Erro EmailJS:", err) });
 
-      const msg = `*NOVO AGENDAMENTO*\n--------------------------\n👤 ${formData.name}\n📅 ${formData.date} às ${formData.time}\n✨ ${SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service}\n📞 ${formData.phone}\n--------------------------\nObrigada! Entraremos em contacto em breve.`;
-      window.open(`https://wa.me/${BUSINESS_INFO.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStatus('success');
     } catch {
       await saveBookingIntent(formData);
@@ -192,7 +203,7 @@ const BookingForm: React.FC = () => {
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#121212] p-12 rounded-[2rem] border border-white/10 text-center max-w-lg shadow-2xl">
           <CheckCircle2 className="w-20 h-20 text-braz-pink mx-auto mb-6" />
           <h2 className="text-3xl font-black text-white mb-4">Reserva Recebida</h2>
-          <p className="text-white/60 mb-8">Por favor, envie a mensagem no WhatsApp que acabou de abrir para finalizarmos a marcação.</p>
+          <p className="text-white/60 mb-8">Obrigada! Recebemos o seu pedido. Enviaremos um e-mail de confirmação em breve com os detalhes da sua marcação.</p>
           <button onClick={() => { setStatus('idle'); setFormData({ name: '', email: '', phone: '', service: '', date: '', time: '' }); setErrors({}); }} className="text-white border border-white/20 px-8 py-4 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Novo Agendamento</button>
         </motion.div>
       </section>

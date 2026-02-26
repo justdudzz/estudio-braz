@@ -13,7 +13,7 @@ const GiftCards: React.FC = () => {
   const [amount, setAmount] = useState(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleWhatsAppSubmit = async (e: React.FormEvent) => {
+  const handleGiftCardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
@@ -25,19 +25,17 @@ const GiftCards: React.FC = () => {
     setIsSubmitting(true);
     setStatus('loading');
 
-    // 1. Prepara os dados para o EmailJS usando o mesmo template do Agendamento
     const now = new Date();
     const templateParams = {
       client_name: sanitizeInput(name),
-      client_email: email,
-      client_phone: phone,
-      service: `Voucher de Oferta (€${amount})`, // Enviamos o Voucher como se fosse o "Serviço"
-      date: now.toLocaleDateString('pt-PT'),     // Data atual do pedido
-      time: now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }), // Hora atual do pedido
+      email: email, // Corrigido para bater certo com o template unificado
+      phone: phone, // Corrigido para bater certo com o template unificado
+      service: `Voucher de Oferta (€${amount})`,
+      date: now.toLocaleDateString('pt-PT'),
+      time: now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
     };
 
     try {
-      // 2. Envia o email usando as variáveis de ambiente seguras
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
@@ -45,19 +43,8 @@ const GiftCards: React.FC = () => {
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
 
-      // 3. Após o sucesso do email, preparamos o link do WhatsApp
-      const message = `Novo Pedido de Voucher - ${BUSINESS_INFO.name}:\n- Cliente: ${name}\n- Email: ${email}\n- Telemóvel: ${phone}\n- Valor: €${amount.toFixed(2)}\n\nGostaria de proceder ao pagamento.`;
-
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappLink = `https://wa.me/${BUSINESS_INFO.whatsapp}?text=${encodedMessage}`;
-
-      // Delay visual antes de abrir a aba do WhatsApp
-      setTimeout(() => {
-        window.open(whatsappLink, '_blank', 'noopener,noreferrer');
-        setStatus('success');
-        setIsSubmitting(false);
-      }, 800);
-
+      setStatus('success');
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Erro ao enviar email do Voucher:", error);
       setStatus('error');
@@ -78,7 +65,7 @@ const GiftCards: React.FC = () => {
             <h2 className="text-4xl font-montserrat font-bold text-white uppercase mb-4 tracking-tight">Pedido Recebido!</h2>
             <p className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed">
               O seu pedido de voucher foi gerado. <br />
-              <strong>Finalize o envio da mensagem no WhatsApp</strong> para receber os dados de pagamento.
+              <span>Finalizar via WhatsApp</span> para <span>Pedir Voucher</span>
             </p>
             <button
               onClick={() => {
