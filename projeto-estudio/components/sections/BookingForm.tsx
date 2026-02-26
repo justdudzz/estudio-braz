@@ -55,17 +55,15 @@ const BookingForm: React.FC = () => {
     const endHour = isWeekend ? OPENING_HOURS.weekendEnd : OPENING_HOURS.end;
     const slots: string[] = [];
 
-    // ✅ FIX BUG 1: usa totalDuration (duração + buffer)
     for (let time = startHour * 60; time + totalDuration <= endHour * 60; time += 30) {
       const slotStartMin = time;
       const slotEndMin = time + totalDuration;
 
-      // Define o formatador de horas fora do loop para performance
       const lisbonTimeFormatter = new Intl.DateTimeFormat('pt-PT', {
         timeZone: 'Europe/Lisbon',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false // <-- GARANTE O FORMATO 24H (Ex: 14:30)
+        hour12: false
       });
 
       const isBusy = busyEvents.some((event: any) => {
@@ -75,7 +73,6 @@ const BookingForm: React.FC = () => {
         const evStart = new Date(startStr);
         const evEnd = new Date(endStr);
 
-        // Extrai a hora do evento EXATAMENTE como é em Lisboa
         const [startH, startM] = lisbonTimeFormatter.format(evStart).split(':').map(Number);
         const [endH, endM] = lisbonTimeFormatter.format(evEnd).split(':').map(Number);
 
@@ -133,23 +130,24 @@ const BookingForm: React.FC = () => {
       const resData = await response.json();
       if (!response.ok || resData.mockFallback) throw new Error('API Fallback');
 
-      // O EmailJS agora recebe todos os campos com os nomes corretos para o Template
+      // ✅ BLOCO ATUALIZADO: Remoção do WhatsApp e envio apenas por EmailJS
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         {
           client_name: sanitizeInput(formData.name),
           email: formData.email,
-          phone: formData.phone,  
+          phone: formData.phone,
           service: SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service,
           date: formData.date,
           time: formData.time
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      ).catch((err) => { console.error("Erro EmailJS:", err) });
+      );
 
       setStatus('success');
-    } catch {
+    } catch (error) {
+      console.error("Erro no agendamento:", error);
       await saveBookingIntent(formData);
       setStatus('success');
     }
@@ -214,9 +212,7 @@ const BookingForm: React.FC = () => {
     <section id="agendamento" className="py-24 bg-[#0A0A0A] min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-4 md:px-8 max-w-[1200px]">
         <div className="bg-[#121212] p-8 md:p-14 rounded-3xl border border-white/5 shadow-2xl">
-
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-
             {/* COLUNA ESQUERDA: Dados Pessoais */}
             <div className="space-y-6 flex flex-col justify-between">
               <div>
@@ -254,7 +250,6 @@ const BookingForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Botão Desktop */}
               <div className="hidden lg:block mt-8">
                 <button type="submit" disabled={status === 'submitting'} className="w-full bg-braz-pink text-black py-5 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-3">
                   {status === 'submitting' ? <Loader2 className="animate-spin" size={20} /> : 'Confirmar Agendamento'}
@@ -264,7 +259,6 @@ const BookingForm: React.FC = () => {
 
             {/* COLUNA DIREITA: Data & Hora */}
             <div className="bg-[#1A1A1A] p-6 md:p-8 rounded-3xl border border-white/5 flex flex-col">
-
               <div className="flex items-center space-x-3 mb-6">
                 <CalendarIcon className="text-braz-pink w-5 h-5" />
                 <h3 className="text-xl font-bold text-white">Dia & Hora</h3>
@@ -279,7 +273,6 @@ const BookingForm: React.FC = () => {
                 </select>
               </div>
 
-              {/* Calendário */}
               <div className="bg-[#121212] p-5 rounded-2xl border border-white/5 mb-6">
                 <div className="flex justify-between items-center mb-6">
                   <button type="button" onClick={prevMonth} className="p-2 text-white/50 hover:text-white rounded-lg bg-white/5"><ChevronLeft size={16} /></button>
@@ -297,7 +290,6 @@ const BookingForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Horários */}
               <div className="flex-grow">
                 {isLoadingSlots ? (
                   <div className="flex justify-center items-center py-10"><Loader2 className="w-6 h-6 text-braz-pink animate-spin" /></div>
@@ -321,16 +313,13 @@ const BookingForm: React.FC = () => {
                 )}
                 {errors.time && <p className="text-red-400 text-xs mt-2 text-center">{errors.time}</p>}
               </div>
-
             </div>
 
-            {/* Botão Mobile */}
             <div className="lg:hidden mt-4">
               <button type="submit" disabled={status === 'submitting'} className="w-full bg-braz-pink text-black py-5 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-3">
                 {status === 'submitting' ? <Loader2 className="animate-spin" size={20} /> : 'Confirmar Agendamento'}
               </button>
             </div>
-
           </form>
         </div>
       </div>
