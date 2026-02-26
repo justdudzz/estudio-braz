@@ -65,7 +65,7 @@ const GiftCards: React.FC = () => {
             <h2 className="text-4xl font-montserrat font-bold text-white uppercase mb-4 tracking-tight">Pedido Recebido!</h2>
             <p className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed">
               O seu pedido de voucher foi gerado. <br />
-              <span>Finalizar via WhatsApp</span> para <span>Pedir Voucher</span>
+              <p className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed">O seu pedido de voucher foi registado com sucesso.<br /><strong>Enviámos um e-mail</strong> com os próximos passos.</p>
             </p>
             <button
               onClick={() => {
@@ -119,7 +119,7 @@ const GiftCards: React.FC = () => {
           </div>
 
           {/* Formulário */}
-          <form onSubmit={handleWhatsAppSubmit} className="space-y-6">
+          <form onSubmit={handleGiftCardSubmit} className="space-y-6">
             <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3 flex items-center">
               <span className="w-2 h-2 bg-braz-pink rounded-full mr-3" />
               Personalizar Voucher
@@ -198,7 +198,7 @@ const GiftCards: React.FC = () => {
               {status === 'loading' ? (
                 <><Loader2 className="animate-spin" size={20} /><span>A preparar...</span></>
               ) : (
-                <><Gift className="w-5 h-5" /><span>Finalizar via WhatsApp</span></>
+                <><Gift className="w-5 h-5" /><span>Pedir Voucher</span></>
               )}
             </button>
           </form>

@@ -80,16 +80,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle, isMenuOpen }) => {
                         <Instagram size={24} />
                     </a>
 
-                    {/* Botão Agendar */}
-                    <a
-                        href={`https://wa.me/${BUSINESS_INFO.whatsapp}?text=${BUSINESS_INFO.whatsappMsg}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                   {/* Botão Agendar (Sem WhatsApp) */}
+                    <button
+                        onClick={() => handleScroll('agendamento')}
                         className="flex items-center space-x-3 bg-braz-pink text-braz-black px-8 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-white hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-braz-pink/20"
                     >
-                        <Phone className="w-5 h-5" />
                         <span>Agendar</span>
-                    </a>
+                    </button>
                 </nav>
 
                 {/* Botão Menu Mobile */}
