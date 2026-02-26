@@ -198,7 +198,7 @@ const GiftCards: React.FC = () => {
               {status === 'loading' ? (
                 <><Loader2 className="animate-spin" size={20} /><span>A preparar...</span></>
               ) : (
-                <><Gift className="w-5 h-5" /><span>Pedir Voucher</span></>
+                <><Gift className="w-5 h-5" /><span>Finalizar via WhatsApp</span></>
               )}
             </button>
           </form>

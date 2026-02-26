@@ -98,6 +98,7 @@ export const handler: Handler = async (event) => {
     }
 
     // POST – Criar agendamento (FUSO + CONFLITO ROBUSTO)
+    // POST – Criar agendamento (FUSO + CONFLITO ROBUSTO)
     if (event.httpMethod === 'POST') {
       const data = JSON.parse(event.body || '{}');
       const { name, email, phone, service, date, time } = data;
@@ -109,8 +110,12 @@ export const handler: Handler = async (event) => {
       const serviceRule = SERVICES_DB[service];
       if (!serviceRule) return { statusCode: 400, headers: securityHeaders, body: JSON.stringify({ error: 'INVALID_SERVICE' }) };
 
-      if (isMockMode) {
-        return { statusCode: 200, headers: securityHeaders, body: JSON.stringify({ success: true, mock: true }) };
+      // 🚨 FIM DO MODO DE TESTE SILENCIOSO: Se não houver auth, estoira e avisa!
+      if (!auth || !calendarId) {
+        console.error("🚨 ERRO CRÍTICO NO CALENDÁRIO!");
+        console.error("- ID do Calendário existe?", !!calendarId);
+        console.error("- Autenticação gerada com sucesso?", !!auth);
+        return { statusCode: 500, headers: securityHeaders, body: JSON.stringify({ error: 'CALENDAR_NOT_CONFIGURED' }) };
       }
 
       const safeDuration = serviceRule.duration + serviceRule.buffer;

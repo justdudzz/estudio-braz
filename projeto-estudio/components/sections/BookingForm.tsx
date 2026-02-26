@@ -127,17 +127,18 @@ const BookingForm: React.FC = () => {
         setStatus('idle'); setFormData(prev => ({ ...prev, time: '' })); return;
       }
 
-      const resData = await response.json();
-      if (!response.ok || resData.mockFallback) throw new Error('API Fallback');
+      if (!response.ok) {
+        throw new Error("Erro na API do Calendário");
+      }
 
-      // ✅ BLOCO ATUALIZADO: Remoção do WhatsApp e envio apenas por EmailJS
+      // ✅ BLOCO ATUALIZADO: Usando os nomes exatos do teu EmailJS (client_email, client_phone)
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         {
           client_name: sanitizeInput(formData.name),
-          email: formData.email,
-          phone: formData.phone,
+          client_email: formData.email, 
+          client_phone: formData.phone, 
           service: SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service,
           date: formData.date,
           time: formData.time
@@ -148,8 +149,8 @@ const BookingForm: React.FC = () => {
       setStatus('success');
     } catch (error) {
       console.error("Erro no agendamento:", error);
-      await saveBookingIntent(formData);
-      setStatus('success');
+      alert("Erro ao processar o agendamento com o Calendário. Por favor, tente novamente.");
+      setStatus('idle');
     }
   };
 
