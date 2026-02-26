@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar as CalendarIcon, Loader2, CheckCircle2, ChevronRight, ChevronLeft, AlertCircle, Globe } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { User, Calendar as CalendarIcon, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { BUSINESS_INFO, SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
 import { validateEmail, sanitizeInput } from '../../utils/security';
 import { saveBookingIntent } from '../../utils/offlineStorage';
@@ -12,7 +12,7 @@ const BookingForm: React.FC = () => {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const isDateDisabled = (date: Date) => {
@@ -45,7 +45,7 @@ const BookingForm: React.FC = () => {
     const service = SERVICES_CONFIG[serviceKey as keyof typeof SERVICES_CONFIG] ?? { duration: 60, buffer: 10 };
     const totalDuration = service.duration + (service.buffer || 10);
     const lisbonFormatter = new Intl.DateTimeFormat('pt-PT', { timeZone: 'Europe/Lisbon', hour: 'numeric', minute: 'numeric', weekday: 'short', hour12: false });
-    
+
     const stableDate = new Date(`${dateStr}T12:00:00Z`);
     const weekDay = lisbonFormatter.formatToParts(stableDate).find(p => p.type === 'weekday')?.value?.toLowerCase();
     if (weekDay?.includes('dom')) return [];
@@ -54,18 +54,34 @@ const BookingForm: React.FC = () => {
     const startHour = isWeekend ? OPENING_HOURS.weekendStart : OPENING_HOURS.start;
     const endHour = isWeekend ? OPENING_HOURS.weekendEnd : OPENING_HOURS.end;
     const slots: string[] = [];
-  
-    for (let time = startHour * 60; time + service.duration <= endHour * 60; time += 30) {
+
+    // ✅ FIX BUG 1: usa totalDuration (duração + buffer)
+    for (let time = startHour * 60; time + totalDuration <= endHour * 60; time += 30) {
       const slotStartMin = time;
       const slotEndMin = time + totalDuration;
+
+      // Define o formatador de horas fora do loop para performance
+      const lisbonTimeFormatter = new Intl.DateTimeFormat('pt-PT', {
+        timeZone: 'Europe/Lisbon',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // <-- GARANTE O FORMATO 24H (Ex: 14:30)
+      });
 
       const isBusy = busyEvents.some((event: any) => {
         const startStr = event.start?.dateTime || event.start?.date + 'T00:00:00';
         const endStr = event.end?.dateTime || event.end?.date + 'T23:59:59';
+
         const evStart = new Date(startStr);
         const evEnd = new Date(endStr);
-        const evStartMins = evStart.getHours() * 60 + evStart.getMinutes();
-        const evEndMins = evEnd.getHours() * 60 + evEnd.getMinutes();
+
+        // Extrai a hora do evento EXATAMENTE como é em Lisboa
+        const [startH, startM] = lisbonTimeFormatter.format(evStart).split(':').map(Number);
+        const [endH, endM] = lisbonTimeFormatter.format(evEnd).split(':').map(Number);
+
+        const evStartMins = startH * 60 + startM;
+        const evEndMins = endH * 60 + endM;
+
         return (slotStartMin < evEndMins) && (slotEndMin > evStartMins);
       });
 
@@ -88,7 +104,7 @@ const BookingForm: React.FC = () => {
     const newErrors: Record<string, string> = {};
     if (formData.name.trim().length < 3) newErrors.name = "Nome obrigatório.";
     if (!validateEmail(formData.email)) newErrors.email = "Email inválido.";
-    if (formData.phone.length < 9) newErrors.phone = "Telemóvel inválido.";
+    if (formData.phone.length !== 9) newErrors.phone = "Telemóvel inválido (9 dígitos).";
     if (!formData.service) newErrors.service = "Selecione um serviço.";
     if (!formData.date) newErrors.date = "Selecione uma data.";
     if (!formData.time) newErrors.time = "Selecione um horário.";
@@ -113,18 +129,18 @@ const BookingForm: React.FC = () => {
         alert("Ups! Horário ocupado neste instante. Escolha outro.");
         setStatus('idle'); setFormData(prev => ({ ...prev, time: '' })); return;
       }
-      
+
       const resData = await response.json();
       if (!response.ok || resData.mockFallback) throw new Error('API Fallback');
 
-      emailjs.send(import.meta.env.VITE_EMAILJS_SERVICE_ID, import.meta.env.VITE_EMAILJS_TEMPLATE_ID, { ...formData, client_name: sanitizeInput(formData.name) }, import.meta.env.VITE_EMAILJS_PUBLIC_KEY).catch(()=>{});
-      
+      emailjs.send(import.meta.env.VITE_EMAILJS_SERVICE_ID, import.meta.env.VITE_EMAILJS_TEMPLATE_ID, { ...formData, client_name: sanitizeInput(formData.name) }, import.meta.env.VITE_EMAILJS_PUBLIC_KEY).catch(() => { });
+
       const msg = `*NOVO AGENDAMENTO*\n--------------------------\n👤 ${formData.name}\n📅 ${formData.date} às ${formData.time}\n✨ ${SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service}\n📞 ${formData.phone}\n--------------------------\nObrigada! Entraremos em contacto em breve.`;
       window.open(`https://wa.me/${BUSINESS_INFO.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStatus('success');
     } catch {
-      await saveBookingIntent(formData); 
-      setStatus('success'); 
+      await saveBookingIntent(formData);
+      setStatus('success');
     }
   };
 
@@ -158,11 +174,10 @@ const BookingForm: React.FC = () => {
         <button
           key={d} type="button" disabled={isDisabled}
           onClick={() => setFormData(prev => ({ ...prev, date: dateStr, time: '' }))}
-          className={`h-10 w-full flex items-center justify-center rounded-lg text-sm transition-all duration-300 ${
-            isDisabled ? 'opacity-20 cursor-not-allowed text-white/40' 
-            : isSelected ? 'bg-white text-braz-black font-bold shadow-md scale-[1.05]' 
-            : 'text-white/80 hover:bg-white/10 border border-transparent'
-          }`}
+          className={`h-10 w-full flex items-center justify-center rounded-lg text-sm transition-all duration-300 ${isDisabled ? 'opacity-20 cursor-not-allowed text-white/40'
+            : isSelected ? 'bg-white text-braz-black font-bold shadow-md scale-[1.05]'
+              : 'text-white/80 hover:bg-white/10 border border-transparent'
+            }`}
         >
           {d}
         </button>
@@ -188,9 +203,9 @@ const BookingForm: React.FC = () => {
     <section id="agendamento" className="py-24 bg-[#0A0A0A] min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-4 md:px-8 max-w-[1200px]">
         <div className="bg-[#121212] p-8 md:p-14 rounded-3xl border border-white/5 shadow-2xl">
-          
+
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-            
+
             {/* COLUNA ESQUERDA: Dados Pessoais */}
             <div className="space-y-6 flex flex-col justify-between">
               <div>
@@ -210,12 +225,25 @@ const BookingForm: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2">Telemóvel</label>
-                    <input type="tel" name="phone" maxLength={9} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g,'')})} className={`w-full p-4 bg-white/5 rounded-xl text-white outline-none border transition-all ${errors.phone ? 'border-red-500/50' : 'border-white/5 focus:border-braz-pink'}`} />
+                    <input
+                      type="tel"
+                      name="phone"
+                      maxLength={15}
+                      value={formData.phone}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        if (val.startsWith('351') && val.length > 9) val = val.slice(3);
+                        setFormData(prev => ({ ...prev, phone: val.slice(0, 9) }));
+                        if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
+                      }}
+                      className={`w-full p-4 bg-white/5 rounded-xl text-white outline-none border transition-all ${errors.phone ? 'border-red-500/50' : 'border-white/5 focus:border-braz-pink'}`}
+                      placeholder="912345678"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Movel Botão para mobile visual coherence */}
+              {/* Botão Desktop */}
               <div className="hidden lg:block mt-8">
                 <button type="submit" disabled={status === 'submitting'} className="w-full bg-braz-pink text-black py-5 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-3">
                   {status === 'submitting' ? <Loader2 className="animate-spin" size={20} /> : 'Confirmar Agendamento'}
@@ -223,9 +251,9 @@ const BookingForm: React.FC = () => {
               </div>
             </div>
 
-            {/* COLUNA DIREITA: UX do Vídeo (Data & Hora) */}
+            {/* COLUNA DIREITA: Data & Hora */}
             <div className="bg-[#1A1A1A] p-6 md:p-8 rounded-3xl border border-white/5 flex flex-col">
-              
+
               <div className="flex items-center space-x-3 mb-6">
                 <CalendarIcon className="text-braz-pink w-5 h-5" />
                 <h3 className="text-xl font-bold text-white">Dia & Hora</h3>
@@ -240,17 +268,17 @@ const BookingForm: React.FC = () => {
                 </select>
               </div>
 
-              {/* Calendário Elegante */}
+              {/* Calendário */}
               <div className="bg-[#121212] p-5 rounded-2xl border border-white/5 mb-6">
                 <div className="flex justify-between items-center mb-6">
-                  <button type="button" onClick={prevMonth} className="p-2 text-white/50 hover:text-white rounded-lg bg-white/5"><ChevronLeft size={16}/></button>
+                  <button type="button" onClick={prevMonth} className="p-2 text-white/50 hover:text-white rounded-lg bg-white/5"><ChevronLeft size={16} /></button>
                   <span className="text-white font-medium capitalize text-sm">{currentMonth.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
-                  <button type="button" onClick={nextMonth} className="p-2 text-white/50 hover:text-white rounded-lg bg-white/5"><ChevronRight size={16}/></button>
+                  <button type="button" onClick={nextMonth} className="p-2 text-white/50 hover:text-white rounded-lg bg-white/5"><ChevronRight size={16} /></button>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 mb-4 bg-white/5 py-1.5 rounded-full w-max mx-auto px-4">
-                    <Globe size={12} className="text-braz-pink" />
-                    <span className="text-[10px] text-white/60 font-medium">Europe/Lisbon</span>
+                  <Globe size={12} className="text-braz-pink" />
+                  <span className="text-[10px] text-white/60 font-medium">Europe/Lisbon</span>
                 </div>
 
                 <div className="grid grid-cols-7 gap-y-2 gap-x-1">
@@ -258,10 +286,10 @@ const BookingForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Grelha de Horários Estilo Pílula */}
+              {/* Horários */}
               <div className="flex-grow">
                 {isLoadingSlots ? (
-                   <div className="flex justify-center items-center py-10"><Loader2 className="w-6 h-6 text-braz-pink animate-spin" /></div>
+                  <div className="flex justify-center items-center py-10"><Loader2 className="w-6 h-6 text-braz-pink animate-spin" /></div>
                 ) : !formData.date ? (
                   <div className="text-center py-10 text-white/30 text-xs">Selecione um dia acima</div>
                 ) : availableSlots.length === 0 ? (
@@ -271,7 +299,7 @@ const BookingForm: React.FC = () => {
                     <p className="text-xs font-bold text-white/70 mb-4">{formData.date.split('-').reverse().join('/')}</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {availableSlots.map(t => (
-                        <button type="button" key={t} onClick={() => { setFormData(prev => ({ ...prev, time: t })); setErrors(prev => ({...prev, time: ''})); }} 
+                        <button type="button" key={t} onClick={() => { setFormData(prev => ({ ...prev, time: t })); setErrors(prev => ({ ...prev, time: '' })); }}
                           className={`py-3 rounded-lg text-sm font-medium transition-all ${formData.time === t ? 'bg-[#3b82f6] text-white border-transparent' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}
                         >
                           {t}
