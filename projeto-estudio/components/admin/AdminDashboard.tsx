@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, User, Clock, Scissors, LogOut, RefreshCw } from 'lucide-react';
-import { getAllBookings } from '../../services/bookingService';
-import { logoutDirector } from '../../services/authService';
+import { getAllBookings } from '../../src/services/bookingService';
+import { logoutDirector } from '../../src/services/authService';
 import BookingSkeleton from './BookingSkeleton'; // O skeleton de luxo que criámos
 
 const AdminDashboard: React.FC = () => {

@@ -1,8 +1,10 @@
 import express from 'express';
-import { loginUser } from '../controllers/authController.ts';
+import { login } from '../controllers/authController'; // Nome corrigido e sem .ts
+import { loginLimiter } from '../middleware/rateLimiter'; // A nossa nova blindagem
 
 const router = express.Router();
 
-router.post('/login', loginUser);
+// Rota de Login protegida por limite de tentativas (Força Bruta bloqueada)
+router.post('/login', loginLimiter, login);
 
 export default router;

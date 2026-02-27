@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-
+import ClientLoginPage from './components/pages/ClientLoginPage';
 // Utils & Contexts
 import { BUSINESS_INFO } from './utils/constants';
 import { generateLocalBusinessSchema } from './utils/seo';
@@ -92,6 +92,7 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<HomePageContent />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos" element={<TermsAndConditions />} />
+        <Route path="/vip/login" element={<ClientLoginPage />} />
         
         {/* Porta de Entrada do Diretor */}
         <Route path="/login" element={<LoginPage />} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Loader2 } from 'lucide-react';
-import { loginDirector } from '../services/authService';
+import { loginDirector } from '../../src/services/authService';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');

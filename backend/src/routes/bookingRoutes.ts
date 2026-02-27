@@ -1,16 +1,18 @@
 import express from 'express';
-import { createBooking, getBusySlots, getAllBookings } from '../controllers/bookingController.ts';
-import { protect } from '../middleware/authMiddleware.ts'; // O nosso segurança
+import { createBooking, getBusySlots, getAllBookings } from '../controllers/bookingController';
+import { protect } from '../middleware/authMiddleware';
+import validate from '../middleware/validateResource';
+import { createBookingSchema } from '../schemas/bookingSchema';
 
 const router = express.Router();
 
-// Pública: Calendário precisa de saber o que está ocupado
+// Pública: Consultar horários
 router.get('/check', getBusySlots);
 
-// Pública: Clientes precisam de marcar
-router.post('/', createBooking);
+// Pública: Criar agendamento (Agora com INSPECÇÃO DE CARGA)
+router.post('/', validate(createBookingSchema), createBooking);
 
-// PRIVADA: Só o Diretor (com Token) pode ver a lista completa
+// Privada: Ver agenda total (Protegida pelo Diretor)
 router.get('/', protect, getAllBookings);
 
 export default router;

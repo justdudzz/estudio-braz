@@ -3,8 +3,8 @@ import { User, Calendar as CalendarIcon, Loader2, CheckCircle2, ChevronRight, Ch
 import { motion } from 'framer-motion';
 import { BUSINESS_INFO, SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
 import { validateEmail } from '../../utils/security';
-import { createNewBooking } from '../../services/bookingService'; // Importação Soberana
-import api from '../../services/api'; // Para verificar disponibilidade
+import { createNewBooking } from '../../src/services/bookingService'; // Importação Soberana
+import api from '../../src/services/api'; // Para verificar disponibilidade
 
 const BookingForm: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', date: '', time: '' });

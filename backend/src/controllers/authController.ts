@@ -44,3 +44,39 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro interno na fortaleza.' });
   }
 };
+// Login para Clientes VIP
+export const clientLogin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    const client = await prisma.client.findUnique({ where: { email } });
+
+    // Se a cliente não tiver password (primeiro acesso), enviamos erro específico
+    if (!client || !client.password) {
+      return res.status(401).json({ message: 'Acesso VIP não configurado ou cliente inexistente.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, client.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Credenciais VIP incorretas.' });
+    }
+
+    const token = jwt.sign(
+      { id: client.id, role: 'client' },
+      process.env.JWT_SECRET || 'braz_secret_key',
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      client: {
+        id: client.id,
+        name: client.name,
+        tier: client.tier,
+        points: client.points
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erro ao aceder ao Salão VIP.' });
+  }
+};

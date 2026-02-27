@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Gift, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BUSINESS_INFO } from '../../utils/constants';
+import React, { useState } from 'react';
 
 const GiftCards: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');

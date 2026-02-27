@@ -1,28 +1,53 @@
-// backend/src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import logger from '../utils/logger.ts';
+import prisma from '../config/prisma';
+import logger from '../utils/logger';
 
-export const protect = (req: Request, res: Response, next: NextFunction) => {
+// Extensão da interface Request para o TypeScript reconhecer o "user"
+interface AuthRequest extends Request {
+  user?: any;
+}
+
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token;
 
+  // 1. Verifica se o token vem no cabeçalho Authorization
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
+      // Extrai o token (Bearer XXXXX...)
       token = req.headers.authorization.split(' ')[1];
-      
-      // Verifica a validade da chave configurada no seu .env
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave_secreta_reserva');
-      
-      // Se chegar aqui, o acesso é permitido
-      (req as any).user = decoded;
-      next();
+
+      // 2. Descodifica o token
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'braz_secret_key');
+
+      // 3. Procura o Diretor no PostgreSQL (SQL)
+      // Usamos o select para não trazer a password, por segurança
+      req.user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: { id: true, email: true, role: true }
+      });
+
+      if (!req.user) {
+        return res.status(401).json({ message: 'Acesso negado. Utilizador não encontrado na fortaleza.' });
+      }
+
+      next(); // Porta aberta: Pode prosseguir para a rota
     } catch (error) {
-      logger.error('Tentativa de acesso não autorizado detectada.');
-      res.status(401).json({ message: 'Acesso negado: Token inválido.' });
+      logger.error('Erro de Autenticação JWT');
+      res.status(401).json({ message: 'Token de acesso inválido ou expirado.' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Acesso negado: Sem autorização.' });
+    res.status(401).json({ message: 'Acesso bloqueado. Sem chave de entrada.' });
+  }
+};
+
+// Middleware para restringir apenas ao cargo de Admin (Diretor)
+export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Acesso negado. Apenas o Diretor tem autoridade aqui.' });
   }
 };

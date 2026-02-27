@@ -59,19 +59,36 @@ export const getBusySlots = async (req: Request, res: Response) => {
 };
 
 // 3. Listar Tudo (Para a Sala de Comando do Diretor)
+// Atualização da função getAllBookings com Paginação
 export const getAllBookings = async (req: Request, res: Response) => {
   try {
-    const bookings = await prisma.booking.findMany({
-      include: { 
-        client: true // Traz os dados da cliente automaticamente (Relacional)
+    // Captura os parâmetros da URL (ex: ?page=1&limit=10)
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Procura os agendamentos com limites e contagem total
+    const [bookings, total] = await prisma.$transaction([
+      prisma.booking.findMany({
+        skip,
+        take: limit,
+        include: { client: true },
+        orderBy: [{ date: 'desc' }, { time: 'desc' }] // Os mais recentes primeiro
+      }),
+      prisma.booking.count()
+    ]);
+
+    res.json({
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
       },
-      orderBy: [
-        { date: 'asc' },
-        { time: 'asc' }
-      ]
+      data: bookings
     });
-    res.json(bookings);
+
   } catch (error: any) {
+    logger.error(`Erro na listagem paginada: ${error.message}`);
     res.status(500).json({ message: 'Erro ao carregar a agenda mestra.' });
   }
 };

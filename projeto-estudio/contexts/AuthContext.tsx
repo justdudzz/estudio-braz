@@ -1,69 +1,67 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export interface User {
+interface User {
   id: string;
   email: string;
   role: 'admin' | 'client';
-  name: string;
+  name?: string;
+  tier?: string;
+  points?: number;
 }
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
+  login: (userData: any) => void;
+  logout: () => void;
   isAuthenticated: boolean;
-  hydrationStatus: 'pending' | 'hydrated';
-  login: (email: string) => Promise<void>;
-  logout: () => Promise<void>;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [hydrationStatus, setHydrationStatus] = useState<'pending' | 'hydrated'>('pending');
+  const [token, setToken] = useState<string | null>(null);
 
-  const executeHydration = useCallback(async () => {
-    try {
-      const response = await fetch('/.netlify/functions/auth');
-      if (response.ok) {
-        const { user: verifiedUser } = await response.json();
-        setUser(verifiedUser);
-      }
-    } catch {
-      // Loop de Vácuo: Ignora falhas de rede e assume estado unauthenticated
-    } finally {
-      setHydrationStatus('hydrated');
+  useEffect(() => {
+    const savedToken = localStorage.getItem('braz_token');
+    const savedUser = localStorage.getItem('braz_user');
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
     }
   }, []);
 
-  useEffect(() => {
-    executeHydration();
-  }, [executeHydration]);
-
-  const login = async (email: string) => {
-    const response = await fetch('/.netlify/functions/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-
-    if (!response.ok) throw new Error('AUTHORITY_DENIED');
+  const login = (data: any) => {
+    // Suporta tanto a estrutura de admin como a de client do backend
+    const userData = data.user || data.client;
+    const userRole = data.user ? 'admin' : 'client';
     
-    const { user: verifiedUser } = await response.json();
-    setUser(verifiedUser);
+    const finalUser: User = { ...userData, role: userRole };
+    
+    setToken(data.token);
+    setUser(finalUser);
+    localStorage.setItem('braz_token', data.token);
+    localStorage.setItem('braz_user', JSON.stringify(finalUser));
   };
 
-  const logout = async () => {
+  const logout = () => {
+    setToken(null);
     setUser(null);
-    await fetch('/.netlify/functions/auth', { method: 'DELETE' }).catch(() => {});
+    localStorage.removeItem('braz_token');
+    localStorage.removeItem('braz_user');
+    window.location.href = '/';
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      isAuthenticated: !!user, 
-      hydrationStatus, 
+      token, 
       login, 
-      logout 
+      logout, 
+      isAuthenticated: !!token,
+      isAdmin: user?.role === 'admin'
     }}>
       {children}
     </AuthContext.Provider>
@@ -72,8 +70,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('FATAL: useAuth fora do escopo de AuthProvider');
-  }
+  if (!context) throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   return context;
 };
