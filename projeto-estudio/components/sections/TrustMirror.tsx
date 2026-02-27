@@ -11,29 +11,29 @@ interface BeforeAfterImage {
 }
 
 /**
- * 1. Correção de Placeholders: 
- * Imagens únicas e específicas para cada tratamento para manter a credibilidade.
+ * 1. Soberania de Ativos:
+ * Links externos substituídos por caminhos locais seguros na sua pasta de ativos.
  */
 const beforeAfterImages: BeforeAfterImage[] = [
   {
     serviceId: 'microblading',
-    before: 'https://images.pexels.com/photos/3762804/pexels-photo-3762804.jpeg?auto=compress&cs=tinysrgb&w=800', 
-    after: 'https://images.pexels.com/photos/3762807/pexels-photo-3762807.jpeg?auto=compress&cs=tinysrgb&w=800',
+    before: '/assets/resultados/microblading-antes.jpg',
+    after: '/assets/resultados/microblading-depois.jpg',
   },
   {
     serviceId: 'unhas-gel',
-    before: 'https://images.pexels.com/photos/3997986/pexels-photo-3997986.jpeg?auto=compress&cs=tinysrgb&w=800',
-    after: 'https://images.pexels.com/photos/3997987/pexels-photo-3997987.jpeg?auto=compress&cs=tinysrgb&w=800',
+    before: '/assets/resultados/unhas1.jpg',
+    after: '/assets/resultados/unhas2.jpg',
   },
   {
     serviceId: 'massagens',
-    before: 'https://images.pexels.com/photos/3865662/pexels-photo-3865662.jpeg?auto=compress&cs=tinysrgb&w=800', // Relaxing setup
-    after: 'https://images.pexels.com/photos/3757954/pexels-photo-3757954.jpeg?auto=compress&cs=tinysrgb&w=800', // Calm face
+    before: '/assets/resultados/massagem-antes.jpg',
+    after: '/assets/resultados/massagem-depois.jpg',
   },
   {
     serviceId: 'limpeza-pele',
-    before: 'https://images.pexels.com/photos/3762466/pexels-photo-3762466.jpeg?auto=compress&cs=tinysrgb&w=800', // Pores/Texture
-    after: 'https://images.pexels.com/photos/3762453/pexels-photo-3762453.jpeg?auto=compress&cs=tinysrgb&w=800', // Glowing skin
+    before: '/assets/resultados/limpeza-antes.jpg',
+    after: '/assets/resultados/limpeza-depois.jpg',
   },
 ];
 
@@ -106,7 +106,7 @@ const TrustMirror: React.FC = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
-                  
+
                   {/* Overlay Informativo */}
                   <div className="absolute top-4 left-4 bg-braz-black/80 backdrop-blur-md px-4 py-1 rounded-full border border-braz-pink/30">
                     <span className="text-braz-pink text-xs font-bold uppercase tracking-widest">
@@ -127,9 +127,8 @@ const TrustMirror: React.FC = () => {
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center bg-braz-black/60 backdrop-blur-xl p-2 rounded-full border border-white/10 shadow-2xl">
                 <button
                   onClick={() => setShowBefore(true)}
-                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${
-                    showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
-                  }`}
+                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
+                    }`}
                   aria-pressed={showBefore}
                 >
                   <EyeOff size={18} />
@@ -137,9 +136,8 @@ const TrustMirror: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setShowBefore(false)}
-                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${
-                    !showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
-                  }`}
+                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${!showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
+                    }`}
                   aria-pressed={!showBefore}
                 >
                   <Eye size={18} />

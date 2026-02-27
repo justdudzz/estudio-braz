@@ -27,7 +27,7 @@ interface ServiceData {
   results: Transformation[];
 }
 
-// --- DADOS COMPLETOS E ATUALIZADOS ---
+// --- DADOS SOBERANOS: APONTANDO PARA AS SUAS PASTAS LOCAIS ---
 const services: ServiceData[] = [
   {
     id: 'sobrancelhas',
@@ -36,19 +36,19 @@ const services: ServiceData[] = [
     fullDesc: 'Transforme o seu olhar com as nossas técnicas especializadas. Desde o Microblading fio-a-fio para resultados hiper-realistas, até ao Design de Sobrancelhas personalizado que respeita a sua geometria facial.',
     subServices: ['Microblading Fio-a-Fio', 'Design de Sobrancelhas', 'Depilação a Linha (Threading)', 'Coloração com Henna'],
     duration: '30min - 2h30',
-    priceStart: '€15', // Atualize conforme o Zappy
+    priceStart: '€15',
     icon: Sparkles,
     results: [
       { 
         id: 1, 
-        before: "https://images.pexels.com/photos/3762804/pexels-photo-3762804.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3762807/pexels-photo-3762807.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/sobrancelhas-antes-1.jpg", 
+        after: "/assets/resultados/sobrancelhas-depois-1.jpg",
         label: "Microblading: Reconstrução"
       },
       { 
         id: 2, 
-        before: "https://images.pexels.com/photos/2753432/pexels-photo-2753432.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/2753435/pexels-photo-2753435.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/sobrancelhas-antes-2.jpg", 
+        after: "/assets/resultados/sobrancelhas-depois-2.jpg",
         label: "Design & Henna"
       }
     ]
@@ -60,19 +60,19 @@ const services: ServiceData[] = [
     fullDesc: 'Cuidado completo para mãos e pés. Trabalhamos com Gel, Acrílico e Verniz Gel de alta durabilidade, focando sempre na saúde da unha natural e num acabamento fino e elegante.',
     subServices: ['Unhas de Gel / Acrílico', 'Verniz Gel', 'Manicure Clássica', 'Pedicure Medical/Estética'],
     duration: '1h - 1h30',
-    priceStart: '€25', // Atualize conforme o Zappy
+    priceStart: '€25',
     icon: Scissors,
     results: [
       { 
         id: 1, 
-        before: "https://images.pexels.com/photos/3997986/pexels-photo-3997986.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3997987/pexels-photo-3997987.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/unhas1.jpg", 
+        after: "/assets/resultados/unhas2.jpg",
         label: "Alongamento em Gel"
       },
       { 
         id: 2, 
-        before: "https://images.pexels.com/photos/939836/pexels-photo-939836.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/939835/pexels-photo-939835.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/unhas3.jpg", 
+        after: "/assets/resultados/unhas4.jpg",
         label: "Nail Art Minimalista"
       }
     ]
@@ -84,19 +84,19 @@ const services: ServiceData[] = [
     fullDesc: 'Protocolos avançados para purificar, nutrir e iluminar. A nossa Limpeza de Pele remove impurezas sem dor, enquanto os tratamentos de hidratação devolvem a vitalidade ao seu rosto.',
     subServices: ['Limpeza de Pele Profunda', 'Hidratação Intensiva', 'Peeling Químico', 'Tratamento Anti-Age'],
     duration: '1h - 1h30',
-    priceStart: '€45', // Atualize conforme o Zappy
+    priceStart: '€45',
     icon: Droplets,
     results: [
       { 
         id: 1, 
-        before: "https://images.pexels.com/photos/3762466/pexels-photo-3762466.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3762453/pexels-photo-3762453.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/rosto-antes-1.jpg", 
+        after: "/assets/resultados/rosto-depois-1.jpg",
         label: "Limpeza Profunda"
       },
       { 
         id: 2, 
-        before: "https://images.pexels.com/photos/3764013/pexels-photo-3764013.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3762829/pexels-photo-3762829.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/rosto-antes-2.jpg", 
+        after: "/assets/resultados/rosto-depois-2.jpg",
         label: "Hidratação & Glow"
       }
     ]
@@ -108,19 +108,19 @@ const services: ServiceData[] = [
     fullDesc: 'O equilíbrio que o seu corpo precisa. Desde a Drenagem Linfática para eliminar retenção de líquidos até à Massagem Terapêutica para aliviar a tensão muscular acumulada.',
     subServices: ['Drenagem Linfática', 'Massagem Terapêutica', 'Massagem Relaxante', 'Massagem Desportiva'],
     duration: '45min - 1h',
-    priceStart: '€40', // Atualize conforme o Zappy
+    priceStart: '€40',
     icon: Flower2,
     results: [
       { 
         id: 1, 
-        before: "https://images.pexels.com/photos/3865662/pexels-photo-3865662.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3757954/pexels-photo-3757954.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/corpo-antes-1.jpg", 
+        after: "/assets/resultados/corpo-depois-1.jpg",
         label: "Alívio de Tensão"
       },
       { 
         id: 2, 
-        before: "https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/3865562/pexels-photo-3865562.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/corpo-antes-2.jpg", 
+        after: "/assets/resultados/corpo-depois-2.jpg",
         label: "Drenagem: Redução de Edema"
       }
     ]
@@ -132,19 +132,19 @@ const services: ServiceData[] = [
     fullDesc: 'Livre-se dos pelos indesejados com a técnica que melhor se adapta a si. Dispomos de Laser de alta potência (resultados rápidos), Cera para peles sensíveis e Linha para zonas delicadas do rosto.',
     subServices: ['Depilação a Laser (Díodo)', 'Depilação a Cera', 'Depilação a Linha (Rosto)'],
     duration: '15min - 1h',
-    priceStart: '€10', // Atualize conforme o Zappy
+    priceStart: '€10',
     icon: Zap,
     results: [
       { 
         id: 1, 
-        before: "https://images.pexels.com/photos/8522652/pexels-photo-8522652.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/8522656/pexels-photo-8522656.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/depilacao-antes-1.jpg", 
+        after: "/assets/resultados/depilacao-depois-1.jpg",
         label: "Laser: Resultado 1ª Sessão"
       },
       { 
         id: 2, 
-        before: "https://images.pexels.com/photos/5938558/pexels-photo-5938558.jpeg?auto=compress&cs=tinysrgb&w=800", 
-        after: "https://images.pexels.com/photos/5938555/pexels-photo-5938555.jpeg?auto=compress&cs=tinysrgb&w=800",
+        before: "/assets/resultados/depilacao-antes-2.jpg", 
+        after: "/assets/resultados/depilacao-depois-2.jpg",
         label: "Pele Lisa e Suave"
       }
     ]
@@ -156,7 +156,6 @@ const AutoSwitchImage: React.FC<{ before: string; after: string; label: string }
   const [showAfter, setShowAfter] = useState(false);
 
   useEffect(() => {
-    // Muda a cada 3.5 segundos para ser dinâmico mas legível
     const interval = setInterval(() => {
       setShowAfter(prev => !prev);
     }, 3500); 
@@ -179,7 +178,6 @@ const AutoSwitchImage: React.FC<{ before: string; after: string; label: string }
         />
       </AnimatePresence>
 
-      {/* Etiquetas Grandes */}
       <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-2">
         <motion.div
           key={showAfter ? 'label-after' : 'label-before'}
@@ -195,7 +193,6 @@ const AutoSwitchImage: React.FC<{ before: string; after: string; label: string }
         </motion.div>
       </div>
 
-      {/* Barra de Progresso */}
       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10">
         <motion.div
           key={showAfter ? 'prog-after' : 'prog-before'}
@@ -206,7 +203,6 @@ const AutoSwitchImage: React.FC<{ before: string; after: string; label: string }
         />
       </div>
 
-      {/* Legenda Fixa */}
       <div className="absolute bottom-6 left-6 right-6 z-10 pointer-events-none">
         <div className="bg-black/70 backdrop-blur-md p-3 rounded-lg border border-white/10 inline-flex items-center shadow-lg">
           <Sparkles className="w-4 h-4 text-braz-pink mr-2" />
@@ -284,7 +280,6 @@ const ServicesGrid: React.FC = () => {
           <div className="w-16 h-1 bg-braz-pink mx-auto mt-6 rounded-full" />
         </div>
 
-        {/* Grid ajustado para centrar se houver número impar de itens */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
           {services.map((service, index) => (
             <ServiceCard 
@@ -303,7 +298,6 @@ const ServicesGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* --- MODAL --- */}
       <AnimatePresence>
         {selectedService && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -334,7 +328,6 @@ const ServicesGrid: React.FC = () => {
                   label={selectedService.results[currentResultIndex].label}
                 />
 
-                {/* Setas de Navegação (Agora aparecem SEMPRE, pois garantimos >1 imagem) */}
                 <button 
                   onClick={(e) => { e.stopPropagation(); prevResult(); }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-braz-pink text-white p-3 rounded-full backdrop-blur-sm transition-all border border-white/10"
@@ -348,7 +341,6 @@ const ServicesGrid: React.FC = () => {
                   <ChevronRight size={24} />
                 </button>
                 
-                {/* Indicadores (Pontinhos) */}
                 <div className="absolute bottom-16 md:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
                   {selectedService.results.map((_, idx) => (
                     <div 
@@ -400,7 +392,7 @@ const ServicesGrid: React.FC = () => {
                     <div className="bg-white/5 p-3 rounded-lg border border-white/5">
                       <div className="flex items-center text-braz-pink mb-1">
                         <Euro size={14} className="mr-2" />
-                        <span className="text-[10px] font-bold uppercase text-white/60">Desde (IVA Incl.)</span> {/* ← TRANSPARÊNCIA DE PREÇOS (IVA) */}
+                        <span className="text-[10px] font-bold uppercase text-white/60">Desde (IVA Incl.)</span>
                       </div>
                       <p className="text-white text-sm font-bold">{selectedService.priceStart}</p>
                     </div>

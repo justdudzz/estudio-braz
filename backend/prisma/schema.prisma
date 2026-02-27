@@ -1,0 +1,51 @@
+// MyProject/backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela de Clientes: Onde reside a fidelidade
+model Client {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  phone     String
+  points    Int       @default(0)
+  tier      String    @default("Silver") // Silver, Gold, VIP
+  bookings  Booking[] // Relação: Uma cliente pode ter vários agendamentos
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Tabela de Agendamentos: A pulsação do estúdio
+model Booking {
+  id        String   @id @default(uuid())
+  date      String   // Formato YYYY-MM-DD
+  time      String   // Formato HH:mm
+  service   String
+  status    String   @default("pending") // pending, confirmed, completed, cancelled
+  
+  // Elo de ligação indestrutível (Relacional)
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Previne que o mesmo horário seja marcado duas vezes (Ponto 10 da auditoria)
+  @@unique([date, time])
+}
+
+// Tabela do Diretor: Acesso à Fortaleza
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}

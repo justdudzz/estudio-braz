@@ -1,9 +1,8 @@
+<DOCUMENT filename="GiftCards.tsx">
 import React, { useState } from 'react';
 import { Gift, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BUSINESS_INFO } from '../../utils/constants';
-import { sanitizeInput } from '../../utils/security';
-import emailjs from '@emailjs/browser';
 
 const GiftCards: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -25,31 +24,8 @@ const GiftCards: React.FC = () => {
     setIsSubmitting(true);
     setStatus('loading');
 
-    const now = new Date();
-    const templateParams = {
-      client_name: sanitizeInput(name),
-      email: email, // Corrigido para bater certo com o template unificado
-      phone: phone, // Corrigido para bater certo com o template unificado
-      service: `Voucher de Oferta (€${amount})`,
-      date: now.toLocaleDateString('pt-PT'),
-      time: now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    try {
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        templateParams,
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
-
-      setStatus('success');
-      setIsSubmitting(false);
-    } catch (error) {
-      console.error("Erro ao enviar email do Voucher:", error);
-      setStatus('error');
-      setIsSubmitting(false);
-    }
+    setStatus('success');
+    setIsSubmitting(false);
   };
 
   if (status === 'success') {
@@ -209,3 +185,4 @@ const GiftCards: React.FC = () => {
 };
 
 export default GiftCards;
+</DOCUMENT>

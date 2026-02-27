@@ -1,31 +1,73 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+/* 1. Definição da Fonte Local (Soberania de Design) */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Diretivas Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* 3. Estilos Base */
 @layer base {
   html {
     @apply scroll-smooth;
   }
 
   body {
-    @apply font-montserrat bg-[#0A0A0A] text-white antialiased;
+    font-family: 'Montserrat', sans-serif;
+    @apply bg-[#0A0A0A] text-white antialiased;
   }
 
-  /* Melhorar visibilidade do foco para navegação por teclado */
+  /* Foco visível para acessibilidade de elite */
   *:focus-visible {
     @apply outline-none ring-2 ring-[#C5A059] ring-offset-4 ring-offset-[#0A0A0A];
   }
 }
 
+/* 4. Identidade Visual (Componentes) */
 @layer components {
-  /* Classes de Identidade Visual */
   .bg-braz-black {
     @apply bg-[#0A0A0A];
   }
 
-  /* CORRIGIDO: De #D495A5 para #C5A059 (Dourado) */
+  /* Dourado de Luxo Corrigido */
   .text-braz-pink {
     @apply text-[#C5A059];
   }
@@ -47,7 +89,9 @@
   }
 }
 
+/* 5. Utilitários Customizados */
 @layer utilities {
+  /* Scrollbar Personalizada Dourada */
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -61,10 +105,10 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    /* CORRIGIDO: Dourado no scroll */
     @apply bg-[#C5A059];
   }
 
+  /* Efeitos 3D para Galeria e Cartões */
   .preserve-3d {
     transform-style: preserve-3d;
   }

@@ -1,0 +1,15 @@
+{
+  "name": "studio-braz-soberano",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Elite - Studio Braz",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix projeto-estudio",
+    "dev": "npx concurrently -k -c \"bgBlue.bold,bgMagenta.bold\" -n \"CÉREBRO,FACE\" \"npm run dev --prefix backend\" \"npm run dev --prefix projeto-estudio\""
+  },
+  "devDependencies": {
+    "prisma": "^7.4.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.4.2"
+  }
+}

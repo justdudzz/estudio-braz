@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { User, Calendar as CalendarIcon, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BUSINESS_INFO, SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
-import { validateEmail, sanitizeInput } from '../../utils/security';
-import { saveBookingIntent } from '../../utils/offlineStorage';
-import emailjs from '@emailjs/browser';
+import { validateEmail } from '../../utils/security';
+import { createNewBooking } from '../../services/bookingService'; // Importação Soberana
+import api from '../../services/api'; // Para verificar disponibilidade
 
 const BookingForm: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', date: '', time: '' });
@@ -12,7 +12,6 @@ const BookingForm: React.FC = () => {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const isDateDisabled = (date: Date) => {
@@ -21,6 +20,7 @@ const BookingForm: React.FC = () => {
     return date <= today || date.getDay() === 0;
   };
 
+  // --- BUSCA DE DISPONIBILIDADE NA SUA API PRIVADA ---
   useEffect(() => {
     const fetchAvailability = async () => {
       if (!formData.date || !formData.service) return;
@@ -28,11 +28,13 @@ const BookingForm: React.FC = () => {
       setAvailableSlots([]);
 
       try {
-        const response = await fetch(`/.netlify/functions/schedule?date=${formData.date}`);
-        if (!response.ok) throw new Error();
-        const busyEvents = await response.json();
-        setAvailableSlots(calculateFreeSlots(formData.date, formData.service, Array.isArray(busyEvents) ? busyEvents : []));
-      } catch {
+        // Agora consulta a sua própria base de dados de agendamentos
+        const response = await api.get(`/bookings/check?date=${formData.date}`);
+        const busyBookings = response.data; // Lista de horários já ocupados
+        
+        setAvailableSlots(calculateFreeSlots(formData.date, formData.service, busyBookings));
+      } catch (error) {
+        // Em caso de erro (ex: DB ainda a ligar), mostra slots padrão para não quebrar o UX
         setAvailableSlots(calculateFreeSlots(formData.date, formData.service, []));
       } finally {
         setIsLoadingSlots(false);
@@ -41,51 +43,28 @@ const BookingForm: React.FC = () => {
     fetchAvailability();
   }, [formData.date, formData.service]);
 
-  const calculateFreeSlots = (dateStr: string, serviceKey: string, busyEvents: any[]) => {
+  const calculateFreeSlots = (dateStr: string, serviceKey: string, busyTimes: string[]) => {
     const service = SERVICES_CONFIG[serviceKey as keyof typeof SERVICES_CONFIG] ?? { duration: 60, buffer: 10 };
     const totalDuration = service.duration + (service.buffer || 10);
-    const lisbonFormatter = new Intl.DateTimeFormat('pt-PT', { timeZone: 'Europe/Lisbon', hour: 'numeric', minute: 'numeric', weekday: 'short', hour12: false });
-
+    
+    // Lógica de horários baseada nas suas OPENING_HOURS
     const stableDate = new Date(`${dateStr}T12:00:00Z`);
-    const weekDay = lisbonFormatter.formatToParts(stableDate).find(p => p.type === 'weekday')?.value?.toLowerCase();
-    if (weekDay?.includes('dom')) return [];
+    const weekDay = stableDate.getDay(); 
+    if (weekDay === 0) return []; // Domingo fechado
 
-    const isWeekend = weekDay?.includes('sáb');
+    const isWeekend = weekDay === 6; // Sábado
     const startHour = isWeekend ? OPENING_HOURS.weekendStart : OPENING_HOURS.start;
     const endHour = isWeekend ? OPENING_HOURS.weekendEnd : OPENING_HOURS.end;
     const slots: string[] = [];
 
     for (let time = startHour * 60; time + totalDuration <= endHour * 60; time += 30) {
-      const slotStartMin = time;
-      const slotEndMin = time + totalDuration;
+      const h = Math.floor(time / 60).toString().padStart(2, '0');
+      const m = (time % 60).toString().padStart(2, '0');
+      const timeStr = `${h}:${m}`;
 
-      const lisbonTimeFormatter = new Intl.DateTimeFormat('pt-PT', {
-        timeZone: 'Europe/Lisbon',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-
-      const isBusy = busyEvents.some((event: any) => {
-        const startStr = event.start?.dateTime || event.start?.date + 'T00:00:00';
-        const endStr = event.end?.dateTime || event.end?.date + 'T23:59:59';
-
-        const evStart = new Date(startStr);
-        const evEnd = new Date(endStr);
-
-        const [startH, startM] = lisbonTimeFormatter.format(evStart).split(':').map(Number);
-        const [endH, endM] = lisbonTimeFormatter.format(evEnd).split(':').map(Number);
-
-        const evStartMins = startH * 60 + startM;
-        const evEndMins = endH * 60 + endM;
-
-        return (slotStartMin < evEndMins) && (slotEndMin > evStartMins);
-      });
-
-      if (!isBusy) {
-        const h = Math.floor(time / 60).toString().padStart(2, '0');
-        const m = (time % 60).toString().padStart(2, '0');
-        slots.push(`${h}:${m}`);
+      // Verifica se o horário já existe na sua base de dados soberana
+      if (!busyTimes.includes(timeStr)) {
+        slots.push(timeStr);
       }
     }
     return slots;
@@ -109,50 +88,24 @@ const BookingForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // --- SUBMISSÃO PARA O CÉREBRO AUTÓNOMO ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     setStatus('submitting');
 
     try {
-      if (!navigator.onLine) throw new Error("Offline");
-      const response = await fetch('/.netlify/functions/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.status === 409) {
-        alert("Ups! Horário ocupado neste instante. Escolha outro.");
-        setStatus('idle'); setFormData(prev => ({ ...prev, time: '' })); return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Erro na API do Calendário");
-      }
-
-      // ✅ BLOCO ATUALIZADO: Usando os nomes exatos do teu EmailJS (client_email, client_phone)
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          client_name: sanitizeInput(formData.name),
-          client_email: formData.email, 
-          client_phone: formData.phone, 
-          service: SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.label || formData.service,
-          date: formData.date,
-          time: formData.time
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
-
+      // Chama o seu serviço privado
+      await createNewBooking(formData);
       setStatus('success');
-    } catch (error) {
-      console.error("Erro no agendamento:", error);
-      alert("Erro ao processar o agendamento com o Calendário. Por favor, tente novamente.");
+    } catch (error: any) {
+      console.error("Erro no agendamento soberano:", error);
+      alert(error || "Erro ao processar o agendamento. Verifique se o Cérebro está ativo.");
       setStatus('idle');
     }
   };
+
+  // ... (Resto do componente - Calendário e Renderização - mantidos para garantir o design de luxo) ...
 
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   const prevMonth = () => {
@@ -201,8 +154,8 @@ const BookingForm: React.FC = () => {
       <section className="py-32 bg-[#0A0A0A] flex items-center justify-center min-h-screen">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#121212] p-12 rounded-[2rem] border border-white/10 text-center max-w-lg shadow-2xl">
           <CheckCircle2 className="w-20 h-20 text-braz-pink mx-auto mb-6" />
-          <h2 className="text-3xl font-black text-white mb-4">Reserva Recebida</h2>
-          <p className="text-white/60 mb-8">Obrigada! Recebemos o seu pedido. Enviaremos um e-mail de confirmação em breve com os detalhes da sua marcação.</p>
+          <h2 className="text-3xl font-black text-white mb-4">Reserva Confirmada</h2>
+          <p className="text-white/60 mb-8">Soberania Digital ativada. O seu agendamento foi registado com sucesso no servidor do Studio Braz.</p>
           <button onClick={() => { setStatus('idle'); setFormData({ name: '', email: '', phone: '', service: '', date: '', time: '' }); setErrors({}); }} className="text-white border border-white/20 px-8 py-4 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Novo Agendamento</button>
         </motion.div>
       </section>
@@ -236,11 +189,10 @@ const BookingForm: React.FC = () => {
                     <input
                       type="tel"
                       name="phone"
-                      maxLength={15}
+                      maxLength={9}
                       value={formData.phone}
                       onChange={(e) => {
                         let val = e.target.value.replace(/\D/g, '');
-                        if (val.startsWith('351') && val.length > 9) val = val.slice(3);
                         setFormData(prev => ({ ...prev, phone: val.slice(0, 9) }));
                         if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
                       }}
@@ -268,7 +220,7 @@ const BookingForm: React.FC = () => {
               <div className="mb-6">
                 <select name="service" value={formData.service} onChange={handleChange} className={`w-full p-4 bg-[#121212] rounded-xl text-white outline-none border appearance-none transition-all ${errors.service ? 'border-red-500/50' : 'border-white/5 focus:border-braz-pink'}`}>
                   <option value="" className="text-black">Selecionar Serviço...</option>
-                  {Object.entries(SERVICES_CONFIG).map(([key, s]) => (
+                  {Object.entries(SERVICES_CONFIG).map(([key, s]: any) => (
                     <option key={key} value={key} className="text-black">{s.label} ({s.duration} min)</option>
                   ))}
                 </select>
@@ -304,7 +256,7 @@ const BookingForm: React.FC = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {availableSlots.map(t => (
                         <button type="button" key={t} onClick={() => { setFormData(prev => ({ ...prev, time: t })); setErrors(prev => ({ ...prev, time: '' })); }}
-                          className={`py-3 rounded-lg text-sm font-medium transition-all ${formData.time === t ? 'bg-[#3b82f6] text-white border-transparent' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}
+                          className={`py-3 rounded-lg text-sm font-medium transition-all ${formData.time === t ? 'bg-braz-pink text-black font-bold border-transparent' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}
                         >
                           {t}
                         </button>

@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async';
 
 // Utils & Contexts
 import { BUSINESS_INFO } from './utils/constants';
-import { initializeScriptsByConsent } from './utils/externalScripts';
 import { generateLocalBusinessSchema } from './utils/seo';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -16,7 +15,6 @@ import RouteAnnouncer from './components/common/RouteAnnouncer';
 import CookieBanner from './components/common/CookieBanner';
 import VoucherPopup from './components/common/VoucherPopup';
 import NotFound from './components/common/NotFound';
-import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Components - Sections
 import HeroSection from './components/sections/HeroSection';
@@ -28,19 +26,20 @@ import GiftCardsSection from './components/sections/GiftCards';
 import BookingForm from './components/sections/BookingForm';
 import LocationMap from './components/sections/LocationMap';
 
-// Components - Pages
+// Components - Pages & Admin
 import PrivacyPolicy from './components/pages/PrivacyPolicy';
 import TermsAndConditions from './components/pages/TermsAndConditions';
-import AdminDashboard from './components/admin/AdminDashboard';
+import LoginPage from './components/pages/LoginPage'; // <- Caminho corrigido!
+import AdminDashboard from './components/admin/AdminDashboard'; // <- Agora aponta para a nossa Sala de Comando
 import AdminVipArea from './components/admin/VipArea';
 import ClientVipArea from './components/vip/VipArea';
+import ProtectedRoute from './components/auth/ProtectedRoute'; // <- Caminho corrigido para o escudo de segurança!
 
 // ──────────────────────────────────────────────────────────────
-// ISOLAMENTO DE EFEITOS (Portal para zero re-renders globais)
+// ISOLAMENTO DE EFEITOS E SEO (Mantido intacto)
 // ──────────────────────────────────────────────────────────────
 const VoucherManager: React.FC = () => {
   const [show, setShow] = useState(false);
-  
   useEffect(() => {
     const timer = setTimeout(() => {
       const hasSeen = localStorage.getItem('braz_voucher_seen');
@@ -51,27 +50,20 @@ const VoucherManager: React.FC = () => {
     }, 5000);
     return () => clearTimeout(timer);
   }, []);
-
   if (!show) return null;
   return <VoucherPopup onClose={() => setShow(false)} />;
 };
 
-// ──────────────────────────────────────────────────────────────
-// CONTEÚDO DA HOME (Otimizado para SEO & Conversão)
-// ──────────────────────────────────────────────────────────────
 const HomePageContent: React.FC = () => (
   <>
     <Helmet>
       <title>{BUSINESS_INFO.name} | Estética Avançada em Águeda</title>
       <meta name="description" content="Especialistas em Microblading, Limpeza de Pele e Unhas de Gel no Ameal, Águeda. Agende o seu momento de luxo com Mariana Braz." />
-      <meta property="og:title" content={`${BUSINESS_INFO.name} - Beleza e Luxo`} />
-      <meta property="og:description" content="Transformação e bem-estar com resultados naturais." />
       <link rel="canonical" href="https://estudiobraz.pt" />
       <script type="application/ld+json">
         {JSON.stringify(generateLocalBusinessSchema())}
       </script>
     </Helmet>
-
     <HeroSection />
     <ServicesGrid />
     <SpecialistSection />
@@ -84,14 +76,13 @@ const HomePageContent: React.FC = () => (
 );
 
 // ──────────────────────────────────────────────────────────────
-// ORQUESTRADOR DE ROTAS
+// ORQUESTRADOR DE ROTAS AFINADO
 // ──────────────────────────────────────────────────────────────
 const AppContent: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    initializeScriptsByConsent();
   }, [location.pathname]);
 
   return (
@@ -101,16 +92,22 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<HomePageContent />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos" element={<TermsAndConditions />} />
+        
+        {/* Porta de Entrada do Diretor */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Área VIP */}
         <Route path="/vip" element={<ClientVipArea />} />
         
-        {/* Rotas Administrativas Protegidas */}
+        {/* Rotas Administrativas Blindadas */}
         <Route path="/admin" element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute>
             <AdminDashboard />
           </ProtectedRoute>
         } />
+        
         <Route path="/admin/vip" element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute>
             <AdminVipArea />
           </ProtectedRoute>
         } />
@@ -131,13 +128,9 @@ function App() {
     <AuthProvider>
       <div className="bg-braz-black min-h-screen font-montserrat antialiased flex flex-col">
         <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} isMenuOpen={isMenuOpen} />
-        
         <AppContent />
-        
         <Footer />
         <MobileMenuDrawer isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-        
-        {/* Camada de Overlay e Persistência */}
         <VoucherManager />
         <CookieBanner />
       </div>
