@@ -14,3 +14,56 @@
 {"level":"info","message":"Fronteira Digital Studio Braz ativa na porta 5000","timestamp":"2026-02-27T15:59:32.698Z"}
 {"level":"info","message":"Fronteira Digital Studio Braz ativa na porta 5000","timestamp":"2026-02-27T15:59:44.743Z"}
 {"level":"info","message":"Fronteira Digital Studio Braz ativa na porta 5000","timestamp":"2026-02-27T16:00:03.994Z"}
+{"level":"info","message":"Fronteira Digital Studio Braz ativa na porta 5000","timestamp":"2026-02-27T20:16:09.203Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-02-28","timestamp":"2026-02-27T20:31:37.361Z"}
+{"level":"info","message":"Fronteira Digital Studio Braz ativa na porta 5000","timestamp":"2026-02-27T20:34:48.792Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-02-28","timestamp":"2026-02-27T20:49:38.469Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-02-28","timestamp":"2026-02-27T20:50:42.394Z"}
+{"level":"info","message":"Agendamento realizado: Unhas de Gel para edu em 2026-02-28","timestamp":"2026-02-27T21:01:57.840Z"}
+{"level":"info","message":"Agendamento realizado: Unhas de Gel para edu em 2026-02-28","timestamp":"2026-02-27T21:20:08.612Z"}
+{"level":"info","message":"Agendamento realizado: Depilacao para rafa em 2026-02-28","timestamp":"2026-02-27T21:21:35.839Z"}
+{"level":"info","message":"Agendamento realizado: Depilacao para edu em 2026-02-28","timestamp":"2026-02-27T21:26:11.549Z"}
+{"level":"info","message":"Agendamento realizado: Limpeza de Pele para rafa em 2026-03-07","timestamp":"2026-02-27T21:27:30.220Z"}
+{"level":"info","message":"Agendamento realizado: Depilacao para mariatav em 2026-03-20","timestamp":"2026-02-27T21:44:24.103Z"}
+{"level":"info","message":"Agendamento realizado: Massagem para mariasjndaih shiuasdc em 2026-03-12","timestamp":"2026-02-27T21:50:31.646Z"}
+{"level":"info","message":"Agendamento realizado: Verniz Gel para tavares em 2026-03-06","timestamp":"2026-02-27T23:43:23.781Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-02-27T23:43:46.946Z"}
+{"level":"info","message":"Reserva c16be4ba-8152-47e1-9a97-261054b39b66 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:43:54.051Z"}
+{"level":"info","message":"Reserva 53c057b2-4d9a-41fc-a6a9-cfd307403d16 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:43:56.287Z"}
+{"level":"info","message":"Reserva 05422c2e-c629-4bb0-9bf8-6a81ae478c4e eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:43:58.156Z"}
+{"level":"info","message":"Reserva f8e5251c-ed1d-4dfc-907a-6179f8fba174 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:43:59.882Z"}
+{"level":"info","message":"Reserva 12c600d7-6d37-4ce6-bf88-da02ca2bc09c eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:01.428Z"}
+{"level":"info","message":"Reserva 2ff96607-8717-4723-9267-5d7cc8d04e4a eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:02.891Z"}
+{"level":"info","message":"Reserva 702fa144-d69b-4293-9b51-812019d99b47 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:04.232Z"}
+{"level":"info","message":"Reserva 9db362da-6816-49c3-936d-8a7745d3a5bf eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:05.718Z"}
+{"level":"info","message":"Reserva 7c47e2b1-77a8-4d2f-abeb-55b23919d37d eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:07.021Z"}
+{"level":"info","message":"Reserva d978743d-9d00-4c36-8902-a595eedf8d9e eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:09.264Z"}
+{"level":"info","message":"Reserva 90bc620c-59ae-425d-9645-ade7aa855cc8 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:11.471Z"}
+{"level":"info","message":"Agendamento realizado: Limpeza de Pele para edu em 2026-02-28","timestamp":"2026-02-27T23:44:24.896Z"}
+{"level":"info","message":"Reserva a19db238-3b6d-4f85-b056-c1e337c2bdb4 eliminada permanentemente. Horário libertado.","timestamp":"2026-02-27T23:44:30.333Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-02-28","timestamp":"2026-02-27T23:44:41.946Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-02-28","timestamp":"2026-02-27T23:45:06.466Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para tavares em 2026-02-28","timestamp":"2026-02-27T23:45:37.338Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:04:58.219Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:04:58.222Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-03-02","timestamp":"2026-02-28T00:06:05.500Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:06:08.222Z"}
+{"level":"info","message":"Reserva 45e84375-35e6-4f8c-9add-cfb016c37d5d eliminada. Horário libertado.","timestamp":"2026-02-28T00:06:13.688Z"}
+{"level":"info","message":"Reserva 559bace5-9653-4cf3-bfba-eb872a4cf8a7 eliminada. Horário libertado.","timestamp":"2026-02-28T00:06:18.112Z"}
+{"level":"info","message":"Reserva 7c8d377a-e726-4d1c-979b-edafbe8432b6 eliminada. Horário libertado.","timestamp":"2026-02-28T00:06:20.114Z"}
+{"level":"info","message":"Reserva 9a9847da-3117-4631-b9d4-da3916286130 eliminada. Horário libertado.","timestamp":"2026-02-28T00:06:22.769Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-03-02","timestamp":"2026-02-28T00:06:47.610Z"}
+{"level":"info","message":"Agendamento realizado: Massagem para edu em 2026-03-02","timestamp":"2026-02-28T00:07:05.027Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:07:07.935Z"}
+{"level":"info","message":"Reserva 9a52ab99-143b-4a19-a568-3d52ce17f328 eliminada. Horário libertado.","timestamp":"2026-02-28T00:07:29.200Z"}
+{"level":"info","message":"Reserva 0a3b56d5-54aa-4d6d-9a81-e51d1474da38 eliminada. Horário libertado.","timestamp":"2026-02-28T00:07:32.932Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-03-02","timestamp":"2026-02-28T00:47:23.002Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-02-28T00:47:45.826Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:45.842Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:45.843Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:47.332Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:47.879Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:48.779Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/auth/top-clients - GET /api/v1/auth/top-clients - IP: ::1","timestamp":"2026-02-28T00:47:48.952Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-02-28T00:56:30.659Z"}
+{"level":"info","message":"Agendamento realizado: Microblading para edu em 2026-03-02","timestamp":"2026-02-28T00:57:02.952Z"}

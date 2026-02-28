@@ -1,9 +1,7 @@
-<DOCUMENT filename="GiftCards.tsx">
 import React, { useState } from 'react';
 import { Gift, Loader2, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { BUSINESS_INFO } from '../../utils/constants';
-import React, { useState } from 'react';
 
 const GiftCards: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -25,8 +23,16 @@ const GiftCards: React.FC = () => {
     setIsSubmitting(true);
     setStatus('loading');
 
-    setStatus('success');
-    setIsSubmitting(false);
+    // Cria a mensagem para o WhatsApp
+    const message = `Olá Studio Braz! 🎁 Gostaria de oferecer um Gift Card no valor de €${amount}.\n\n*Os meus dados:*\nNome: ${name}\nEmail: ${email}\nTelemóvel: ${phone}\n\nComo posso proceder ao pagamento?`;
+    const whatsappUrl = `https://wa.me/351${BUSINESS_INFO.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+
+    // Simula um pequeno tempo de carregamento antes de redirecionar para o WhatsApp
+    setTimeout(() => {
+      setStatus('success');
+      setIsSubmitting(false);
+      window.open(whatsappUrl, '_blank');
+    }, 1500);
   };
 
   if (status === 'success') {
@@ -39,11 +45,11 @@ const GiftCards: React.FC = () => {
             className="bg-[#171717] p-16 text-center shadow-2xl rounded-xl border-t-8 border-braz-pink"
           >
             <CheckCircle2 className="w-20 h-20 text-braz-pink mx-auto mb-6 animate-bounce" />
-            <h2 className="text-4xl font-montserrat font-bold text-white uppercase mb-4 tracking-tight">Pedido Recebido!</h2>
-            <p className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed">
-              O seu pedido de voucher foi gerado. <br />
-              <p className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed">O seu pedido de voucher foi registado com sucesso.<br /><strong>Enviámos um e-mail</strong> com os próximos passos.</p>
-            </p>
+            <h2 className="text-4xl font-montserrat font-bold text-white uppercase mb-4 tracking-tight">Redirecionado!</h2>
+            <div className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed space-y-2">
+              <p>O seu pedido de voucher está pronto.</p>
+              <p>Foi redirecionado para o nosso WhatsApp para finalizar o pagamento de forma segura.</p>
+            </div>
             <button
               onClick={() => {
                 setStatus('idle');
@@ -54,7 +60,7 @@ const GiftCards: React.FC = () => {
               }}
               className="text-braz-pink font-montserrat font-bold uppercase tracking-widest hover:text-white transition-colors border border-braz-pink px-8 py-4 hover:bg-braz-pink hover:text-braz-black shadow-lg shadow-braz-pink/10"
             >
-              Comprar Outro Voucher
+              Voltar aos Vouchers
             </button>
           </motion.div>
         </div>
@@ -186,4 +192,3 @@ const GiftCards: React.FC = () => {
 };
 
 export default GiftCards;
-</DOCUMENT>

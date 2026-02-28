@@ -1,70 +1,73 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import dotenv from 'dotenv';
-import logger from './utils/logger';
-
-// Middlewares e Rotas (Importações limpas sem .ts)
-import { notFound, errorHandler } from './middleware/errorMiddleware';
-import bookingRoutes from './routes/bookingRoutes';
+import helmet from 'helmet';
 import authRoutes from './routes/authRoutes';
-import prisma from './config/prisma'; // O novo motor soberano
+import bookingRoutes from './routes/bookingRoutes';
+import { errorHandler, notFound } from './middleware/errorMiddleware';
+import logger from './utils/logger';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// 1. Segurança e Parsing (Nível Fortaleza)
-app.use(helmet());
+// --- AJUSTE DE ELITE: CONFIGURAÇÃO CORS ---
+const allowedOrigins = [
+  'http://localhost:5173', // Porta padrão do Vite
+  'http://localhost:8888', // Porta do Netlify Dev
+  'http://localhost:3000'  // Porta alternativa
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', 
-  credentials: true
+  origin: function (origin, callback) {
+    // Permite pedidos sem origin (como ferramentas de teste tipo Insomnia/Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      logger.error(`Tentativa de invasão via CORS bloqueada: ${origin}`);
+      callback(new Error('Acesso negado por política de segurança (CORS)'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // TODOS os métodos autorizados
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
 
-// 2. Rotas da API
-// Health Check atualizado para validar a ligação com o PostgreSQL
-app.get('/api/v1/health', async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`; // Teste rápido de batimento cardíaco da DB
-    res.status(200).json({ 
-      status: 'Soberano', 
-      database: 'Conectada (SQL)',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ status: 'Instável', database: 'Erro de Ligação' });
-  }
+// Camadas de Proteção
+app.use(helmet()); // Proteção de Cabeçalhos
+app.use(express.json()); // Tradutor de JSON
+
+// Rotas do Império
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
+
+// Health Check para o Diretor Rafa
+app.get('/api/v1/health', (req, res) => {
+  res.json({
+    status: 'Soberano',
+    timestamp: new Date().toISOString(),
+    database: 'Conectada (SQL)',
+    cors: 'Liberado para Gestão Ativa'
+  });
 });
 
-app.use('/api/v1/bookings', bookingRoutes);
-app.use('/api/v1/auth', authRoutes);
-
-// 3. Gestão de Erros (Resiliência de Elite)
+// Tratamento de Rotas Inexistentes
 app.use(notFound);
+
+// Central de Erros da Fortaleza
 app.use(errorHandler);
 
-// 4. Arranque e Monitorização
-const server = app.listen(PORT, () => {
-  logger.info(`Fronteira Digital Studio Braz ativa na porta ${PORT}`);
-  console.log(`
-  ===========================================
-  🚀 CÉREBRO SQL: 100% OPERACIONAL
-  🛡️  SEGURANÇA: Nível Fortaleza
-  📍 PORTA: ${PORT}
-  📂 MEMÓRIA: PostgreSQL + Prisma
-  ===========================================
-  `);
-});
+const PORT = process.env.PORT || 5000;
 
-// 5. Encerramento Gracioso (Soberania Técnica)
-// Garante que a ligação à DB fecha corretamente se o servidor for desligado
-process.on('SIGTERM', async () => {
-  logger.info('Sinal SIGTERM recebido. Fechando Fortaleza...');
-  await prisma.$disconnect();
-  server.close(() => {
-    logger.info('Servidor encerrado com segurança.');
-    process.exit(0);
-  });
+app.listen(PORT, () => {
+  console.log(`
+   ===========================================
+   🚀 CÉREBRO SQL: 100% OPERACIONAL
+   🛡️  SEGURANÇA: Nível Fortaleza Ativo
+   📍 PORTA: ${PORT}
+   🌐 CORS: Vite & Netlify Sincronizados
+   ===========================================
+  `);
 });

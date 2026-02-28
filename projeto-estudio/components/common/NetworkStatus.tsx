@@ -1,8 +1,9 @@
 // components/common/NetworkStatus.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WifiOff, CloudSync } from 'lucide-react';
+import { WifiOff, RefreshCw } from 'lucide-react'; // Trocámos CloudSync por RefreshCw
 import { getPendingBookings, clearPendingBookings } from '../../utils/offlineStorage';
+import api from '../../src/services/api'; // Importamos a nossa API privada
 
 const NetworkStatus: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -15,17 +16,15 @@ const NetworkStatus: React.FC = () => {
       if (pending.length > 0) {
         setIsSyncing(true);
         try {
-          // Processar fila de requisições acumuladas em background
+          // Processar fila de agendamentos feitos enquanto estava offline
           for (const booking of pending) {
-            await fetch('/.netlify/functions/schedule', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(booking),
-            });
+            // Agora enviamos diretamente para o seu servidor (Porta 5000)
+            await api.post('/bookings', booking);
           }
           await clearPendingBookings();
+          console.log("✅ Sincronização da Fortaleza concluída com sucesso.");
         } catch (error) {
-          console.error("Falha na sincronização pós-conexão:", error);
+          console.error("❌ Falha na sincronização pós-conexão:", error);
         } finally {
           setIsSyncing(false);
         }
@@ -45,6 +44,7 @@ const NetworkStatus: React.FC = () => {
 
   return (
     <AnimatePresence>
+      {/* Aviso de Offline */}
       {!isOnline && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
@@ -54,11 +54,13 @@ const NetworkStatus: React.FC = () => {
         >
           <WifiOff className="w-6 h-6 text-red-500" />
           <div>
-            <p className="font-bold text-sm tracking-widest uppercase text-red-400">Ligação Perdida</p>
-            <p className="text-xs text-white/60 mt-1">Modo Offline Ativo. Acionámos o cofre de dados local.</p>
+            <p className="font-bold text-sm tracking-widest uppercase text-red-400 text-[10px]">Ligação Perdida</p>
+            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">Modo Offline Ativo. Agendamentos guardados no cofre local.</p>
           </div>
         </motion.div>
       )}
+
+      {/* Aviso de Sincronização */}
       {isOnline && isSyncing && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
@@ -66,12 +68,15 @@ const NetworkStatus: React.FC = () => {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A]/90 backdrop-blur-md text-white p-5 rounded-xl border border-braz-pink/50 shadow-[0_0_30px_rgba(197,160,89,0.2)] flex items-center space-x-4"
         >
-          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
-            <CloudSync className="w-6 h-6 text-braz-pink" />
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+          >
+            <RefreshCw className="w-6 h-6 text-braz-pink" />
           </motion.div>
           <div>
-            <p className="font-bold text-sm tracking-widest uppercase text-braz-pink">A Sincronizar</p>
-            <p className="text-xs text-white/60 mt-1">A enviar agendamentos pendentes...</p>
+            <p className="font-bold text-[10px] tracking-widest uppercase text-braz-pink">A Sincronizar</p>
+            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">A enviar dados para a Fortaleza...</p>
           </div>
         </motion.div>
       )}

@@ -27,3 +27,10 @@ export const getAllBookings = async () => {
     throw error.response?.data?.message || 'Erro ao carregar a agenda soberana.';
   }
 };
+export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+  const response = await api.patch(`/bookings/${id}/status`, { status });
+  return response.data;
+};
+export const deleteBooking = async (id: string) => {
+  await api.delete(`/bookings/${id}`);
+};

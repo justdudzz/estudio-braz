@@ -1,53 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import prisma from '../config/prisma';
-import logger from '../utils/logger';
 
-// Extensão da interface Request para o TypeScript reconhecer o "user"
-interface AuthRequest extends Request {
-  user?: any;
-}
-
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token;
 
   // 1. Verifica se o token vem no cabeçalho Authorization
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
-      // Extrai o token (Bearer XXXXX...)
+      // 2. Extrai o token (remove a palavra 'Bearer ')
       token = req.headers.authorization.split(' ')[1];
 
-      // 2. Descodifica o token
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'braz_secret_key');
+      // 3. Verifica a assinatura do token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'braz_secret_key_2026');
 
-      // 3. Procura o Diretor no PostgreSQL (SQL)
-      // Usamos o select para não trazer a password, por segurança
-      req.user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        select: { id: true, email: true, role: true }
-      });
-
-      if (!req.user) {
-        return res.status(401).json({ message: 'Acesso negado. Utilizador não encontrado na fortaleza.' });
-      }
-
-      next(); // Porta aberta: Pode prosseguir para a rota
+      // 4. Adiciona os dados do utilizador ao pedido
+      (req as any).user = decoded;
+      
+      next();
     } catch (error) {
-      logger.error('Erro de Autenticação JWT');
-      res.status(401).json({ message: 'Token de acesso inválido ou expirado.' });
+      console.error('Falha na validação do Token:', error);
+      res.status(401).json({ message: 'Acesso negado. Chave mestre inválida.' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Acesso bloqueado. Sem chave de entrada.' });
+    res.status(401).json({ message: 'Acesso negado. Nenhuma chave mestre fornecida.' });
   }
 };
 
-// Middleware para restringir apenas ao cargo de Admin (Diretor)
-export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === 'admin') {
+export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  
+  if (user && user.role === 'admin') {
     next();
   } else {
-    res.status(403).json({ message: 'Acesso negado. Apenas o Diretor tem autoridade aqui.' });
+    res.status(403).json({ message: 'Acesso negado. Apenas o Diretor pode entrar aqui.' });
   }
 };
