@@ -13,9 +13,12 @@ datasource db {
 model Client {
   id        String    @id @default(uuid())
   name      String
-  email     String    @unique
+  
+  // 🌟 ALTERAÇÃO DE ELITE: Campos agora são opcionais (?)
+  email     String?   @unique
+  phone     String?   
+  
   password  String?   // Permite acesso ao Salão VIP
-  phone     String
   points    Int       @default(0)
   tier      String    @default("Silver") // Silver, Gold, VIP
   bookings  Booking[] // Relação: Uma cliente pode ter vários agendamentos

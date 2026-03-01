@@ -37,7 +37,6 @@ export default {
       // --- 2. IDENTIDADE CROMÁTICA (Dourado Soberano) ---
       colors: {
         'braz-gold': '#C5A059', // A nova alma do estúdio
-        'braz-pink': '#C5A059', // Mantido como fallback para não quebrar componentes antigos
         'braz-black': '#0A0A0A', 
         'braz-cream': '#F5F5F5',
         'aura-gold': 'rgba(197, 160, 89, 0.1)', // Para fundos suaves e halos de luz
