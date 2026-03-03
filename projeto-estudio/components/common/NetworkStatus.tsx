@@ -22,7 +22,7 @@ const NetworkStatus: React.FC = () => {
             await api.post('/bookings', booking);
           }
           await clearPendingBookings();
-          console.log("✅ Sincronização da Fortaleza concluída com sucesso.");
+          console.log("✅ Sincronização concluída com sucesso.");
         } catch (error) {
           console.error("❌ Falha na sincronização pós-conexão:", error);
         } finally {
@@ -55,7 +55,7 @@ const NetworkStatus: React.FC = () => {
           <WifiOff className="w-6 h-6 text-red-500" />
           <div>
             <p className="font-bold text-sm tracking-widest uppercase text-red-400 text-[10px]">Ligação Perdida</p>
-            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">Modo Offline Ativo. Agendamentos guardados no cofre local.</p>
+            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">Modo Offline Ativo. Agendamentos guardados localmente.</p>
           </div>
         </motion.div>
       )}
@@ -68,15 +68,15 @@ const NetworkStatus: React.FC = () => {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A]/90 backdrop-blur-md text-white p-5 rounded-xl border border-braz-pink/50 shadow-[0_0_30px_rgba(197,160,89,0.2)] flex items-center space-x-4"
         >
-          <motion.div 
-            animate={{ rotate: 360 }} 
+          <motion.div
+            animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
           >
             <RefreshCw className="w-6 h-6 text-braz-pink" />
           </motion.div>
           <div>
             <p className="font-bold text-[10px] tracking-widest uppercase text-braz-pink">A Sincronizar</p>
-            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">A enviar dados para a Fortaleza...</p>
+            <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">A enviar dados para o servidor...</p>
           </div>
         </motion.div>
       )}

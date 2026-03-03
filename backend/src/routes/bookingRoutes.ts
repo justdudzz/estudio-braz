@@ -4,44 +4,45 @@ import {
   getBusySlots,
   getAllBookings,
   updateBookingStatus,
+  updateBooking,
   deleteBooking,
   blockSchedule,
-  getTopClients // <-- A Inteligência VIP aqui
-} from '../controllers/bookingController';
-import { protect, adminOnly } from '../middleware/authMiddleware';
-import validate from '../middleware/validateResource';
-import { createBookingSchema } from '../schemas/bookingSchema';
+  batchDeleteBlocks,
+  getTopClients,
+  getAllClients,
+  updateClient,
+  getClientProfile
+} from '../controllers/bookingController.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import validate from '../middleware/validateResource.js';
+import { createBookingSchema } from '../schemas/bookingSchema.js';
+import { updateBookingStatusSchema } from '../schemas/bookingStatusSchema.js';
+import { bookingLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // ==========================================
-// 🔓 ROTAS PÚBLICAS (Acesso das Clientes)
+// 🔓 ROTAS PÚBLICAS
 // ==========================================
-
-// Consultar horários ocupados (A Trituradora)
 router.get('/check', getBusySlots);
-
-// Criar agendamento (Validado pelo esquema Zod para não entrarem dados falsos)
-router.post('/', validate(createBookingSchema), createBooking);
-
+router.post('/', bookingLimiter, validate(createBookingSchema), createBooking);
 
 // ==========================================
-// 🔒 ROTAS PRIVADAS (Sala de Comando - Diretor)
+// 🔒 ROTAS ADMIN — Clientes (BEFORE /:id routes!)
 // ==========================================
+router.get('/clients', protect, adminOnly, getAllClients);
+router.get('/clients/:id', protect, adminOnly, getClientProfile);
+router.put('/clients/:id', protect, adminOnly, updateClient);
 
-// A PORTA VIP ABERTA! (Ranking de Elite)
+// ==========================================
+// 🔒 ROTAS ADMIN — Bookings
+// ==========================================
 router.get('/top-clients', protect, adminOnly, getTopClients);
-
-// Bloqueio Manual da Fortaleza (Trancar Agenda)
 router.post('/block', protect, adminOnly, blockSchedule);
-
-// Ver a agenda mestre com todas as reservas
+router.post('/batch-delete', protect, adminOnly, batchDeleteBlocks);
 router.get('/', protect, adminOnly, getAllBookings);
-
-// Alterar status (Confirmar reserva / Dar pontos VIP)
-router.patch('/:id/status', protect, adminOnly, updateBookingStatus);
-
-// Eliminação Definitiva (A "Trituradora" do SQL)
+router.patch('/:id/status', protect, adminOnly, validate(updateBookingStatusSchema), updateBookingStatus);
+router.put('/:id', protect, adminOnly, updateBooking);
 router.delete('/:id', protect, adminOnly, deleteBooking);
 
 export default router;

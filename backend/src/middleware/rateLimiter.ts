@@ -11,12 +11,23 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Limitador de Login: Proteção máxima para a sua porta de entrada
+// Limitador de Login: Proteção máxima contra brute-force
 export const loginLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // Janela de 1 hora
   max: 5, // Apenas 5 tentativas de login por hora
   message: {
     message: 'Demasiadas tentativas de login. Acesso bloqueado por 1 hora por segurança.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limitador de Bookings: Impede spam de agendamentos (#6)
+export const bookingLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 10, // Máximo 10 agendamentos por hora por IP
+  message: {
+    message: 'Demasiados agendamentos de este IP. Aguarde 1 hora antes de tentar novamente.'
   },
   standardHeaders: true,
   legacyHeaders: false,

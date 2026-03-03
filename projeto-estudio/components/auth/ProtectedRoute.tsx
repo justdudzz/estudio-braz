@@ -1,10 +1,11 @@
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const token = localStorage.getItem('braz_token');
-  
-  // Se não houver token, expulsa para o login
-  if (!token) {
+  const { isAuthenticated } = useAuth();
+
+  // Se não houver sessão válida, expulsa para o login (#1, #2)
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

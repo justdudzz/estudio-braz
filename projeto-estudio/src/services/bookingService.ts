@@ -15,7 +15,7 @@ export const createNewBooking = async (bookingData: BookingData) => {
     const response = await api.post('/bookings', bookingData);
     return response.data;
   } catch (error: any) {
-    throw error.response?.data?.message || 'Erro ao comunicar com o servidor soberano.';
+    throw error.response?.data?.message || 'Erro ao comunicar com o servidor.';
   }
 };
 
@@ -24,7 +24,7 @@ export const getAllBookings = async () => {
     const response = await api.get('/bookings');
     return response.data;
   } catch (error: any) {
-    throw error.response?.data?.message || 'Erro ao carregar a agenda soberana.';
+    throw error.response?.data?.message || 'Erro ao carregar a agenda.';
   }
 };
 export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled') => {

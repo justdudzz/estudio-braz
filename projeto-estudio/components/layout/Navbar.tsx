@@ -1,103 +1,102 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado
-import { Menu, X, Phone, Instagram } from 'lucide-react';
-import { scrollToSection } from '../../utils/scroll';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Instagram } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
+import MobileMenuDrawer from './MobileMenuDrawer';
 
 interface NavbarProps {
-    onMenuToggle: () => void;
-    isMenuOpen: boolean;
+    onMenuToggle?: () => void;
+    isMenuOpen?: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuToggle, isMenuOpen }) => {
-    const navigate = useNavigate();
+const navItems = [
+    { name: 'Serviços', path: '/servicos' },
+    { name: 'Portfólio', path: '/portfolio' },
+    { name: 'Sobre', path: '/sobre' },
+    { name: 'Contacto', path: '/contacto' },
+];
+
+const Navbar: React.FC<NavbarProps> = ({ onMenuToggle, isMenuOpen: externalIsMenuOpen }) => {
     const location = useLocation();
 
-    const navItems = [
-        { name: 'Serviços', id: 'servicos' },
-        { name: 'A Especialista', id: 'especialista' },
-        { name: 'Gift Cards', id: 'giftcards' },
-    ];
-
-    // Lógica inteligente: Volta à Home se estiver noutra página
-    const handleScroll = (id: string) => {
-        if (location.pathname !== '/') {
-            navigate('/');
-            // Pequeno delay para garantir que a página carregou antes de rolar
-            setTimeout(() => scrollToSection(id), 100);
-        } else {
-            scrollToSection(id);
-        }
-        
-        if (isMenuOpen) {
-            onMenuToggle();
-        }
-    };
+    const [internalMenuOpen, setInternalMenuOpen] = useState(false);
+    const isMenuOpen = externalIsMenuOpen ?? internalMenuOpen;
+    const toggleMenu = onMenuToggle ?? (() => setInternalMenuOpen(prev => !prev));
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-40 bg-braz-black/95 backdrop-blur-md shadow-lg border-b border-white/10">
-            <div className="container mx-auto px-6 h-28 flex items-center justify-between">
+        <>
+            <header className="fixed top-0 left-0 right-0 z-40 bg-braz-black/80 backdrop-blur-xl shadow-lg border-b border-white/5 transition-all duration-300">
+                <div className="container mx-auto px-6 h-28 flex items-center justify-between">
 
-                {/* Logo e Nome - Visibilidade Máxima */}
-                <button
-                    onClick={() => handleScroll('hero')}
-                    aria-label={`Voltar ao início de ${BUSINESS_INFO.name}`}
-                    className="flex items-center focus-visible:ring-2 focus-visible:ring-braz-pink rounded-md p-1 transition-transform active:scale-95"
-                >
-                    <img
-                        src="/logo.png"
-                        alt={`Logótipo ${BUSINESS_INFO.name}`}
-                        className="h-20 w-auto object-contain"
-                    />
-                    <span className="text-2xl font-montserrat font-bold ml-4 text-white uppercase tracking-widest hidden sm:inline">
-                        {BUSINESS_INFO.name}
-                    </span>
-                </button>
+                    {/* Logo acts as a clear Home Button */}
+                    <Link
+                        to="/"
+                        aria-label={`Voltar ao início de ${BUSINESS_INFO.name}`}
+                        className="flex items-center gap-4 focus-visible:ring-1 focus-visible:ring-braz-gold rounded-xl p-2.5 transition-all duration-500 active:scale-95 group hover:bg-white/[0.03] border border-transparent hover:border-white/5 hover:shadow-elite-glow cursor-pointer"
+                        title="Ir para a Página Inicial"
+                    >
+                        <img
+                            src="/iconelogo.png"
+                            alt={`Logótipo ${BUSINESS_INFO.name}`}
+                            className="h-16 md:h-20 w-auto object-contain transition-all duration-700 group-hover:scale-105 group-hover:drop-shadow-[0_0_15px_rgba(197,160,89,0.3)]"
+                        />
+                        <span className="text-xl md:text-2xl font-montserrat font-luxury text-white/90 uppercase tracking-[0.2em] hidden sm:block transition-colors duration-500 group-hover:text-braz-gold-light drop-shadow-md">
+                            {BUSINESS_INFO.name}
+                        </span>
+                    </Link>
 
-                {/* Navegação Desktop */}
-                <nav className="hidden lg:flex items-center space-x-10">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => handleScroll(item.id)}
-                            className="text-white/80 font-montserrat uppercase text-sm font-bold tracking-widest hover:text-braz-pink transition-colors relative group outline-none"
+                    {/* Desktop Navigation */}
+                    <nav className="hidden lg:flex items-center space-x-10">
+                        {navItems.map((item) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`font-montserrat uppercase text-xs font-bold tracking-[0.2em] transition-all duration-300 relative group outline-none ${isActive ? 'text-braz-gold' : 'text-white/60 hover:text-braz-gold-light'
+                                        }`}
+                                >
+                                    {item.name}
+                                    <span className={`absolute -bottom-2 left-0 h-[1px] bg-braz-gold transition-all duration-500 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                                        }`}></span>
+                                </Link>
+                            );
+                        })}
+
+                        <div className="h-8 w-px bg-white/10 mx-2"></div>
+
+                        <a
+                            href={BUSINESS_INFO.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-white/60 hover:text-braz-gold transition-all duration-300 hover:scale-110 p-2"
+                            aria-label="Instagram Oficial"
                         >
-                            {item.name}
-                            <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-braz-pink transition-all duration-300 group-hover:w-full"></span>
-                        </button>
-                    ))}
+                            <Instagram size={22} strokeWidth={1.5} />
+                        </a>
 
-                    <div className="h-8 w-px bg-white/10 mx-2"></div>
+                        <Link
+                            to="/agendar"
+                            className={`flex items-center space-x-3 bg-gold-gradient text-braz-black px-8 py-3.5 rounded-sm text-xs font-bold uppercase tracking-[0.25em] hover:brightness-110 hover:shadow-elite-glow active:scale-95 transition-all duration-500 ${location.pathname === '/agendar' ? 'bg-white text-black' : ''
+                                }`}
+                        >
+                            <span>Agendar</span>
+                        </Link>
+                    </nav>
 
-                    {/* Instagram Link Corrigido */}
-                    <a
-                        href={BUSINESS_INFO.instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white hover:text-braz-pink transition-transform hover:scale-110 p-2"
-                        aria-label="Instagram Oficial"
-                    >
-                        <Instagram size={24} />
-                    </a>
-
-                   {/* Botão Agendar (Sem WhatsApp) */}
+                    {/* Mobile Menu Button */}
                     <button
-                        onClick={() => handleScroll('agendamento')}
-                        className="flex items-center space-x-3 bg-braz-pink text-braz-black px-8 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-white hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-braz-pink/20"
+                        onClick={toggleMenu}
+                        className="lg:hidden text-white p-3 rounded-md hover:bg-white/10 transition-colors"
                     >
-                        <span>Agendar</span>
+                        {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
                     </button>
-                </nav>
+                </div>
+            </header>
 
-                {/* Botão Menu Mobile */}
-                <button
-                    onClick={onMenuToggle}
-                    className="lg:hidden text-white p-3 rounded-md hover:bg-white/10 transition-colors"
-                >
-                    {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-                </button>
-            </div>
-        </header>
+            {/* Mobile Menu Drawer */}
+            <MobileMenuDrawer isOpen={isMenuOpen} onClose={toggleMenu} />
+        </>
     );
 };
 

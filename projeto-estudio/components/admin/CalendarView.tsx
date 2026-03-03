@@ -1,0 +1,141 @@
+import React, { useMemo, useState } from 'react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SERVICES_CONFIG } from '../../utils/constants';
+import { useToast } from '../common/Toast';
+import DailyAgenda from './DailyAgenda';
+
+interface CalendarViewProps {
+    bookings: any[];
+    onConfirm: (id: string) => void;
+    onDelete: (id: string) => void;
+    onWhatsApp: (client: any, booking: any) => void;
+}
+
+const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onConfirm, onDelete, onWhatsApp }) => {
+    const { showToast } = useToast();
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+    const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
+    // Fix: Create new Date instead of mutating
+    const changeMonth = (offset: number) => {
+        setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+    };
+
+    const calendarDays = useMemo(() => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const offset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+        const days: ({ day: number; dateStr: string } | null)[] = [];
+        for (let i = 0; i < offset; i++) days.push(null);
+        for (let d = 1; d <= daysInMonth; d++) {
+            days.push({
+                day: d,
+                dateStr: `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+            });
+        }
+        return days;
+    }, [currentDate]);
+
+
+    return (
+        <>
+            {/* Calendar Grid */}
+            <div className="bg-[#121212] rounded-2xl border border-white/5 p-4 md:p-6 shadow-2xl mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <div className="flex items-center gap-4">
+                        <h3 className="font-bold text-braz-gold uppercase tracking-wider text-sm">Agenda</h3>
+                        <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10">
+                            <button onClick={() => changeMonth(-1)} className="p-2 hover:text-braz-gold transition-colors">
+                                <ChevronLeft size={16} />
+                            </button>
+                            <span className="px-4 text-[11px] font-semibold uppercase tracking-tight min-w-[140px] text-center">
+                                {currentDate.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}
+                            </span>
+                            <button onClick={() => changeMonth(1)} className="p-2 hover:text-braz-gold transition-colors">
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Week headers */}
+                <div className="grid grid-cols-7 gap-1 md:gap-2">
+                    {weekDays.map(d => (
+                        <div key={d} className="text-center text-[9px] font-semibold text-white/20 uppercase pb-3">{d}</div>
+                    ))}
+
+                    {calendarDays.map((day, idx) => {
+                        if (!day) return <div key={`empty-${idx}`} className="min-h-[80px] md:min-h-[100px] opacity-0" />;
+
+                        const dayBookings = bookings.filter(b => b.date === day.dateStr);
+                        const isToday = new Date().toISOString().split('T')[0] === day.dateStr;
+
+                        return (
+                            <div
+                                key={day.dateStr}
+                                onClick={() => setSelectedDay(day.dateStr)}
+                                className={`min-h-[80px] md:min-h-[100px] bg-white/[0.02] rounded-xl p-2 md:p-3 border transition-all cursor-pointer hover:bg-white/[0.06] hover:scale-[1.02] ${isToday ? 'border-braz-gold/50 bg-braz-gold/5' : 'border-white/5'
+                                    }`}
+                            >
+                                <span className={`text-[10px] font-semibold ${isToday ? 'text-braz-gold' : 'text-white/20'}`}>
+                                    {day.day}
+                                </span>
+
+                                <div className="mt-2 space-y-1">
+                                    {dayBookings.slice(0, 3).map(b => (
+                                        <div
+                                            key={b.id}
+                                            className={`p-1 rounded text-[7px] md:text-[8px] font-bold uppercase truncate border ${b.status === 'confirmed' ? 'border-green-500/30 text-green-400 bg-green-500/5' :
+                                                b.status === 'blocked' ? 'border-orange-500/30 text-orange-400 bg-orange-500/5' :
+                                                    b.status === 'cancelled' ? 'border-red-500/30 text-red-400 bg-red-500/5' :
+                                                        'border-braz-gold/30 text-braz-gold bg-braz-gold/5'
+                                                }`}
+                                        >
+                                            {b.time} {b.client?.name?.split(' ')[0] || 'ADMIN'}
+                                        </div>
+                                    ))}
+                                    {dayBookings.length > 3 && (
+                                        <p className="text-[8px] text-center text-white/20 font-bold">+{dayBookings.length - 3}</p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Daily Agenda Modal */}
+            <AnimatePresence>
+                {selectedDay && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                        onClick={() => setSelectedDay(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-3xl"
+                        >
+                            <DailyAgenda
+                                date={selectedDay}
+                                bookings={bookings.filter(b => b.date === selectedDay)}
+                                onClose={() => setSelectedDay(null)}
+                                onConfirm={onConfirm}
+                                onDelete={onDelete}
+                                onWhatsApp={onWhatsApp}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+};
+
+export default CalendarView;

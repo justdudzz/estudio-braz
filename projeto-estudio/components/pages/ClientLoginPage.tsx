@@ -13,7 +13,7 @@ const ClientLoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/auth/client/login', { email, password });
+      const response = await api.post('/auth/client-login', { email, password });
       login(response.data);
       window.location.href = '/vip';
     } catch (err: any) {
@@ -23,7 +23,7 @@ const ClientLoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6 font-montserrat">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-[#121212] p-10 rounded-[2.5rem] border border-white/5 shadow-2xl"
@@ -39,8 +39,8 @@ const ClientLoginPage: React.FC = () => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-2">Email de Cliente</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-braz-pink/50 outline-none transition-all mt-2"
               placeholder="exemplo@email.com"
               value={email}
@@ -51,8 +51,8 @@ const ClientLoginPage: React.FC = () => {
 
           <div>
             <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-2">Chave de Acesso</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-braz-pink/50 outline-none transition-all mt-2"
               placeholder="••••••••"
               value={password}
@@ -63,7 +63,7 @@ const ClientLoginPage: React.FC = () => {
 
           {error && <p className="text-red-500 text-xs text-center font-medium">{error}</p>}
 
-          <button 
+          <button
             type="submit"
             className="w-full bg-white text-black font-bold py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-braz-pink hover:text-white transition-all group"
           >

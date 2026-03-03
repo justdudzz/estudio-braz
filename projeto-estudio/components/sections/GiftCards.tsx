@@ -24,8 +24,8 @@ const GiftCards: React.FC = () => {
     setStatus('loading');
 
     // Cria a mensagem para o WhatsApp
-    const message = `Olá Studio Braz! 🎁 Gostaria de oferecer um Gift Card no valor de €${amount}.\n\n*Os meus dados:*\nNome: ${name}\nEmail: ${email}\nTelemóvel: ${phone}\n\nComo posso proceder ao pagamento?`;
-    const whatsappUrl = `https://wa.me/351${BUSINESS_INFO.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    const message = `Olá Studio Braz! 🎁 Gostaria de oferecer um Cartão Presente no valor de €${amount}.\n\n*Os meus dados:*\nNome: ${name}\nEmail: ${email}\nTelemóvel: ${phone}\n\nComo posso proceder ao pagamento?`;
+    const whatsappUrl = `https://wa.me/${BUSINESS_INFO.whatsapp}?text=${encodeURIComponent(message)}`;
 
     // Simula um pequeno tempo de carregamento antes de redirecionar para o WhatsApp
     setTimeout(() => {
@@ -98,7 +98,7 @@ const GiftCards: React.FC = () => {
               <p className="text-xs text-white/60 mt-1.5 font-medium">IVA incluído à taxa legal</p>
             </div>
 
-            <div className="mt-8 text-[10px] text-white/20 uppercase tracking-widest">Digital Gift Card • Valid for 6 Months</div>
+            <div className="mt-8 text-[10px] text-white/20 uppercase tracking-widest">Cartão Presente Digital • Válido por 6 Meses</div>
           </div>
 
           {/* Formulário */}

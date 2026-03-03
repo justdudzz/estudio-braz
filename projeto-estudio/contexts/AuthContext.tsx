@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../src/services/api';
 
 interface User {
   id: string;
@@ -11,7 +12,6 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (userData: any) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -22,45 +22,64 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
+  // Carregar utilizador do localStorage (apenas dados, NÃO o token) (#1)
   useEffect(() => {
-    const savedToken = localStorage.getItem('braz_token');
     const savedUser = localStorage.getItem('braz_user');
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+    const expiresAt = localStorage.getItem('braz_expires_at');
+
+    if (savedUser && expiresAt) {
+      // Verificar se a sessão ainda não expirou (#2)
+      if (Date.now() < parseInt(expiresAt, 10)) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        // Token expirado — limpar dados
+        localStorage.removeItem('braz_user');
+        localStorage.removeItem('braz_expires_at');
+      }
     }
   }, []);
 
   const login = (data: any) => {
-    // Suporta tanto a estrutura de admin como a de client do backend
-    const userData = data.user || data.client;
-    const userRole = data.user ? 'admin' : 'client';
-    
-    const finalUser: User = { ...userData, role: userRole };
-    
-    setToken(data.token);
+    // O backend envia { user: {...}, expiresAt } — SEM token no body (#1)
+    const userData = data.user;
+
+    const finalUser: User = {
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+      name: userData.name,
+      tier: userData.tier,
+      points: userData.points,
+    };
+
     setUser(finalUser);
-    localStorage.setItem('braz_token', data.token);
+    // Guardar apenas dados do user e expiração (NÃO o token!) (#1, #2)
     localStorage.setItem('braz_user', JSON.stringify(finalUser));
+    localStorage.setItem('braz_expires_at', String(data.expiresAt));
   };
 
-  const logout = () => {
-    setToken(null);
+  const logout = async () => {
+    try {
+      // Chamar o servidor para limpar o cookie httpOnly (#13)
+      await api.post('/auth/logout');
+    } catch (err) {
+      // Se falhar o request, limpar localmente mesmo assim
+      console.error('Erro ao fazer logout no servidor:', err);
+    }
+
     setUser(null);
-    localStorage.removeItem('braz_token');
     localStorage.removeItem('braz_user');
+    localStorage.removeItem('braz_expires_at');
     window.location.href = '/';
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      login, 
-      logout, 
-      isAuthenticated: !!token,
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      isAuthenticated: !!user,
       isAdmin: user?.role === 'admin'
     }}>
       {children}

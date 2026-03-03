@@ -136,3 +136,81 @@
 {"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-02-28T17:49:15.831Z"}
 {"level":"info","message":"🔗 Identidade Fundida: Rafa (Email e Tel reconciliados)","timestamp":"2026-02-28T18:03:11.153Z"}
 {"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-02-28T18:25:43.089Z"}
+{"level":"error","message":"Erro na Fortaleza: \nInvalid `prisma.booking.findMany()` invocation in\nC:\\Users\\Edu\\MyProject\\backend\\src\\controllers\\bookingController.ts:126:43\n\n  123 const { date } = req.query;\n  124 \n  125 try {\n→ 126   const bookings = await prisma.booking.findMany(\n","timestamp":"2026-03-01T00:55:20.348Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-03-01T00:56:37.176Z"}
+{"level":"error","message":"Erro no Login Admin: \nInvalid `prisma.user.findUnique()` invocation in\nC:\\Users\\Edu\\MyProject\\backend\\src\\controllers\\authController.ts:13:36\n\n  10 \n  11 try {\n  12   // Busca o utilizador real no PostgreSQL (Tabela User)\n→ 13   const user = await prisma.user.findUnique(\n","timestamp":"2026-03-02T19:19:53.672Z"}
+{"level":"error","message":"Erro no Login Admin: \nInvalid `prisma.user.findUnique()` invocation in\nC:\\Users\\Edu\\MyProject\\backend\\src\\controllers\\authController.ts:13:36\n\n  10 \n  11 try {\n  12   // Busca o utilizador real no PostgreSQL (Tabela User)\n→ 13   const user = await prisma.user.findUnique(\n","timestamp":"2026-03-02T19:19:57.268Z"}
+{"level":"error","message":"Erro no Login Admin: \nInvalid `prisma.user.findUnique()` invocation in\nC:\\Users\\Edu\\MyProject\\backend\\src\\controllers\\authController.ts:13:36\n\n  10 \n  11 try {\n  12   // Busca o utilizador real no PostgreSQL (Tabela User)\n→ 13   const user = await prisma.user.findUnique(\n","timestamp":"2026-03-02T19:20:02.490Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com","timestamp":"2026-03-02T19:20:53.346Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T19:33:23.160Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T19:34:03.551Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T19:40:18.153Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T19:59:52.227Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T20:00:15.250Z"}
+{"level":"info","message":"Cliente de sistema criado com ID: 075e015d-c039-4d72-8535-6458e55e9201","timestamp":"2026-03-02T20:01:44.782Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T20:02:00.711Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:05:37.673Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:06:04.492Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:06:57.029Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T20:08:09.808Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:09:33.298Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T20:09:54.979Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:14:21.251Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:14:23.255Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:15:19.028Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:15:35.276Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:15:36.446Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:16:03.334Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:16:24.789Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:16:26.850Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T20:17:59.181Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T21:03:07.132Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-02T21:47:44.387Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T21:51:31.947Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T21:51:51.899Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T21:52:18.459Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-02T21:53:08.534Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-02T21:53:57.634Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-02T21:54:06.877Z"}
+{"level":"info","message":"Cliente bccaba3e-998a-4809-8131-b230b94c4655 atualizado: Rafa","timestamp":"2026-03-02T21:54:19.507Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-02T23:20:12.247Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T23:21:52.049Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-02T23:22:22.961Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-02T23:24:03.639Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-02T23:26:40.833Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T01:11:39.003Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T01:17:44.115Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-03T01:20:05.438Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T01:20:21.683Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T01:32:55.780Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T01:33:17.835Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T01:42:07.729Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T01:42:43.020Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-03T01:43:03.202Z"}
+{"level":"info","message":"[NOTIFICAÇÃO SMS] Enviada para edu (913652947): Lamentamos informar, mas tivemos de cancelar o seu horário de Microblading no dia 2026-03-04 às 09:00. Motivo: consulta.","timestamp":"2026-03-03T01:44:41.717Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-03T01:44:42.214Z"}
+{"level":"warn","message":"Login admin falhado — email inexistente: admin@studiobraz.com | IP: ::1","timestamp":"2026-03-03T01:45:11.039Z"}
+{"level":"warn","message":"Login admin falhado — email inexistente: admin@studiobraz.com | IP: ::1","timestamp":"2026-03-03T01:45:20.739Z"}
+{"level":"info","message":"Sessão terminada com sucesso.","timestamp":"2026-03-03T01:46:22.844Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T02:02:01.660Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T03:13:17.368Z"}
+{"level":"info","message":"Cliente c1e1c5eb-5746-4404-b94a-8cda7bfa061a atualizado: edu","timestamp":"2026-03-03T03:13:30.422Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T11:59:39.824Z"}
+{"level":"info","message":"Cliente f65ce840-46a7-4604-8c4d-2da5ea980f48 atualizado: Duda","timestamp":"2026-03-03T12:06:09.258Z"}
+{"level":"info","message":"Cliente 7e65fa99-df6e-44e4-8c3c-ae0581289c61 atualizado: rafa","timestamp":"2026-03-03T12:06:16.125Z"}
+{"level":"info","message":"Cliente 7e65fa99-df6e-44e4-8c3c-ae0581289c61 atualizado: rafa","timestamp":"2026-03-03T12:06:19.896Z"}
+{"level":"info","message":"Cliente ce9ed941-1913-4f59-9539-0dd2abfaee5d atualizado: Rafa","timestamp":"2026-03-03T12:06:32.249Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T13:14:30.907Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T13:56:43.759Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-03T14:00:53.303Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T14:01:07.478Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: Missing credentials for \"PLAIN\"","timestamp":"2026-03-03T14:01:13.586Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:23.147Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:23.148Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:26.110Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:26.110Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:26.743Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:26.743Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:33.552Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:33.552Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T15:09:18.003Z"}

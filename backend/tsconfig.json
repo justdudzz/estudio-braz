@@ -11,9 +11,16 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "src/*"]
+      "*": [
+        "node_modules/*",
+        "src/*"
+      ]
     }
   },
-  "include": ["src/**/*", "prisma.config.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

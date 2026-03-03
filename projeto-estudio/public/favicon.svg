@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Premium gold gradient -->
+    <linearGradient id="gold" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#F0D48B"/>
+      <stop offset="35%" stop-color="#C5A059"/>
+      <stop offset="70%" stop-color="#B8934A"/>
+      <stop offset="100%" stop-color="#967530"/>
+    </linearGradient>
+    <!-- Subtle inner shadow -->
+    <radialGradient id="bg" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0%" stop-color="#141414"/>
+      <stop offset="100%" stop-color="#080808"/>
+    </radialGradient>
+    <!-- Gold glow -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+
+  <!-- Subtle gold border ring -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#C5A059" stroke-width="3" opacity="0.2"/>
+
+  <!-- Bold S and B monogram — "SB" for Studio Braz -->
+  <!-- Using a large, elegant, thick "B" as the primary mark -->
+  <g filter="url(#glow)">
+    <text
+      x="256" y="340"
+      text-anchor="middle"
+      font-family="Georgia, 'Times New Roman', serif"
+      font-size="340"
+      font-weight="700"
+      fill="url(#gold)"
+      letter-spacing="-10"
+    >B</text>
+  </g>
+
+  <!-- Thin decorative line under -->
+  <line x1="160" y1="390" x2="352" y2="390" stroke="#C5A059" stroke-width="3" opacity="0.35"/>
+
+  <!-- Small accent dot -->
+  <circle cx="256" cy="415" r="5" fill="#C5A059" opacity="0.4"/>
+</svg>

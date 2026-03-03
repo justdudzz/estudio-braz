@@ -1,35 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Gift, Clock, ShieldCheck, Trophy, Loader2 } from 'lucide-react';
-import api from '../../src/services/api'; // Ajusta o caminho se necessário
+import { useAuth } from '../../contexts/AuthContext';
 
 const VipArea: React.FC = () => {
   // 1. ESTADOS DA PÁGINA
+  const { user } = useAuth();
   const [data, setData] = useState<any>(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. BUSCAR DADOS (Vai à base de dados buscar quem fez login)
+  // 2. CARREGAR DADOS DO CONTEXTO (já foram salvos no login)
   useEffect(() => {
-    const fetchVipData = async () => {
-      try {
-        const res = await api.get('/auth/me'); // A rota que devolve os dados de quem tem o Token
-        setData(res.data);
-        
-        // Simulação de histórico (Enquanto não criamos a rota real de histórico no backend)
-        setHistory([
-          { service: 'Manicure Gel', date: '10 Fev 2026', time: '14:30' },
-          { service: 'Pedicure', date: '28 Jan 2026', time: '10:00' }
-        ] as any);
+    // Os dados do cliente VIP já vêm do AuthContext (guardados no localStorage no login)
+    if (user) {
+      setData(user);
+    }
 
-      } catch (err) { 
-        console.error("Erro ao carregar dados VIP"); 
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchVipData();
-  }, []);
+    // Simulação de histórico (Enquanto não criamos a rota real de histórico no backend)
+    setHistory([
+      { service: 'Manicure Gel', date: '10 Fev 2026', time: '14:30' },
+      { service: 'Pedicure', date: '28 Jan 2026', time: '10:00' }
+    ] as any);
+
+    setLoading(false);
+  }, [user]);
 
   // 3. ECRÃ DE CARREGAMENTO DE LUXO
   if (loading) {
@@ -45,26 +40,26 @@ const VipArea: React.FC = () => {
 
   // Cálculos para a barra de progresso
   const points = data?.points || 0;
-  const progressPercentage = (points % 100); 
+  const progressPercentage = (points % 100);
   const pointsToNextTier = 100 - progressPercentage;
 
   // 4. ECRÃ PRINCIPAL
   return (
     <div className="min-h-screen bg-[#050505] text-white font-montserrat p-4 md:p-12 pt-24">
       <div className="max-w-5xl mx-auto">
-        
+
         {/* Header de Boas-Vindas */}
         <header className="mb-12">
           <p className="text-braz-pink text-[10px] font-bold uppercase tracking-[0.5em] mb-2">Bem-vinda ao Salão VIP</p>
           <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-3">
-            Olá, {data?.name?.split(' ')[0] || 'Soberana'}!
+            Olá, {data?.name?.split(' ')[0] || 'Cliente'}!
           </h1>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Cartão de Pontos (Design Cartão de Crédito Black) */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-2 bg-gradient-to-br from-[#1a1a1a] to-black border border-white/10 p-8 md:p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group"
           >
@@ -72,7 +67,7 @@ const VipArea: React.FC = () => {
             <div className="absolute -top-10 -right-10 p-10 opacity-5 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 group-hover:opacity-10 pointer-events-none">
               <Crown size={250} />
             </div>
-            
+
             <div className="flex justify-between items-start mb-16 relative z-10">
               <ShieldCheck className="text-braz-pink" size={32} />
               <span className="text-[10px] font-bold bg-gradient-to-r from-braz-pink to-purple-500 text-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-braz-pink/20">
@@ -91,7 +86,7 @@ const VipArea: React.FC = () => {
             {/* Barra de Progresso para o próximo Nível */}
             <div className="relative z-10">
               <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden mb-3">
-                <motion.div 
+                <motion.div
                   initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} transition={{ duration: 1.5, ease: "easeOut" }}
                   className="h-full bg-gradient-to-r from-braz-pink to-purple-500 shadow-[0_0_15px_rgba(255,46,144,0.5)] rounded-full"
                 />
@@ -110,7 +105,7 @@ const VipArea: React.FC = () => {
               <h3 className="text-xs font-bold uppercase tracking-widest mb-2 text-white/80">Próximo Mimo</h3>
               <p className="text-white/40 text-[11px] leading-relaxed">Aos 100 pontos ganha um <strong>Design de Sobrancelha</strong> gratuito. Continue a brilhar!</p>
             </motion.div>
-            
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-braz-pink/10 to-transparent p-6 md:p-8 rounded-3xl border border-braz-pink/20 hover:border-braz-pink/40 transition-colors cursor-pointer group">
               <Gift className="text-braz-pink mb-4 group-hover:scale-110 transition-transform" size={24} />
               <h3 className="text-xs font-bold uppercase tracking-widest mb-2 text-braz-pink">Oferta Especial</h3>
@@ -144,7 +139,7 @@ const VipArea: React.FC = () => {
             )}
           </div>
         </section>
-        
+
       </div>
     </div>
   );

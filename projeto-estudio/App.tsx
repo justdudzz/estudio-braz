@@ -1,114 +1,120 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // 🛡️ Autenticação
-import { AuthProvider, useAuth } from './contexts/AuthContext'; 
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // 🗺️ Layout & Componentes Comuns
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CookieBanner from './components/common/CookieBanner';
 import NetworkStatus from './components/common/NetworkStatus';
-import ScrollToTop from './utils/scroll'; // Importação do ScrollToTop
+import { ToastProvider } from './components/common/Toast';
+import ScrollToTop from './utils/scroll';
 
-// 🎨 Secções da Página Principal (A Montra)
-import HeroSection from './components/sections/HeroSection';
-import TrustMirror from './components/sections/TrustMirror';
-import ServicesGrid from './components/sections/ServicesGrid';
-import SpecialistSection from './components/sections/SpecialistSection';
-import Gallery from './components/sections/Gallery';
-import Testimonials from './components/sections/Testimonials';
-import BookingForm from './components/sections/BookingForm';
-import LocationMap from './components/sections/LocationMap';
+import AnimatedCursor from './components/common/AnimatedCursor';
+import FloatingWhatsApp from './components/common/FloatingWhatsApp';
+
+// 🎨 Páginas Públicas
+import HomePage from './components/pages/HomePage';
+import ServicesPage from './components/pages/ServicesPage';
+import PortfolioPage from './components/pages/PortfolioPage';
+import AboutPage from './components/pages/AboutPage';
+import BookingPage from './components/pages/BookingPage';
+import ContactPage from './components/pages/ContactPage';
+import FAQPage from './components/pages/FAQPage';
+import GiftCardsPage from './components/pages/GiftCardsPage';
 
 // 🔑 Páginas de Login e Áreas Restritas
 import LoginPage from './components/pages/LoginPage';
 import ClientLoginPage from './components/pages/ClientLoginPage';
-import AdminDashboard from './components/admin/AdminDashboard';
 import VipArea from './components/vip/VipArea';
 
 // 📜 Páginas Legais
 import PrivacyPolicy from './components/pages/PrivacyPolicy';
 import TermsAndConditions from './components/pages/TermsAndConditions';
 
-// Componente de Proteção de Rota
+// 🏛️ Admin
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './components/admin/AdminDashboard';
+import BookingsTable from './components/admin/BookingsTable';
+import AdminVipArea from './components/admin/VipArea';
+import BlockManagement from './components/admin/BlockManagement';
+import SettingsPage from './components/admin/SettingsPage';
+import ReportsPage from './components/admin/ReportsPage';
+
+// Proteção de Rota
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: 'admin' | 'client' }) => {
   const { isAuthenticated, user } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to={role === 'admin' ? '/login' : '/vip/login'} />;
-  }
-  
-  if (user?.role !== role) {
-    return <Navigate to="/" />;
-  }
-  
+  if (!isAuthenticated) return <Navigate to={role === 'admin' ? '/login' : '/vip/login'} />;
+  if (user?.role !== role) return <Navigate to="/" />;
   return <>{children}</>;
 };
 
-// Layout Padrão para páginas públicas (Com Navbar e Footer)
-const PublicLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex flex-col min-h-screen bg-braz-black">
-    <Navbar />
-    <main className="flex-grow pt-[104px] md:pt-[130px]">
-      {children}
-    </main>
-    <Footer />
-  </div>
-);
+// Layout Público (Com Navbar e Footer)
+const PublicLayout = ({ children }: { children: React.ReactNode }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  return (
+    <div className="flex flex-col min-h-screen bg-braz-black">
+      <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} isMenuOpen={isMenuOpen} />
+      <main className="flex-grow pt-[104px] md:pt-[130px]">
+        {children}
+      </main>
+      <Footer />
+      <FloatingWhatsApp />
+    </div>
+  );
+};
 
 const AppContent = () => {
   return (
     <>
       <ScrollToTop />
       <NetworkStatus />
-      
-      <Routes>
-        {/* 🏠 Home: O Império Completo */}
-        <Route path="/" element={
-          <PublicLayout>
-            <HeroSection />
-            <TrustMirror />
-            <ServicesGrid />
-            <SpecialistSection />
-            <Gallery />
-            <Testimonials />
-            <BookingForm />
-            <LocationMap />
-          </PublicLayout>
-        } />
-        
-        {/* ⚖️ Páginas Legais */}
-        <Route path="/politica-privacidade" element={
-          <PublicLayout>
-            <PrivacyPolicy />
-          </PublicLayout>
-        } />
-        <Route path="/termos-condicoes" element={
-          <PublicLayout>
-            <TermsAndConditions />
-          </PublicLayout>
-        } />
 
-        {/* 🔑 Logins (Sem Navbar gigante) */}
+      <Routes>
+        {/* 🏠 Home */}
+        <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+
+        {/* 📄 Páginas Públicas */}
+        <Route path="/servicos" element={<PublicLayout><ServicesPage /></PublicLayout>} />
+        <Route path="/portfolio" element={<PublicLayout><PortfolioPage /></PublicLayout>} />
+        <Route path="/sobre" element={<PublicLayout><AboutPage /></PublicLayout>} />
+        <Route path="/agendar" element={<PublicLayout><BookingPage /></PublicLayout>} />
+        <Route path="/contacto" element={<PublicLayout><ContactPage /></PublicLayout>} />
+        <Route path="/faq" element={<PublicLayout><FAQPage /></PublicLayout>} />
+        <Route path="/cartoes-presente" element={<PublicLayout><GiftCardsPage /></PublicLayout>} />
+
+        {/* ⚖️ Legais */}
+        <Route path="/politica-privacidade" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
+        <Route path="/termos-condicoes" element={<PublicLayout><TermsAndConditions /></PublicLayout>} />
+
+        {/* 🔑 Logins */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/vip/login" element={<ClientLoginPage />} />
 
-        {/* 🏛️ Admin Dashboard (Protegido) */}
+        {/* 🏛️ Admin — Sidebar Layout com Sub-rotas */}
         <Route path="/dashboard" element={
           <ProtectedRoute role="admin">
-            <AdminDashboard />
+            <AdminLayout />
           </ProtectedRoute>
-        } />
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="agenda" element={<BookingsTable />} />
+          <Route path="clientes" element={<AdminVipArea />} />
+          <Route path="bloqueios" element={<BlockManagement />} />
+          <Route path="configuracoes" element={<SettingsPage />} />
+          <Route path="relatorios" element={<ReportsPage />} />
+        </Route>
 
-        {/* 💎 Área VIP da Cliente (Protegido) */}
+        {/* 💎 Área VIP */}
         <Route path="/vip" element={
           <ProtectedRoute role="client">
             <VipArea />
           </ProtectedRoute>
         } />
 
-        {/* 🔄 Redirecionamento de segurança para links quebrados */}
+        {/* 🔄 Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
@@ -117,11 +123,13 @@ const AppContent = () => {
   );
 };
 
-// O componente App invólucro limpo
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AnimatedCursor />
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

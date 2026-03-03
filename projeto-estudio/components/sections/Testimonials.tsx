@@ -5,21 +5,27 @@ import { BUSINESS_INFO } from '../../utils/constants';
 
 const testimonialsData = [
   {
-    quote: "A Mariana é uma artista. O microblading ficou super natural, exatamente como eu queria!",
-    name: "Sofia R.",
+    quote: "A excelência em pessoa. O microblading ficou incrivelmente natural. A Mariana tem um talento único e um cuidado extremo com cada detalhe.",
+    name: "Catarina V.",
     service: "Microblading",
     stars: 5
   },
   {
-    quote: "Ambiente fantástico e atendimento de luxo. A limpeza de pele mudou a textura do meu rosto.",
-    name: "Carla M.",
-    service: "Limpeza de Pele",
+    quote: "Uma verdadeira experiência de spa. A limpeza de pele não só melhorou a textura do meu rosto como me deixou completamente relaxada.",
+    name: "Joana M.",
+    service: "Limpeza de Pele Profunda",
     stars: 5
   },
   {
-    quote: "Melhores unhas de gel da região. Durabilidade e design impecáveis.",
+    quote: "Design perfeito e durabilidade impressionante. São, sem dúvida, as melhores unhas de gel que já fiz na região de Águeda.",
     name: "Beatriz S.",
-    service: "Unhas de Gel",
+    service: "Design de Unhas",
+    stars: 5
+  },
+  {
+    quote: "O lifting de pestanas abriu o meu olhar de uma forma que nunca imaginei ser possível. Recomendo de olhos fechados o Studio Braz.",
+    name: "Inês P.",
+    service: "Lifting de Pestanas",
     stars: 5
   }
 ];
@@ -30,20 +36,29 @@ const TestimonialCard: React.FC<{ testimonial: typeof testimonialsData[0], index
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ delay: index * 0.1 }}
-    className="bg-[#171717] p-8 rounded-2xl border border-white/5 flex flex-col h-full shadow-xl hover:border-braz-pink/20 transition-all group"
+    className="relative bg-gradient-to-br from-[#121212] to-[#0A0A0A] p-8 md:p-10 rounded-golden-lg border border-white/5 flex flex-col h-full shadow-2xl hover:border-braz-pink/30 hover:shadow-[0_0_30px_rgba(197,160,89,0.1)] transition-all duration-500 group overflow-hidden"
   >
-    <div className="flex text-braz-pink mb-4">
-      {[...Array(testimonial.stars)].map((_, i) => (
-        <Star key={i} size={14} fill="currentColor" />
-      ))}
+    {/* Aspas decorativas transparentes no fundo */}
+    <Quote className="absolute -bottom-4 -right-4 text-white/5 group-hover:text-braz-pink/5 group-hover:rotate-12 transition-all duration-700 w-40 h-40" />
+
+    <div className="flex justify-between items-start mb-8 relative z-10">
+      <div className="flex text-braz-pink gap-1">
+        {[...Array(testimonial.stars)].map((_, i) => (
+          <Star key={i} size={16} fill="currentColor" />
+        ))}
+      </div>
+      <Quote className="text-braz-pink/40" size={24} />
     </div>
-    <Quote className="text-braz-pink/20 mb-4 group-hover:text-braz-pink/40 transition-colors" size={32} />
-    <p className="text-white/80 italic mb-8 flex-grow leading-relaxed">
+
+    <p className="text-white/80 font-light italic mb-10 flex-grow text-sm md:text-base leading-relaxed tracking-wide relative z-10">
       "{testimonial.quote}"
     </p>
-    <div className="mt-auto pt-4 border-t border-white/5">
-      <p className="font-bold text-white uppercase text-xs tracking-widest">{testimonial.name}</p>
-      <p className="text-[10px] text-braz-pink uppercase tracking-wider">{testimonial.service}</p>
+
+    <div className="mt-auto pt-6 border-t border-white/10 relative z-10 flex justify-between items-end">
+      <div>
+        <p className="font-bold text-white uppercase text-xs tracking-[0.2em] mb-1">{testimonial.name}</p>
+        <p className="text-[10px] text-braz-pink uppercase tracking-widest">{testimonial.service}</p>
+      </div>
     </div>
   </motion.div>
 );
@@ -57,7 +72,7 @@ const Testimonials: React.FC = () => {
           <div className="w-20 h-1 bg-braz-pink mx-auto mt-6" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           {testimonialsData.map((t, i) => (
             <TestimonialCard key={i} testimonial={t} index={i} />
           ))}

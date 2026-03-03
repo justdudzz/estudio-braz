@@ -34,12 +34,16 @@ export default {
         'golden-lg': '1.618rem',
       },
 
-      // --- 2. IDENTIDADE CROMÁTICA (Dourado Soberano) ---
+      // --- 2. IDENTIDADE CROMÁTICA (Dourado Soberano Elite) ---
       colors: {
         'braz-gold': '#C5A059', // A nova alma do estúdio
-        'braz-black': '#0A0A0A', 
-        'braz-cream': '#F5F5F5',
-        'aura-gold': 'rgba(197, 160, 89, 0.1)', // Para fundos suaves e halos de luz
+        'braz-gold-light': '#D6B878', // Para hovers subtis
+        'braz-gold-dark': '#9A7A3E', // Para gradientes profundos
+        'braz-black': '#050505', // Preto abismal para luxo
+        'braz-charcoal': '#121212', // Cinzento rico para cartões
+        'braz-cream': '#F8F6F0', // Branco sujo editorial
+        'aura-gold': 'rgba(197, 160, 89, 0.08)', // Halos ultra-suaves
+        'glass-dark': 'rgba(10, 10, 10, 0.4)', // Vidro negro premium
       },
 
       // --- 3. ESTÉTICA E IMPACTO ---
@@ -52,21 +56,35 @@ export default {
       },
 
       backgroundImage: {
-        // Gradiente que simula o brilho do metal precioso
+        // Gradiente metálico hiper-realista para detalhes premium
+        'gold-metallic': 'linear-gradient(135deg, #A88241 0%, #D6B878 35%, #FFF2C8 50%, #D6B878 65%, #A88241 100%)',
         'gold-gradient': 'linear-gradient(135deg, #C5A059 0%, #E5C585 100%)',
-        'carbon-overlay': 'linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,1) 100%)',
+        'carbon-overlay': 'linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(5,5,5,1) 100%)',
+        'glass-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.0) 100%)',
       },
 
-      // --- 4. MOVIMENTO SOBERANO ---
-      animation: {
-        'blink': 'opacity 0.3s ease-in-out',
-        'float': 'float 3s ease-in-out infinite',
+      boxShadow: {
+        'elite-glow': '0 0 40px -10px rgba(197, 160, 89, 0.15)',
+        'elite-glow-hover': '0 0 60px -15px rgba(197, 160, 89, 0.3)',
+        'glass-inset': 'inset 0 1px 0 0 rgba(255,255,255,0.05)',
       },
-      
+
+      // --- 4. MOVIMENTO SOBERANO (Cinema & Fluidez) ---
+      animation: {
+        'blink': 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        'float': 'float 4s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in-up': 'fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+      },
+
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         }
       }
     },

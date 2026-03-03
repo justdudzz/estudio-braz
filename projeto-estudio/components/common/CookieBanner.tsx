@@ -8,7 +8,7 @@ import { initializeScriptsByConsent } from '../../utils/externalScripts';
 const CookieBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
-  
+
   // Estado para as preferências detalhadas
   const [preferences, setPreferences] = useState({
     essential: true,   // Sempre verdadeiro
@@ -32,7 +32,7 @@ const CookieBanner: React.FC = () => {
     localStorage.setItem(cookieConsentKey, JSON.stringify(prefs));
     setIsVisible(false);
     setShowConfig(false);
-   
+
     // 2. ATIVAÇÃO IMEDIATA: Chama a inicialização logo após guardar
     initializeScriptsByConsent();
   };
@@ -51,7 +51,7 @@ const CookieBanner: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="fixed bottom-0 left-0 right-0 z-[100] bg-braz-black/95 backdrop-blur-xl text-white py-6 px-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-braz-pink/30 font-montserrat"
+            className="fixed bottom-0 left-0 right-0 z-[100] bg-[#050505] text-white py-6 px-8 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-braz-gold/20 font-montserrat"
             role="alert"
             aria-live="polite"
           >
@@ -59,11 +59,11 @@ const CookieBanner: React.FC = () => {
               <div className="flex items-center space-x-4 flex-1 max-w-3xl text-center lg:text-left">
                 <ShieldAlert className="w-8 h-8 text-braz-pink hidden md:block flex-shrink-0" />
                 <p className="text-sm text-white/80 leading-relaxed">
-                  Utilizamos cookies para personalizar a sua experiência, analisar tráfego e oferecer conteúdo relevante. 
+                  Utilizamos cookies para personalizar a sua experiência, analisar tráfego e oferecer conteúdo relevante.
                   Pode configurar as suas preferências ou aceitar todas.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                 <button
                   onClick={() => setShowConfig(true)}
@@ -84,9 +84,9 @@ const CookieBanner: React.FC = () => {
       </AnimatePresence>
 
       {/* Modal de Configuração de Cookies */}
-      <Modal 
-        isOpen={showConfig} 
-        onClose={() => setShowConfig(false)} 
+      <Modal
+        isOpen={showConfig}
+        onClose={() => setShowConfig(false)}
         title="Definições de Cookies"
       >
         <div className="space-y-6 py-2">
@@ -105,8 +105,8 @@ const CookieBanner: React.FC = () => {
               <p className="font-bold text-white">Estatísticas</p>
               <p className="text-xs text-white/50">Ajudam-nos a melhorar a experiência e analisar o tráfego.</p>
             </div>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={preferences.analytics}
               onChange={e => setPreferences({ ...preferences, analytics: e.target.checked })}
               className="w-5 h-5 accent-braz-pink cursor-pointer"
@@ -119,8 +119,8 @@ const CookieBanner: React.FC = () => {
               <p className="font-bold text-white">Marketing</p>
               <p className="text-xs text-white/50">Para ofertas personalizadas e publicidade relevante.</p>
             </div>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={preferences.marketing}
               onChange={e => setPreferences({ ...preferences, marketing: e.target.checked })}
               className="w-5 h-5 accent-braz-pink cursor-pointer"

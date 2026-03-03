@@ -1,89 +1,185 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import OptimizedImage from '../common/OptimizedImage';
-import { ArrowDownCircle } from 'lucide-react';
-import { scrollToSection } from '../../utils/scroll';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.5
-    }
-  },
-};
+// --- Partículas de Pó Dourado ---
+const GoldDust = () => {
+  const particles = Array.from({ length: 35 }).map((_, i) => ({
+    id: i,
+    size: Math.random() * 2.5 + 1,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: Math.random() * 18 + 12,
+    delay: Math.random() * 6,
+  }));
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[2]">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-[#C5A059] blur-[0.5px] mix-blend-screen"
+          style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%` }}
+          animate={{
+            y: [0, -120 - (Math.random() * 80)],
+            x: [0, (Math.random() - 0.5) * 40],
+            opacity: [0, 0.6, 0],
+            scale: [0.5, 1.3, 0.5]
+          }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
+        />
+      ))}
+    </div>
+  );
 };
 
 const HeroSection: React.FC = () => {
-  const handleScroll = () => {
-    scrollToSection('servicos');
-  };
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { scrollY } = useScroll();
+
+  const bgY = useTransform(scrollY, [0, 600], [0, 120]);
+  const contentOpacity = useTransform(scrollY, [0, 350], [1, 0]);
+  const contentY = useTransform(scrollY, [0, 350], [0, -60]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <section id="hero" className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
+    <section
+      id="hero"
+      className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black -mt-[104px] md:-mt-[130px] pt-[104px] md:pt-[130px]"
+    >
+      {/* === CAMADA 1: Background com Ken Burns + Parallax === */}
+      <motion.div className="absolute inset-0 w-full h-full z-0" style={{ y: bgY }}>
+        <motion.div
+          className="absolute inset-0 w-full h-full"
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 30, ease: "linear", repeat: Infinity }}
+        >
+          <OptimizedImage
+            src="/assets/hero-bg.jpg"
+            alt="Studio Braz — ambiente de luxo"
+            className="w-full h-full object-cover object-center"
+            priority={true}
+          />
+        </motion.div>
 
-      {/* Background Image Container */}
-      <div className="absolute inset-0 w-full h-full">
-        <OptimizedImage
-          src="/assets/hero-bg.jpg" // Agora aponta para o seu próprio servidor
-          alt="Ambiente de estética de luxo escuro e dourado"
-          className="w-full h-full object-cover object-center opacity-60"
-          priority={true}
-        />
-        {/* Overlay Escuro Gradual */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90"></div>
-      </div>
+        {/* Overlays */}
+        <div className="absolute inset-0 bg-black/55 z-[1]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.9)_100%)] z-[1]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#0A0A0A] z-[1]" />
+      </motion.div>
 
-      {/* Content */}
+      {/* === CAMADA 2: Partículas === */}
+      <GoldDust />
+
+      {/* === CAMADA 3: Conteúdo — Logo + CTA === */}
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 text-center max-w-5xl mx-auto px-6 mt-0 md:mt-10"
+        className="relative z-10 text-center flex flex-col items-center px-6"
+        style={{ opacity: contentOpacity, y: contentY }}
       >
-        {/* CORREÇÃO AQUI: Alterado de Estúdio para Studio */}
-        <motion.h1
-          variants={itemVariants}
-          className="text-5xl md:text-7xl lg:text-8xl font-extrabold uppercase tracking-tighter text-white mb-6 drop-shadow-2xl"
+        {/* Logo da marca — Entrada cinematic */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.7, filter: 'blur(20px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 1.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mb-8"
         >
-          Studio Braz
-        </motion.h1>
+          {/* Glow dourado atrás do logo */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] rounded-full -z-10"
+            style={{ background: 'radial-gradient(circle, rgba(197,160,89,0.12) 0%, transparent 70%)' }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 2.5, delay: 0.8 }}
+          />
 
+          <img
+            src="/footerPaginaInicial.png"
+            alt="Studio Braz"
+            className="h-36 md:h-48 lg:h-56 w-auto object-contain drop-shadow-[0_0_40px_rgba(197,160,89,0.2)]"
+          />
+        </motion.div>
+
+        {/* Linha decorativa */}
+        <motion.div
+          className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mb-6"
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ duration: 1.2, delay: 1.4 }}
+        />
+
+        {/* Tagline */}
         <motion.p
-          variants={itemVariants}
-          className="text-lg md:text-2xl lg:text-3xl text-braz-pink font-light mb-12 tracking-wide leading-relaxed"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          className="text-sm md:text-base lg:text-lg text-white/80 font-medium tracking-[0.2em] uppercase font-montserrat mb-10 max-w-xl"
         >
-          Estética Avançada &amp; Beleza de Luxo em Águeda
+          Qual é o seu desejo de beleza hoje?
         </motion.p>
 
-        <motion.div variants={itemVariants}>
-          <button
-            onClick={() => scrollToSection('agendamento')}
-            className="bg-braz-pink text-braz-black px-12 py-5 text-lg font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 shadow-[0_0_30px_rgba(197,160,89,0.4)] focus:outline-none focus:ring-4 focus:ring-braz-pink/50 rounded-sm hover:scale-105 transform"
+        {/* Badges */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 2.0 }}
+          className="flex flex-wrap justify-center gap-3 mb-10"
+        >
+          <div className="bg-white/5 backdrop-blur-xl border border-[#C5A059]/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059] animate-pulse" />
+            Especialista Certificada
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl border border-[#C5A059]/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-2">
+            <span className="text-[#C5A059]">★</span> 5.0 Google
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl border border-[#C5A059]/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60">
+            Águeda, Portugal
+          </div>
+        </motion.div>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 2.3 }}
+          className="flex flex-col sm:flex-row items-center gap-4"
+        >
+          <Link
+            to="/agendar"
+            className="relative group bg-[#C5A059] text-[#0A0A0A] px-10 py-4 text-xs md:text-sm font-black font-montserrat uppercase tracking-[0.3em] hover:bg-white transition-all duration-500 shadow-[0_0_40px_rgba(197,160,89,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] active:scale-95 rounded-lg overflow-hidden"
           >
-            Agende o Seu Tratamento
-          </button>
+            <span className="relative z-10 flex items-center gap-2">Agendar <ArrowRight size={14} /></span>
+            <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[45deg] group-hover:left-[200%] transition-all duration-1000" />
+          </Link>
+
+          <Link
+            to="/servicos"
+            className="text-white/50 text-xs font-bold uppercase tracking-[0.2em] hover:text-[#C5A059] transition-colors flex items-center gap-2 px-6 py-4 border border-white/10 rounded-lg hover:border-[#C5A059]/30"
+          >
+            Explorar
+          </Link>
         </motion.div>
       </motion.div>
 
-      {/* Scroll Down Indicator */}
-      <motion.button
-        variants={itemVariants}
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 2.5, duration: 0.8 }}
-        onClick={handleScroll}
-        className="absolute bottom-10 z-10 text-white/50 hover:text-braz-pink transition-colors focus:outline-none rounded-full p-2 animate-bounce"
+      {/* === Scroll Indicator === */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3.5, duration: 1 }}
+        className="absolute bottom-8 z-10 flex flex-col items-center gap-2"
       >
-        <ArrowDownCircle size={40} strokeWidth={1.5} />
-      </motion.button>
-
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <ChevronDown size={20} className="text-white/20" />
+        </motion.div>
+      </motion.div>
     </section>
   );
 };

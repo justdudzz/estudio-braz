@@ -48,16 +48,21 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     font-family: 'Montserrat', sans-serif;
-    @apply bg-[#0A0A0A] text-white antialiased;
+    /* Elite Deep Black Background with subtle noise texture potential */
+    @apply bg-[#050505] text-[#E8E8E8];
+    letter-spacing: 0.02em;
   }
 
   /* Foco visível para acessibilidade de elite */
   *:focus-visible {
-    @apply outline-none ring-2 ring-[#C5A059] ring-offset-4 ring-offset-[#0A0A0A];
+    @apply outline-none ring-1 ring-[#C5A059]/50 ring-offset-4 ring-offset-[#050505] transition-shadow duration-300;
   }
 }
 
