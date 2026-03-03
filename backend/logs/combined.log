@@ -214,3 +214,36 @@
 {"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:33.552Z"}
 {"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:33.552Z"}
 {"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T15:09:18.003Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T17:43:05.565Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T17:44:22.430Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T17:46:48.107Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:48:27.610Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:49:40.269Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:52:16.752Z"}
+{"level":"info","message":"Sessão terminada com sucesso.","timestamp":"2026-03-03T17:54:40.934Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:17:10.391Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:17:10.392Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:00.547Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:00.548Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:11.562Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:11.562Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:12.093Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:12.093Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:64865","timestamp":"2026-03-03T18:18:50.892Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:50.892Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:64865","timestamp":"2026-03-03T18:18:55.658Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:55.659Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T18:19:40.839Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T18:20:47.423Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T18:33:38.120Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T18:35:29.968Z"}
+{"level":"warn","message":"Login admin falhado — email inexistente: admin@studiobraz.com | IP: ::1","timestamp":"2026-03-03T18:50:40.590Z"}
+{"level":"warn","message":"Login admin falhado — password errada: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T18:51:25.261Z"}
+{"level":"error","message":"Caminho não encontrado - / - GET / - IP: ::1","timestamp":"2026-03-03T18:52:35.219Z"}
+{"level":"error","message":"Caminho não encontrado - /favicon.ico - GET /favicon.ico - IP: ::1","timestamp":"2026-03-03T18:52:35.250Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/users - GET /api/v1/users - IP: ::1","timestamp":"2026-03-03T18:53:49.241Z"}
+{"level":"warn","message":"⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)","timestamp":"2026-03-03T19:03:48.726Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T19:04:16.944Z"}
+{"level":"info","message":"Diretor autenticado: diretor@studiobraz.com | IP: ::1","timestamp":"2026-03-03T19:38:11.174Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T19:42:31.140Z"}
+{"level":"error","message":"❌ CREDENCIAIS DE EMAIL (SMTP) NÃO CONFIGURADAS. Emails não serão enviados aos clientes.","timestamp":"2026-03-03T19:45:07.415Z"}

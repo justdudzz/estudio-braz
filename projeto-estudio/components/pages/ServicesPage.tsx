@@ -95,35 +95,40 @@ const ServicesPage: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.08 }}
                                 onClick={() => { setSelected(s); setImgIdx(0); }}
-                                className="bg-[#121212] rounded-2xl border border-white/5 p-8 cursor-pointer hover:border-[#C5A059]/30 hover:shadow-[0_0_30px_rgba(197,160,89,0.05)] transition-all group"
+                                className="group relative bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-md rounded-3xl border border-white/5 p-8 cursor-pointer hover:border-braz-gold/40 hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(197,160,89,0.1)] transition-all duration-700 overflow-hidden"
                             >
-                                <div className="w-14 h-14 bg-[#1A1A1A] rounded-2xl flex items-center justify-center mb-5 border border-white/5 group-hover:border-[#C5A059]/30 group-hover:bg-[#C5A059]/10 transition-all">
-                                    <s.icon size={26} className="text-[#C5A059]" strokeWidth={1.5} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{s.title}</h3>
-                                <p className="text-white/40 text-sm mb-6 leading-relaxed">{s.desc}</p>
+                                {/* Subtle Glow Effect on Hover */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-braz-gold/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {s.subServices.slice(0, 3).map((sub, j) => (
-                                        <span key={j} className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-white/5 text-white/40 rounded-full">{sub}</span>
-                                    ))}
-                                    {s.subServices.length > 3 && <span className="text-[9px] font-bold text-[#C5A059]/60">+{s.subServices.length - 3}</span>}
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                    <div className="flex items-center gap-4 text-[10px] text-white/30 uppercase font-bold tracking-wider">
-                                        <span className="flex items-center gap-1"><Clock size={10} /> {s.duration}</span>
-                                        <span className="flex items-center gap-1"><Euro size={10} /> {s.price}</span>
+                                <div className="relative z-10">
+                                    <div className="bg-gradient-to-br from-white/10 to-white/5 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:border-braz-gold/50 group-hover:bg-braz-gold group-hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-500 group-hover:scale-110">
+                                        <s.icon size={26} className="text-white/80 group-hover:text-black transition-colors duration-500" strokeWidth={1.5} />
                                     </div>
-                                    <ArrowRight size={16} className="text-white/10 group-hover:text-[#C5A059] transition-colors" />
+                                    <h3 className="text-xl font-bold font-montserrat tracking-tight text-white mb-3 group-hover:text-braz-gold transition-colors duration-500 uppercase">{s.title}</h3>
+                                    <p className="text-white/50 text-sm mb-6 leading-relaxed font-medium">{s.desc}</p>
+
+                                    <div className="flex flex-wrap gap-2 mb-8">
+                                        {s.subServices.slice(0, 3).map((sub, j) => (
+                                            <span key={j} className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 bg-white/5 text-white/50 border border-white/5 rounded-full">{sub}</span>
+                                        ))}
+                                        {s.subServices.length > 3 && <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 bg-braz-gold/5 text-braz-gold border border-braz-gold/20 rounded-full">+{s.subServices.length - 3}</span>}
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-5 border-t border-white/10">
+                                        <div className="flex items-center gap-4 text-[11px] text-white/40 uppercase font-black tracking-widest">
+                                            <span className="flex items-center gap-1.5"><Clock size={12} className="text-braz-gold" /> {s.duration}</span>
+                                            <span className="flex items-center gap-1.5"><Euro size={12} className="text-braz-gold" /> {s.price}</span>
+                                        </div>
+                                        <ArrowRight size={18} className="text-white/20 group-hover:text-braz-gold group-hover:translate-x-1 transition-all" />
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
 
                     {/* CTA */}
-                    <div className="text-center mt-16">
-                        <Link to="/agendar" className="inline-flex items-center gap-3 bg-[#C5A059] text-black px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-white hover:scale-105 transition-all shadow-lg shadow-[#C5A059]/20">
+                    <div className="text-center mt-20">
+                        <Link to="/agendar" className="inline-flex items-center gap-3 bg-braz-gold text-black px-12 py-5 rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all shadow-xl shadow-braz-gold/20">
                             Agendar Agora <ArrowRight size={16} />
                         </Link>
                     </div>
@@ -134,67 +139,82 @@ const ServicesPage: React.FC = () => {
             <AnimatePresence>
                 {selected && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
-                        <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={e => e.stopPropagation()} className="bg-[#121212] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-8 shadow-2xl">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-[#1A1A1A] rounded-2xl flex items-center justify-center border border-[#C5A059]/20 shrink-0">
-                                        <selected.icon size={22} className="text-[#C5A059]" strokeWidth={1.5} />
+                        className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
+                        <motion.div initial={{ scale: 0.95, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={e => e.stopPropagation()} className="relative bg-[#121212] border border-white/10 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-8 md:p-10 shadow-2xl">
+
+                            <button onClick={() => setSelected(null)} className="absolute top-6 right-6 p-2 text-white/40 hover:text-white bg-white/5 rounded-full backdrop-blur-sm transition-all hover:bg-white/10 z-10"><X size={20} /></button>
+
+                            <div className="flex flex-col md:flex-row items-start gap-6 mb-8 relative z-0">
+                                <div className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl flex items-center justify-center border border-white/5 shrink-0 shadow-lg">
+                                    <selected.icon size={30} className="text-braz-gold" strokeWidth={1.5} />
+                                </div>
+                                <div className="mt-2 md:mt-0">
+                                    <h2 className="text-3xl font-black font-montserrat text-white uppercase tracking-tighter mb-2">{selected.title}</h2>
+                                    <div className="flex gap-4 text-[11px] text-braz-gold font-black uppercase tracking-widest">
+                                        <span className="flex items-center gap-1.5"><Clock size={14} className="opacity-70" /> {selected.duration}</span>
+                                        <span className="flex items-center gap-1.5"><Euro size={14} className="opacity-70" /> {selected.price}</span>
                                     </div>
-                                    <h2 className="text-2xl font-black text-white uppercase">{selected.title}</h2>
-                                </div>
-                                <button onClick={() => setSelected(null)} className="p-2 text-white/30 hover:text-white"><X size={20} /></button>
-                            </div>
-
-                            <p className="text-white/60 text-sm mb-6 leading-relaxed">{selected.fullDesc}</p>
-
-                            <div className="flex gap-4 mb-6 text-xs text-white/40 font-bold uppercase tracking-wider">
-                                <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-lg"><Clock size={12} /> {selected.duration}</span>
-                                <span className="flex items-center gap-1.5 bg-[#C5A059]/10 text-[#C5A059] px-3 py-1.5 rounded-lg"><Euro size={12} /> {selected.price}</span>
-                            </div>
-
-                            {/* Sub-services */}
-                            <div className="mb-6">
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-3">Inclui</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {selected.subServices.map((sub, i) => (
-                                        <div key={i} className="flex items-center gap-2 text-sm text-white/60"><CheckCircle2 size={12} className="text-[#C5A059] shrink-0" /> {sub}</div>
-                                    ))}
                                 </div>
                             </div>
 
-                            {/* Aftercare */}
-                            {selected.aftercare.length > 0 && (
-                                <div className="mb-6">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-3">Cuidados Pós-Tratamento</h4>
-                                    <ul className="space-y-1.5">
-                                        {selected.aftercare.map((tip, i) => (
-                                            <li key={i} className="text-sm text-white/40 flex items-start gap-2"><span className="text-[#C5A059] mt-1">•</span> {tip}</li>
+                            <p className="text-white/60 text-sm mb-8 leading-relaxed font-medium">{selected.fullDesc}</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                {/* Sub-services */}
+                                <div>
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2"><Sparkles size={12} /> O que inclui</h4>
+                                    <div className="flex flex-col gap-3">
+                                        {selected.subServices.map((sub, i) => (
+                                            <div key={i} className="flex items-start gap-3 text-sm text-white/70 font-medium"><CheckCircle2 size={16} className="text-braz-gold shrink-0 mt-0.5" /> {sub}</div>
                                         ))}
-                                    </ul>
+                                    </div>
                                 </div>
-                            )}
+
+                                {/* Aftercare */}
+                                {selected.aftercare.length > 0 && (
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2"><Flower2 size={12} /> Cuidados Pós-Tratamento</h4>
+                                        <ul className="flex flex-col gap-3">
+                                            {selected.aftercare.map((tip, i) => (
+                                                <li key={i} className="text-sm text-white/50 flex items-start gap-3 font-medium"><span className="text-braz-gold shrink-0 scale-75 mt-1">•</span> {tip}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Results Gallery */}
                             {selected.images.length > 0 && (
-                                <div className="mb-6">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-3">Resultados</h4>
-                                    <div className="relative rounded-xl overflow-hidden">
-                                        <img src={selected.images[imgIdx]?.src} alt={selected.images[imgIdx]?.label} className="w-full h-64 object-cover" />
-                                        <p className="absolute bottom-0 inset-x-0 bg-black/60 text-center text-xs text-white/70 py-2">{selected.images[imgIdx]?.label}</p>
+                                <div className="mb-10">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-4">Galeria de Resultados</h4>
+                                    <div className="relative rounded-2xl overflow-hidden shadow-lg border border-white/5">
+                                        <img src={selected.images[imgIdx]?.src} alt={selected.images[imgIdx]?.label} className="w-full h-80 object-cover" />
+
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+                                        <p className="absolute bottom-6 left-6 font-bold text-sm tracking-wide text-white drop-shadow-md">{selected.images[imgIdx]?.label}</p>
+
                                         {selected.images.length > 1 && (
-                                            <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-2">
-                                                <button onClick={() => setImgIdx(p => (p - 1 + selected.images.length) % selected.images.length)} className="p-2 bg-black/40 rounded-full text-white"><ChevronLeft size={16} /></button>
-                                                <button onClick={() => setImgIdx(p => (p + 1) % selected.images.length)} className="p-2 bg-black/40 rounded-full text-white"><ChevronRight size={16} /></button>
+                                            <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-4">
+                                                <button onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p - 1 + selected.images.length) % selected.images.length); }} className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"><ChevronLeft size={20} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p + 1) % selected.images.length); }} className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"><ChevronRight size={20} /></button>
+                                            </div>
+                                        )}
+                                        {selected.images.length > 1 && (
+                                            <div className="absolute bottom-6 right-6 flex gap-1.5">
+                                                {selected.images.map((_, idx) => (
+                                                    <div key={idx} className={`h-1.5 rounded-full transition-all ${idx === imgIdx ? 'w-6 bg-braz-gold' : 'w-1.5 bg-white/40'}`} />
+                                                ))}
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             )}
 
-                            <Link to="/agendar" className="block text-center bg-[#C5A059] text-black py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-white transition-all">
-                                Agendar Este Serviço
+                            <Link to="/agendar" className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-braz-gold to-[#e3c178] text-black py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+                                <span>Agendar Serviço</span>
+                                <ArrowRight size={16} />
                             </Link>
                         </motion.div>
                     </motion.div>

@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import prisma from '../config/prisma';
+import prisma from '../config/prisma.js';
 
 async function seed() {
   const email = "admin@studiobraz.com";

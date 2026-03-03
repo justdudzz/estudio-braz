@@ -38,3 +38,23 @@
 {"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:26.743Z"}
 {"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:53604","timestamp":"2026-03-03T15:07:33.552Z"}
 {"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T15:07:33.552Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:48:27.610Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:49:40.269Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T17:52:16.752Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:17:10.391Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:17:10.392Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:00.547Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:00.548Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:11.562Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:11.562Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:65221","timestamp":"2026-03-03T18:18:12.093Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:12.093Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:64865","timestamp":"2026-03-03T18:18:50.892Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:50.892Z"}
+{"level":"error","message":"Tentativa de invasão via CORS bloqueada: http://localhost:64865","timestamp":"2026-03-03T18:18:55.658Z"}
+{"level":"error","message":"Acesso negado por política de segurança (CORS) - OPTIONS /api/v1/auth/login - IP: ::1","timestamp":"2026-03-03T18:18:55.659Z"}
+{"level":"error","message":"Caminho não encontrado - / - GET / - IP: ::1","timestamp":"2026-03-03T18:52:35.219Z"}
+{"level":"error","message":"Caminho não encontrado - /favicon.ico - GET /favicon.ico - IP: ::1","timestamp":"2026-03-03T18:52:35.250Z"}
+{"level":"error","message":"Caminho não encontrado - /api/v1/users - GET /api/v1/users - IP: ::1","timestamp":"2026-03-03T18:53:49.241Z"}
+{"level":"error","message":"❌ Erro ao enviar email: Error: connect ETIMEDOUT 95.216.108.161:587","timestamp":"2026-03-03T19:42:31.140Z"}
+{"level":"error","message":"❌ CREDENCIAIS DE EMAIL (SMTP) NÃO CONFIGURADAS. Emails não serão enviados aos clientes.","timestamp":"2026-03-03T19:45:07.415Z"}

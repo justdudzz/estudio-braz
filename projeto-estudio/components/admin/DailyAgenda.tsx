@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Calendar, X, Check, MessageCircle } from 'lucide-react';
 import { SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
+import { getBookingColorClasses } from '../../utils/themeHelpers';
 
 interface DailyAgendaProps {
     date: string;
@@ -13,6 +14,8 @@ interface DailyAgendaProps {
 
 
 const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onConfirm, onDelete, onWhatsApp }) => {
+    const [hideCancelled, setHideCancelled] = React.useState(true);
+
     // Generate working hours dynamically from OPENING_HOURS
     const workingHours = useMemo(() => {
         const dayOfWeek = new Date(`${date}T12:00:00Z`).getDay();
@@ -37,12 +40,20 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
     return (
         <div className="bg-[#121212] rounded-2xl border border-white/5 overflow-hidden shadow-2xl max-w-3xl w-full mx-auto">
             {/* Header */}
-            <div className="p-5 border-b border-white/5 bg-white/[0.02] flex justify-between items-center sticky top-0 z-10 backdrop-blur-md">
+            <div className="p-5 border-b border-white/5 bg-white/[0.02] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-10 backdrop-blur-md">
                 <div className="flex items-center gap-3">
                     <Calendar className="text-braz-gold" size={20} />
                     <h3 className="font-bold text-braz-gold uppercase tracking-wider text-sm">Agenda do Dia</h3>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => setHideCancelled(!hideCancelled)}
+                        className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all ${hideCancelled ? 'bg-braz-gold/10 text-braz-gold border-braz-gold/20' : 'bg-white/5 text-white/40 border-white/10 hover:text-white'
+                            }`}
+                    >
+                        {hideCancelled ? 'Mostrar Cancelados' : 'Ocultar Cancelados'}
+                    </button>
+                    <div className="hidden sm:block w-px h-4 bg-white/10"></div>
                     <span className="text-[10px] text-white/40 font-semibold uppercase tracking-widest">{formattedDate}</span>
                     <button onClick={onClose} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
                         <X size={14} />
@@ -53,7 +64,11 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
             {/* Timeline */}
             <div className="max-h-[70vh] overflow-y-auto divide-y divide-white/[0.03]">
                 {workingHours.map((hour) => {
-                    const appointment = bookings.find(b => b.time === hour);
+                    let appointment = bookings.find(b => b.time === hour);
+                    // Hide if cancelled and toggle is active
+                    if (appointment && appointment.status === 'cancelled' && hideCancelled) {
+                        appointment = undefined;
+                    }
 
                     return (
                         <div key={hour} className="group flex items-center min-h-[70px] hover:bg-white/[0.01] transition-all">
@@ -67,11 +82,7 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
                             {/* Content Column */}
                             <div className="flex-1 px-4 py-2">
                                 {appointment ? (
-                                    <div className={`p-3 rounded-xl border flex flex-col sm:flex-row justify-between sm:items-center gap-3 ${appointment.status === 'confirmed' ? 'border-braz-gold/30 bg-braz-gold/5' :
-                                        appointment.status === 'blocked' ? 'border-red-500/20 bg-red-500/5' :
-                                            appointment.status === 'cancelled' ? 'border-red-500/20 bg-red-500/5 opacity-50' :
-                                                'border-white/10 bg-white/5'
-                                        }`}>
+                                    <div className={`p-3 rounded-xl border flex flex-col sm:flex-row justify-between sm:items-center gap-3 ${getBookingColorClasses(appointment.status, 'agenda')}`}>
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <p className={`text-sm font-bold uppercase tracking-wider ${appointment.status === 'confirmed' ? 'text-braz-gold' : 'text-white'
@@ -89,18 +100,22 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
                                             </p>
                                         </div>
 
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 opacity-100 sm:opacity-50 group-hover:opacity-100 transition-opacity">
                                             {appointment.status !== 'confirmed' && appointment.status !== 'blocked' && (
-                                                <button onClick={() => onConfirm(appointment.id)} title="Confirmar" className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all">
+                                                <button onClick={() => onConfirm(appointment.id)} title="Confirmar" className="p-2 border border-green-500/20 text-green-500 bg-[#121212] rounded-[10px] hover:bg-green-500 hover:text-white transition-all shadow-sm">
                                                     <Check size={14} />
                                                 </button>
                                             )}
                                             {appointment.client?.phone && (
-                                                <button onClick={() => onWhatsApp(appointment.client, appointment)} title="WhatsApp" className="p-2 bg-white/5 text-white/60 rounded-lg hover:bg-green-500 hover:text-white transition-all">
+                                                <button
+                                                    onClick={() => onWhatsApp(appointment.client, appointment)}
+                                                    title="WhatsApp Cliente"
+                                                    className="p-2 border border-white/10 text-white/50 bg-[#121212] flex items-center gap-2 rounded-[10px] hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all shadow-sm"
+                                                >
                                                     <MessageCircle size={14} />
                                                 </button>
                                             )}
-                                            <button onClick={() => onDelete(appointment.id)} title="Eliminar" className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                            <button onClick={() => onDelete(appointment.id)} title="Eliminar / Desbloquear" className="p-2 border border-red-500/20 text-red-500 bg-[#121212] rounded-[10px] hover:bg-red-500 hover:text-white transition-all shadow-sm">
                                                 <X size={14} />
                                             </button>
                                         </div>

@@ -1,51 +1,44 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Download, FileText, Users, Calendar, Loader2, TrendingUp, BarChart3, PieChart, Clock, CheckCircle, XCircle, DollarSign, CalendarDays, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Download, Users, Calendar, Loader2, TrendingUp, BarChart3, PieChart, Clock, CheckCircle, DollarSign, CalendarDays, ArrowUpRight, ArrowDownRight, Plus, Trash2, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '../common/Toast';
-import { getAllBookings } from '../../src/services/bookingService';
-import api from '../../src/services/api';
+import { useAdminData } from '../../contexts/AdminDataContext';
+import { MetricCard, GrowthCard, StatusCard } from './ui/StatCards';
 import { SERVICES_CONFIG } from '../../utils/constants';
-
-const SYSTEM_EMAILS = ['system@studiobraz.internal'];
+import { Expense } from '../../src/types';
 
 const ReportsPage: React.FC = () => {
     const { showToast } = useToast();
-    const [bookings, setBookings] = useState<any[]>([]);
-    const [clients, setClients] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { bookings, clients, expenses, loading, addExpense, removeExpense } = useAdminData();
     const [exporting, setExporting] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchAll = async () => {
-            try {
-                setLoading(true);
-                const [bookingsRes, clientsRes] = await Promise.all([
-                    getAllBookings(),
-                    api.get('/bookings/clients'),
-                ]);
-                const bk = Array.isArray(bookingsRes) ? bookingsRes : bookingsRes?.data || [];
-                setBookings(bk);
-                const cl = (clientsRes.data || []).filter((c: any) => !SYSTEM_EMAILS.includes(c.email || ''));
-                setClients(cl);
-            } catch {
-                showToast('Erro ao carregar dados.', 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchAll();
-    }, []);
+    const [newExpenseDesc, setNewExpenseDesc] = useState('');
+    const [newExpenseAmount, setNewExpenseAmount] = useState('');
+
+    const handleAddExpense = () => {
+        if (!newExpenseDesc || !newExpenseAmount) return;
+        addExpense({
+            id: Date.now().toString(),
+            description: newExpenseDesc,
+            amount: parseFloat(newExpenseAmount),
+            date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+        });
+        setNewExpenseDesc('');
+        setNewExpenseAmount('');
+        showToast('Despesa adicionada!', 'success');
+    };
 
     // =================== STATISTICS ===================
     const stats = useMemo(() => {
         const realBookings = bookings.filter(b => b.status !== 'blocked' && b.service !== 'BLOQUEIO_ADMIN');
         const confirmed = realBookings.filter(b => b.status === 'confirmed');
+        const paid = realBookings.filter(b => b.status === 'paid');
         const pending = realBookings.filter(b => b.status === 'pending');
         const cancelled = realBookings.filter(b => b.status === 'cancelled' || b.status === 'rejected');
         const blocked = bookings.filter(b => b.status === 'blocked');
 
-        // Revenue
-        const totalRevenue = confirmed.reduce((acc, b) => {
+        // Revenue (only from Paid)
+        const totalRevenue = paid.reduce((acc, b) => {
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
@@ -60,20 +53,23 @@ const ReportsPage: React.FC = () => {
         const lastMonthBookings = realBookings.filter(b => b.date?.startsWith(lastMonthStr));
         const thisMonthConfirmed = confirmed.filter(b => b.date?.startsWith(thisMonthStr));
         const lastMonthConfirmed = confirmed.filter(b => b.date?.startsWith(lastMonthStr));
+        const thisMonthPaid = paid.filter(b => b.date?.startsWith(thisMonthStr));
+        const lastMonthPaid = paid.filter(b => b.date?.startsWith(lastMonthStr));
 
-        const thisMonthRevenue = thisMonthConfirmed.reduce((acc, b) => {
+        const thisMonthRevenue = thisMonthPaid.reduce((acc, b) => {
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
-        const lastMonthRevenue = lastMonthConfirmed.reduce((acc, b) => {
+        const lastMonthRevenue = lastMonthPaid.reduce((acc, b) => {
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
 
-        // Services breakdown
+        // Services breakdown (paid + confirmed)
         const serviceCount: Record<string, number> = {};
         const serviceRevenue: Record<string, number> = {};
-        confirmed.forEach(b => {
+        const validForBreakdown = [...confirmed, ...paid];
+        validForBreakdown.forEach(b => {
             serviceCount[b.service] = (serviceCount[b.service] || 0) + 1;
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             serviceRevenue[b.service] = (serviceRevenue[b.service] || 0) + (config?.price || 0);
@@ -85,13 +81,13 @@ const ReportsPage: React.FC = () => {
                 label: SERVICES_CONFIG[service as keyof typeof SERVICES_CONFIG]?.label || service,
                 count,
                 revenue: serviceRevenue[service] || 0,
-                percentage: confirmed.length > 0 ? Math.round((count / confirmed.length) * 100) : 0,
+                percentage: validForBreakdown.length > 0 ? Math.round((count / validForBreakdown.length) * 100) : 0,
             }))
             .sort((a, b) => b.count - a.count);
 
-        // Busiest hours
+        // Busiest hours (paid + confirmed)
         const hourCount: Record<string, number> = {};
-        confirmed.forEach(b => {
+        validForBreakdown.forEach(b => {
             hourCount[b.time] = (hourCount[b.time] || 0) + 1;
         });
         const busiestHours = Object.entries(hourCount)
@@ -101,7 +97,7 @@ const ReportsPage: React.FC = () => {
         // Busiest days of week
         const dayOfWeekCount: Record<string, number> = {};
         const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        confirmed.forEach(b => {
+        validForBreakdown.forEach(b => {
             const d = new Date(`${b.date}T12:00:00Z`);
             const dayName = dayNames[d.getDay()];
             dayOfWeekCount[dayName] = (dayOfWeekCount[dayName] || 0) + 1;
@@ -109,24 +105,34 @@ const ReportsPage: React.FC = () => {
         const busiestDays = Object.entries(dayOfWeekCount).sort((a, b) => b[1] - a[1]);
 
         // Monthly trend (last 6 months)
-        const monthlyTrend: { month: string; bookings: number; revenue: number }[] = [];
+        const monthlyTrend: { month: string; bookings: number; revenue: number; expenses: number; netData: number }[] = [];
         for (let i = 5; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             const mLabel = d.toLocaleDateString('pt-PT', { month: 'short', year: '2-digit' });
-            const mBookings = confirmed.filter(b => b.date?.startsWith(mStr));
-            const mRevenue = mBookings.reduce((acc, b) => {
+
+            const mBookings = validForBreakdown.filter(b => b.date?.startsWith(mStr));
+            const mPaid = paid.filter(b => b.date?.startsWith(mStr));
+
+            const mRevenue = mPaid.reduce((acc, b) => {
                 const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
                 return acc + (config?.price || 0);
             }, 0);
-            monthlyTrend.push({ month: mLabel, bookings: mBookings.length, revenue: mRevenue });
+
+            const mExpenses = expenses.filter(e => e.date === mStr).reduce((acc, e) => acc + e.amount, 0);
+
+            monthlyTrend.push({ month: mLabel, bookings: mBookings.length, revenue: mRevenue, expenses: mExpenses, netData: mRevenue - mExpenses });
         }
 
+        // Expenses this month
+        const thisMonthExpenses = expenses.filter(e => e.date === thisMonthStr).reduce((acc, e) => acc + e.amount, 0);
+        const thisMonthNet = thisMonthRevenue - thisMonthExpenses;
+
         // Conversion rate
-        const conversionRate = realBookings.length > 0 ? Math.round((confirmed.length / realBookings.length) * 100) : 0;
+        const conversionRate = realBookings.length > 0 ? Math.round((validForBreakdown.length / realBookings.length) * 100) : 0;
 
         // Average revenue per booking
-        const avgRevenue = confirmed.length > 0 ? Math.round(totalRevenue / confirmed.length) : 0;
+        const avgRevenue = paid.length > 0 ? Math.round(totalRevenue / paid.length) : 0;
 
         // Growth
         const bookingGrowth = lastMonthBookings.length > 0
@@ -146,12 +152,15 @@ const ReportsPage: React.FC = () => {
         return {
             total: realBookings.length,
             confirmed: confirmed.length,
+            paid: paid.length,
             pending: pending.length,
             cancelled: cancelled.length,
             blocked: blocked.length,
             totalRevenue,
             thisMonthRevenue,
             thisMonthBookings: thisMonthBookings.length,
+            thisMonthExpenses,
+            thisMonthNet,
             conversionRate,
             avgRevenue,
             bookingGrowth,
@@ -163,8 +172,9 @@ const ReportsPage: React.FC = () => {
             topClients,
             totalClients: clients.length,
             newClientsThisMonth,
+            thisMonthStr,
         };
-    }, [bookings, clients]);
+    }, [bookings, clients, expenses]);
 
     // =================== CSV EXPORT ===================
     const downloadCSV = (filename: string, headers: string[], rows: string[][]) => {
@@ -248,10 +258,69 @@ const ReportsPage: React.FC = () => {
                 <MetricCard icon={<Calendar size={18} />} label="Total Marcações" value={String(stats.total)} sub={`${stats.pending} pendentes`} color="text-[#C5A059]" bg="bg-[#C5A059]/10" />
             </div>
 
-            {/* ===== ROW 2: Monthly Growth ===== */}
+            {/* ===== ROW 2: Financial Panel (Net Profit & Expenses) ===== */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <GrowthCard label="Receita Bruta (Mês)" value={`€${stats.thisMonthRevenue.toLocaleString()}`} growth={stats.revenueGrowth} color="text-braz-gold" icon={<DollarSign size={20} />} />
+                <GrowthCard label="Despesas (Mês)" value={`€${stats.thisMonthExpenses.toLocaleString()}`} growth={0} color="text-red-400" icon={<TrendingUp size={20} className="rotate-180" />} flipGrowth={true} disableGrowth={true} />
+                <GrowthCard label="Lucro Líquido (Mês)" value={`€${stats.thisMonthNet.toLocaleString()}`} growth={0} color="text-emerald-400" icon={<Wallet size={20} />} disableGrowth={true} />
+            </div>
+
+            {/* ===== ROW 2.5: Tracker Section ===== */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <GrowthCard label="Marcações este Mês" value={stats.thisMonthBookings} growth={stats.bookingGrowth} />
-                <GrowthCard label="Receita este Mês" value={`€${stats.thisMonthRevenue.toLocaleString()}`} growth={stats.revenueGrowth} />
+                {/* Add Expense Form */}
+                <div className="bg-[#121212] rounded-2xl border border-white/5 p-6 border-l-2 border-l-red-500/50">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-white/40 mb-5 flex items-center gap-2">
+                        <Wallet size={14} className="text-red-400" /> Adicionar Despesa (Este Mês)
+                    </h3>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            placeholder="Descrição (ex: Lâminas, Luz)"
+                            value={newExpenseDesc}
+                            onChange={(e) => setNewExpenseDesc(e.target.value)}
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-red-400/50"
+                        />
+                        <div className="relative w-full sm:w-32">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">€</span>
+                            <input
+                                type="number"
+                                placeholder="0.00"
+                                value={newExpenseAmount}
+                                onChange={(e) => setNewExpenseAmount(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-8 pr-4 text-sm text-white outline-none focus:border-red-400/50"
+                            />
+                        </div>
+                        <button
+                            onClick={handleAddExpense}
+                            className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                        >
+                            <Plus size={14} /> Adicionar
+                        </button>
+                    </div>
+                </div>
+
+                {/* Expense List */}
+                <div className="bg-[#121212] rounded-2xl border border-white/5 p-6 h-48 overflow-y-auto custom-scrollbar">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-white/40 mb-4 flex items-center gap-2">
+                        Lista de Despesas
+                    </h3>
+                    <div className="space-y-2">
+                        {expenses.filter(e => e.date === stats.thisMonthStr).map((exp, i) => (
+                            <div key={exp.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                                <span className="text-sm text-white/80 font-medium">{exp.description}</span>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-black text-red-400">€{exp.amount.toFixed(2)}</span>
+                                    <button onClick={() => removeExpense(exp.id)} className="text-white/20 hover:text-red-400 transition-colors">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {expenses.filter(e => e.date === stats.thisMonthStr).length === 0 && (
+                            <p className="text-center text-xs text-white/20 italic pt-4">Nenhuma despesa registada este mês.</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* ===== ROW 3: Monthly Trend + Services Breakdown ===== */}
@@ -264,12 +333,12 @@ const ReportsPage: React.FC = () => {
                     <div className="flex items-end gap-2 h-40">
                         {stats.monthlyTrend.map((m, i) => (
                             <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#C5A059]">{m.bookings}</span>
+                                <span className="text-[10px] font-bold text-emerald-400">€{m.netData.toLocaleString()}</span>
                                 <motion.div
                                     initial={{ height: 0 }}
-                                    animate={{ height: `${(m.bookings / maxMonthlyBookings) * 100}%` }}
+                                    animate={{ height: `${(m.revenue / maxMonthlyBookings) * 100}%` }}
                                     transition={{ duration: 0.6, delay: i * 0.1 }}
-                                    className="w-full bg-gradient-to-t from-[#C5A059]/20 to-[#C5A059]/60 rounded-t-lg min-h-[4px]"
+                                    className="w-full bg-gradient-to-t from-emerald-500/20 to-emerald-500/60 rounded-t-lg min-h-[4px]"
                                 />
                                 <span className="text-[8px] text-white/30 uppercase font-bold">{m.month}</span>
                             </div>
@@ -369,63 +438,12 @@ const ReportsPage: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <StatusCard label="Confirmados" count={stats.confirmed} total={stats.total} color="bg-green-500" />
                     <StatusCard label="Pendentes" count={stats.pending} total={stats.total} color="bg-yellow-500" />
+                    <StatusCard label="Pagos" count={stats.paid} total={stats.total} color="bg-braz-gold" />
                     <StatusCard label="Cancelados" count={stats.cancelled} total={stats.total} color="bg-red-500" />
                     <StatusCard label="Bloqueios" count={stats.blocked} total={bookings.length} color="bg-orange-500" />
-                    <StatusCard label="Total" count={stats.total} total={stats.total} color="bg-[#C5A059]" />
+                    <StatusCard label="Total Bookings" count={stats.total} total={stats.total} color="bg-white" />
                 </div>
             </div>
-        </div>
-    );
-};
-
-// ============ Sub-Components ============
-
-const MetricCard = ({ icon, label, value, sub, color, bg }: any) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-[#121212] rounded-2xl border border-white/5 p-5"
-    >
-        <div className={`${bg} ${color} w-9 h-9 rounded-xl flex items-center justify-center mb-3`}>
-            {icon}
-        </div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">{label}</p>
-        <p className="text-2xl font-black text-white">{value}</p>
-        <p className="text-[10px] text-white/30 mt-1">{sub}</p>
-    </motion.div>
-);
-
-const GrowthCard = ({ label, value, growth }: { label: string; value: any; growth: number }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-[#121212] rounded-2xl border border-white/5 p-6 flex items-center justify-between"
-    >
-        <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">{label}</p>
-            <p className="text-3xl font-black text-white">{value}</p>
-        </div>
-        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold ${growth >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-            }`}>
-            {growth >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-            {Math.abs(growth)}%
-        </div>
-    </motion.div>
-);
-
-const StatusCard = ({ label, count, total, color }: { label: string; count: number; total: number; color: string }) => {
-    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-    return (
-        <div className="text-center">
-            <p className="text-lg font-black text-white">{count}</p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/30 mb-2">{label}</p>
-            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.8 }}
-                    className={`h-full ${color} rounded-full`}
-                />
-            </div>
-            <p className="text-[8px] text-white/20 mt-1">{pct}%</p>
         </div>
     );
 };

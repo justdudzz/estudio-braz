@@ -252,8 +252,8 @@ const BlockManagement: React.FC = () => {
                                             key={block.id}
                                             onClick={() => toggleSelect(block.id)}
                                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-bold cursor-pointer transition-all border ${selectedIds.has(block.id)
-                                                    ? 'border-orange-500/50 bg-orange-500/10 text-orange-300'
-                                                    : 'border-white/5 bg-white/[0.02] text-white/40 hover:border-orange-500/30'
+                                                ? 'border-orange-500/50 bg-orange-500/10 text-orange-300'
+                                                : 'border-white/5 bg-white/[0.02] text-white/40 hover:border-orange-500/30'
                                                 }`}
                                         >
                                             <Clock size={10} />
@@ -279,7 +279,7 @@ const BlockManagement: React.FC = () => {
                 {showCreateModal && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
                         onClick={() => setShowCreateModal(false)}
                     >
                         <motion.div
@@ -335,8 +335,8 @@ const BlockManagement: React.FC = () => {
                                                 key={opt.key}
                                                 onClick={() => setBlockMode(opt.key)}
                                                 className={`p-3 rounded-xl text-xs font-bold uppercase text-center border transition-all ${blockMode === opt.key
-                                                        ? 'border-orange-500/50 bg-orange-500/10 text-orange-300'
-                                                        : 'border-white/5 text-white/40 hover:border-white/20'
+                                                    ? 'border-orange-500/50 bg-orange-500/10 text-orange-300'
+                                                    : 'border-white/5 text-white/40 hover:border-white/20'
                                                     }`}
                                             >
                                                 <span className="text-lg block mb-1">{opt.icon}</span>

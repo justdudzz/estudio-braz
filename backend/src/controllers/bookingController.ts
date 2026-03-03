@@ -1,9 +1,9 @@
 // backend/src/controllers/bookingController.ts
 import { Request, Response } from 'express';
-import prisma from '../config/prisma';
-import logger from '../utils/logger';
-import { sendNotification } from '../services/notificationService';
-import { sendLuxuryEmail } from '../services/emailService';
+import prisma from '../config/prisma.js';
+import logger from '../utils/logger.js';
+import { sendNotification } from '../services/notificationService.js';
+import { sendLuxuryEmail } from '../services/emailService.js';
 
 // 🛠️ DICIONÁRIO DE DURAÇÕES (em minutos) — Alinhado com o Frontend
 const SERVICE_DURATIONS: Record<string, number> = {
@@ -128,7 +128,7 @@ export const createBooking = async (req: Request, res: Response) => {
         service,
         date,
         time
-      ).catch(e => console.error("⚠️ Falha silenciosa no envio de email ao cliente:", e));
+      ).catch((e: any) => console.error("⚠️ Falha silenciosa no envio de email ao cliente:", e));
     }
 
     return res.status(201).json(booking);
@@ -160,7 +160,7 @@ export const getBusySlots = async (req: Request, res: Response) => {
 
     const occupiedSlots = new Set<string>();
 
-    bookings.forEach(b => {
+    bookings.forEach((b: any) => {
       const duration = SERVICE_DURATIONS[b.service] || 30;
       const [startH, startM] = b.time.split(':').map(Number);
       let currentMinutes = startH * 60 + startM;
@@ -358,7 +358,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
           booking.service,
           booking.date,
           booking.time
-        ).catch(e => console.error("⚠️ Falha ao notificar cliente da aprovação:", e));
+        ).catch((e: any) => console.error("⚠️ Falha ao notificar cliente da aprovação:", e));
       }
     } else if (status === 'cancelled' || status === 'rejected') {
       if (booking.client.email) {
@@ -369,7 +369,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
           booking.service,
           booking.date,
           booking.time
-        ).catch(e => console.error("⚠️ Falha ao notificar cliente da rejeição:", e));
+        ).catch((e: any) => console.error("⚠️ Falha ao notificar cliente da rejeição:", e));
       }
     }
 

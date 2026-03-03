@@ -10,13 +10,13 @@ const ShimmerButton: React.FC<ShimmerButtonProps> = ({ children, className = '',
   return (
     <motion.button
       // 1. REAÇÃO DE ELITE (Micro-interações)
-      whileHover={{ 
-        scale: 1.02, 
+      whileHover={{
+        scale: 1.02,
         // Cria um halo dourado baseado na nossa cor soberana #C5A059
-        boxShadow: "0 0 25px rgba(197, 160, 89, 0.3)" 
+        boxShadow: "0 0 25px rgba(197, 160, 89, 0.3)"
       }}
       whileTap={{ scale: 0.98 }}
-      
+
       // 2. ESTILO SOBERANO
       // Usamos o bg-gold-gradient e a tipografia de luxo
       className={`
@@ -26,7 +26,7 @@ const ShimmerButton: React.FC<ShimmerButtonProps> = ({ children, className = '',
         shadow-lg transition-all focus:outline-none 
         ${className}
       `}
-      {...props}
+      {...(props as any)}
     >
       {/* 3. EFEITO SHIMMER (Reflexo Metálico) */}
       <motion.span

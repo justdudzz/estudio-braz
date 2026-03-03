@@ -27,7 +27,7 @@ export const getAllBookings = async () => {
     throw error.response?.data?.message || 'Erro ao carregar a agenda.';
   }
 };
-export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'paid' | 'pending' | 'blocked') => {
   const response = await api.patch(`/bookings/${id}/status`, { status });
   return response.data;
 };

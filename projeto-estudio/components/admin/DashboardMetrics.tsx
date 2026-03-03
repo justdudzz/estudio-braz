@@ -1,52 +1,68 @@
 import React from 'react';
 import { Euro, Clock, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MetricCard } from './ui/StatCards';
+import { MetricSkeleton } from './ui/Skeletons';
 
 interface MetricsData {
     revenue: number;
-    confirmedCount: number;
+    todayCount: number;
     pendingCount: number;
-    totalBookings: number;
 }
 
 interface DashboardMetricsProps {
     metrics: MetricsData;
+    isLoading?: boolean;
 }
 
-const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ metrics }) => {
+
+
+const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ metrics, isLoading }) => {
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+                <MetricSkeleton />
+                <MetricSkeleton />
+                <MetricSkeleton />
+            </div>
+        );
+    }
+
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-            {/* Faturação */}
-            <div className="bg-[#171717] p-5 md:p-6 rounded-2xl border border-braz-gold/20 shadow-xl">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Faturação Estimada</span>
-                    <Euro className="text-braz-gold w-4 h-4" />
-                </div>
-                <p className="text-2xl md:text-3xl font-black text-white">€ {metrics.revenue}</p>
-                <p className="text-[9px] text-braz-gold mt-2 uppercase tracking-widest">
-                    {metrics.confirmedCount} serviço{metrics.confirmedCount !== 1 ? 's' : ''} confirmado{metrics.confirmedCount !== 1 ? 's' : ''}
-                </p>
-            </div>
+        <AnimatePresence mode="wait">
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12"
+            >
+                <MetricCard
+                    icon={<Euro size={18} />}
+                    label="Esperado Hoje"
+                    value={`€${metrics.revenue}`}
+                    sub="Receita para o dia de hoje"
+                    color="text-braz-gold"
+                    bg="bg-braz-gold/10"
+                />
 
-            {/* Pendentes */}
-            <div className="bg-[#171717] p-5 md:p-6 rounded-2xl border border-white/5">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Aguardam Decisão</span>
-                    <Clock className="text-white/20 w-4 h-4" />
-                </div>
-                <p className="text-2xl md:text-3xl font-black text-white">{metrics.pendingCount}</p>
-                <p className="text-[9px] text-white/20 mt-2 uppercase tracking-widest">Pedidos Pendentes</p>
-            </div>
+                <MetricCard
+                    icon={<Clock size={18} />}
+                    label="Ação Necessária"
+                    value={String(metrics.pendingCount)}
+                    sub="Pedidos Pendentes"
+                    color="text-yellow-400"
+                    bg="bg-yellow-400/10"
+                />
 
-            {/* Total */}
-            <div className="bg-[#171717] p-5 md:p-6 rounded-2xl border border-white/5">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Total de Experiências</span>
-                    <Sparkles className="text-white/20 w-4 h-4" />
-                </div>
-                <p className="text-2xl md:text-3xl font-black text-white">{metrics.totalBookings}</p>
-                <p className="text-[9px] text-white/20 mt-2 uppercase tracking-widest">Desde o início</p>
-            </div>
-        </div>
+                <MetricCard
+                    icon={<Sparkles size={18} />}
+                    label="Sessões Hoje"
+                    value={String(metrics.todayCount)}
+                    sub="Marcações confirmadas (não canceladas)"
+                    color="text-white"
+                    bg="bg-white/10"
+                />
+            </motion.div>
+        </AnimatePresence >
     );
 };
 

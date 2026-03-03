@@ -42,6 +42,7 @@ import AdminVipArea from './components/admin/VipArea';
 import BlockManagement from './components/admin/BlockManagement';
 import SettingsPage from './components/admin/SettingsPage';
 import ReportsPage from './components/admin/ReportsPage';
+import { AdminDataProvider } from './contexts/AdminDataContext';
 
 // Proteção de Rota
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: 'admin' | 'client' }) => {
@@ -96,7 +97,9 @@ const AppContent = () => {
         {/* 🏛️ Admin — Sidebar Layout com Sub-rotas */}
         <Route path="/dashboard" element={
           <ProtectedRoute role="admin">
-            <AdminLayout />
+            <AdminDataProvider>
+              <AdminLayout />
+            </AdminDataProvider>
           </ProtectedRoute>
         }>
           <Route index element={<AdminDashboard />} />

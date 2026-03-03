@@ -65,7 +65,7 @@ const AnimatedCursor: React.FC = () => {
 
             {/* Outer ring — follows with spring delay */}
             <motion.div
-                className="fixed top-0 left-0 z-[99999] pointer-events-none"
+                className="fixed top-0 left-0 z-[999999] pointer-events-none"
                 style={{
                     x: smoothX,
                     y: smoothY,
@@ -90,7 +90,7 @@ const AnimatedCursor: React.FC = () => {
 
             {/* Inner dot — follows cursor instantly */}
             <motion.div
-                className="fixed top-0 left-0 z-[99999] pointer-events-none"
+                className="fixed top-0 left-0 z-[999999] pointer-events-none"
                 style={{
                     x: cursorX,
                     y: cursorY,

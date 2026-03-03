@@ -197,27 +197,32 @@ const ServiceCard: React.FC<{ service: ServiceData, index: number, onOpen: (s: S
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ delay: index * 0.1, duration: 0.6 }}
-      className="group bg-[#171717] p-8 shadow-2xl border border-white/5 flex flex-col h-full rounded-2xl transition-all duration-500 hover:border-braz-pink/40 hover:shadow-braz-pink/10 hover:-translate-y-2"
+      className="group relative bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-md p-8 shadow-2xl border border-white/5 flex flex-col h-full rounded-3xl transition-all duration-700 hover:border-braz-gold/40 hover:shadow-[0_0_40px_rgba(197,160,89,0.1)] hover:-translate-y-2 overflow-hidden"
     >
-      <div className="bg-braz-pink/10 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:bg-braz-pink transition-colors duration-500">
-        <Icon className="text-braz-pink group-hover:text-braz-black transition-colors duration-500" size={28} strokeWidth={1.5} />
+      {/* Subtle Glow Effect on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-braz-gold/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="bg-gradient-to-br from-white/10 to-white/5 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-braz-gold group-hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-500 border border-white/10 group-hover:border-braz-gold/50">
+          <Icon className="text-white/80 group-hover:text-black transition-colors duration-500" size={26} strokeWidth={1.5} />
+        </div>
+
+        <h3 className="text-xl font-montserrat font-bold text-white mb-3 uppercase tracking-tight group-hover:text-braz-gold transition-colors duration-500">
+          {service.title}
+        </h3>
+
+        <p className="text-white/50 text-sm font-medium leading-relaxed mb-8 flex-grow">
+          {service.desc}
+        </p>
+
+        <button
+          onClick={() => onOpen(service)}
+          className="w-full bg-transparent border border-white/10 text-white/70 px-4 py-3.5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black hover:border-white transition-all duration-500 rounded-xl active:scale-95 flex items-center justify-center gap-3 group/btn"
+        >
+          <span>Descobrir</span>
+          <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+        </button>
       </div>
-
-      <h3 className="text-xl font-montserrat font-bold text-white mb-3 uppercase tracking-tight">
-        {service.title}
-      </h3>
-
-      <p className="text-white/60 text-sm font-montserrat leading-relaxed mb-6 flex-grow">
-        {service.desc}
-      </p>
-
-      <button
-        onClick={() => onOpen(service)}
-        className="w-full bg-transparent border border-braz-pink/30 text-braz-pink px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] hover:bg-braz-pink hover:text-braz-black transition-all duration-300 rounded-lg active:scale-95 flex items-center justify-center gap-2"
-      >
-        <span>Ver Resultados</span>
-        <ChevronRight size={14} />
-      </button>
     </motion.div>
   );
 };

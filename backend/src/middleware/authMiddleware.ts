@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { isBlacklisted } from '../utils/tokenBlacklist';
+import { isBlacklisted } from '../utils/tokenBlacklist.js';
 
 // Configuração JWT (#12)
 const JWT_VERIFY_OPTIONS = {

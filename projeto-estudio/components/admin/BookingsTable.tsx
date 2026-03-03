@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Calendar, Filter, Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2, Euro } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { getAllBookings, updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
+import { updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
 import { useToast } from '../common/Toast';
+import { useAdminData } from '../../contexts/AdminDataContext';
+import { StatusBadge } from './ui/Badges';
+import { TableSkeleton } from './ui/Skeletons';
 import { SERVICES_CONFIG } from '../../utils/constants';
-import EditBookingModal from './EditBookingModal';
+import BookingFormModal from './BookingFormModal';
 
 const STATUS_OPTIONS = [
     { value: 'all', label: 'Todos', color: 'text-white/60' },
     { value: 'pending', label: 'Pendentes', color: 'text-yellow-400' },
     { value: 'confirmed', label: 'Confirmados', color: 'text-green-400' },
+    { value: 'paid', label: 'Pagos', color: 'text-braz-gold' },
     { value: 'cancelled', label: 'Cancelados', color: 'text-red-400' },
     { value: 'blocked', label: 'Bloqueados', color: 'text-orange-400' },
 ];
@@ -17,27 +21,12 @@ const STATUS_OPTIONS = [
 const ITEMS_PER_PAGE = 15;
 
 const BookingsTable: React.FC = () => {
-    const [bookings, setBookings] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { bookings, loading, refreshData } = useAdminData();
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [editingBooking, setEditingBooking] = useState<any>(null);
     const { showToast } = useToast();
-
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const data = await getAllBookings();
-            setBookings(Array.isArray(data) ? data : data?.data || []);
-        } catch {
-            showToast('Erro ao carregar bookings.', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchData(); }, []);
 
     // Filters
     const filtered = bookings
@@ -62,7 +51,16 @@ const BookingsTable: React.FC = () => {
         try {
             await updateBookingStatus(id, 'confirmed');
             showToast('Confirmado!', 'success');
-            fetchData();
+            await refreshData();
+        } catch { showToast('Erro.', 'error'); }
+    };
+
+    const handleMarkAsPaid = async (id: string, currentStatus: string) => {
+        if (currentStatus === 'paid') return;
+        try {
+            await updateBookingStatus(id, 'paid');
+            showToast('Marcado como Pago!', 'success');
+            await refreshData();
         } catch { showToast('Erro.', 'error'); }
     };
 
@@ -72,7 +70,7 @@ const BookingsTable: React.FC = () => {
         try {
             await deleteBooking(id);
             showToast('Eliminado.', 'success');
-            fetchData();
+            await refreshData();
         } catch { showToast('Erro.', 'error'); }
     };
 
@@ -82,21 +80,6 @@ const BookingsTable: React.FC = () => {
         if (num.length === 9) num = '351' + num;
         const label = SERVICES_CONFIG[booking.service as keyof typeof SERVICES_CONFIG]?.label || booking.service;
         window.open(`https://wa.me/${num}?text=${encodeURIComponent(`Olá ${client.name}! Studio Braz — Confirmação: ${label} dia ${booking.date} às ${booking.time}`)}`, '_blank');
-    };
-
-    const getStatusBadge = (status: string) => {
-        const styles: Record<string, string> = {
-            pending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-            confirmed: 'bg-green-500/10 text-green-400 border-green-500/20',
-            cancelled: 'bg-red-500/10 text-red-400 border-red-500/20',
-            blocked: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-            completed: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-        };
-        return (
-            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${styles[status] || 'bg-white/5 text-white/40 border-white/10'}`}>
-                {status}
-            </span>
-        );
     };
 
     return (
@@ -150,16 +133,20 @@ const BookingsTable: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {loading ? (
-                                Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-32" /></td>
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-24" /></td>
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-20" /></td>
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-12" /></td>
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-16" /></td>
-                                        <td className="p-4"><div className="h-4 bg-white/5 rounded w-20" /></td>
-                                    </tr>
-                                ))
+                                <tr>
+                                    <td colSpan={6} className="p-0">
+                                        <div className="animate-pulse space-y-4 p-4">
+                                            {[1, 2, 3, 4, 5].map(i => (
+                                                <div key={i} className="flex gap-4">
+                                                    <div className="w-48 h-4 bg-white/5 rounded-full" />
+                                                    <div className="w-32 h-4 bg-white/5 rounded-full" />
+                                                    <div className="w-24 h-4 bg-white/5 rounded-full" />
+                                                    <div className="w-12 h-4 bg-white/5 rounded-full" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : paginated.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="p-12 text-center text-white/20 text-sm">
@@ -180,23 +167,28 @@ const BookingsTable: React.FC = () => {
                                         </td>
                                         <td className="p-4 text-sm text-white/50 font-mono">{b.date}</td>
                                         <td className="p-4 text-sm text-white/50 font-mono">{b.time}</td>
-                                        <td className="p-4">{getStatusBadge(b.status)}</td>
+                                        <td className="p-4"><StatusBadge status={b.status as any} /></td>
                                         <td className="p-4">
                                             <div className="flex gap-1.5 justify-end">
                                                 {b.status === 'pending' && (
-                                                    <button onClick={() => handleConfirm(b.id)} className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all" title="Confirmar">
+                                                    <button onClick={() => handleConfirm(b.id)} className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Confirmar">
                                                         <Check size={14} />
                                                     </button>
                                                 )}
-                                                <button onClick={() => setEditingBooking(b)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all" title="Editar">
+                                                {b.status === 'confirmed' && (
+                                                    <button onClick={() => handleMarkAsPaid(b.id, b.status)} className="p-2 bg-braz-gold/10 text-braz-gold rounded-lg hover:bg-braz-gold hover:text-black transition-all shadow-[0_0_10px_rgba(197,160,89,0.2)]" title="Marcar como Pago">
+                                                        <Euro size={14} />
+                                                    </button>
+                                                )}
+                                                <button onClick={() => setEditingBooking(b)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Editar">
                                                     <Edit2 size={14} />
                                                 </button>
                                                 {b.client?.phone && (
-                                                    <button onClick={() => openWhatsApp(b.client, b)} className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-green-500 hover:text-white transition-all" title="WhatsApp">
+                                                    <button onClick={() => openWhatsApp(b.client, b)} className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm" title="WhatsApp">
                                                         <MessageCircle size={14} />
                                                     </button>
                                                 )}
-                                                <button onClick={() => handleDelete(b.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all" title="Eliminar">
+                                                <button onClick={() => handleDelete(b.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Eliminar">
                                                     <X size={14} />
                                                 </button>
                                             </div>
@@ -237,10 +229,10 @@ const BookingsTable: React.FC = () => {
             {/* Edit Modal */}
             <AnimatePresence>
                 {editingBooking && (
-                    <EditBookingModal
+                    <BookingFormModal
                         booking={editingBooking}
                         onClose={() => setEditingBooking(null)}
-                        onSaved={fetchData}
+                        onSaved={refreshData}
                     />
                 )}
             </AnimatePresence>

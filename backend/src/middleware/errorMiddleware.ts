@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 export const notFound = (req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Caminho não encontrado - ${req.originalUrl}`);
@@ -9,7 +9,7 @@ export const notFound = (req: Request, res: Response, next: NextFunction) => {
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  
+
   // Logamos o erro internamente para o Diretor ver
   logger.error(`${err.message} - ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
 

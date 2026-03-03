@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Mail, Phone, Hash, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
+import { Users, Search, Mail, Phone, Download, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { useToast } from '../common/Toast';
-import api from '../../src/services/api';
+import { useAdminData } from '../../contexts/AdminDataContext';
 import ClientProfileModal from './ClientProfileModal';
 
 interface Client {
@@ -22,27 +22,12 @@ type SortDir = 'asc' | 'desc';
 const SYSTEM_EMAILS = ['system@studiobraz.internal'];
 
 const AdminClientList: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { clients, loading, refreshData } = useAdminData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('points');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const { showToast } = useToast();
-
-  const fetchClients = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get('/bookings/clients');
-      setClients(res.data || []);
-    } catch {
-      showToast('Erro ao carregar clientes.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchClients(); }, []);
 
   // Filtrar: excluir SISTEMA ADMIN e aplicar pesquisa
   const filtered = clients
@@ -78,9 +63,34 @@ const AdminClientList: React.FC = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    if (sorted.length === 0) {
+      showToast('Não há clientes para exportar.', 'error');
+      return;
+    }
+
+    const headers = ['Nome;Email;Telefone;Marcações Confirmadas (Pontos);Total de Visitas;Data Registo'];
+    const rows = sorted.map(c => {
+      const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('pt-PT') : 'N/A';
+      return `"${c.name}";"${c.email || ''}";"${c.phone || ''}";"${c.points}";"${c._count?.bookings || 0}";"${date}"`;
+    });
+
+    const csvContent = headers.concat(rows).join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `clientes_studiobraz_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Exportação CSV concluída com sucesso.', 'success');
+  };
+
   const SortIcon = ({ field }: { field: SortKey }) => {
     if (sortKey !== field) return <ChevronUp size={10} className="text-white/10" />;
-    return sortDir === 'desc' ? <ChevronDown size={10} className="text-[#C5A059]" /> : <ChevronUp size={10} className="text-[#C5A059]" />;
+    return sortDir === 'desc' ? <ChevronDown size={10} className="text-braz-gold" /> : <ChevronUp size={10} className="text-braz-gold" />;
   };
 
   const getRankBadge = (index: number) => {
@@ -93,26 +103,35 @@ const AdminClientList: React.FC = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-            <Users className="text-[#C5A059]" size={24} /> Clientes
+          <h1 className="text-2xl font-black font-montserrat uppercase tracking-tighter flex items-center gap-3">
+            <Users className="text-braz-gold" size={24} /> Base de Dados (CRM)
           </h1>
-          <p className="text-white/30 text-xs mt-1">
+          <p className="text-white/40 text-xs mt-1 font-medium">
             {filtered.length} cliente{filtered.length !== 1 ? 's' : ''} registado{filtered.length !== 1 ? 's' : ''}
-            {' • '}Ordenados por {sortKey === 'points' ? 'marcações confirmadas' : sortKey === 'name' ? 'nome' : sortKey === 'bookings' ? 'total visitas' : 'data de registo'}
+            {' • '}A mostrar por {sortKey === 'points' ? 'marcações confirmadas' : sortKey === 'name' ? 'nome' : sortKey === 'bookings' ? 'total visitas' : 'data de registo'}
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-          <input
-            type="text"
-            placeholder="Pesquisar por nome, email ou telemóvel..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-white/20"
-          />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome, email ou telefone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#121212] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white font-medium outline-none focus:border-braz-gold/50 focus:bg-[#151515] transition-all placeholder:text-white/20"
+            />
+          </div>
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 bg-gradient-to-r from-braz-gold to-[#e3c178] text-black px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all shrink-0"
+            title="Exportar para Excel (CSV)"
+          >
+            <Download size={14} /> <span className="hidden sm:inline">Exportar CSV</span>
+          </button>
         </div>
       </div>
 
@@ -127,8 +146,8 @@ const AdminClientList: React.FC = () => {
             key={opt.key}
             onClick={() => handleSort(opt.key)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${sortKey === opt.key
-                ? 'border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059]'
-                : 'border-white/5 text-white/30 hover:text-white/60'
+              ? 'border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059]'
+              : 'border-white/5 text-white/30 hover:text-white/60'
               }`}
           >
             {opt.label} <SortIcon field={opt.key} />
@@ -176,9 +195,9 @@ const AdminClientList: React.FC = () => {
               {/* Name + Avatar */}
               <div className="col-span-3 flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black uppercase ${idx === 0 ? 'bg-yellow-500/20 text-yellow-400' :
-                    idx === 1 ? 'bg-gray-400/20 text-gray-300' :
-                      idx === 2 ? 'bg-amber-700/20 text-amber-500' :
-                        'bg-[#C5A059]/10 text-[#C5A059]'
+                  idx === 1 ? 'bg-gray-400/20 text-gray-300' :
+                    idx === 2 ? 'bg-amber-700/20 text-amber-500' :
+                      'bg-[#C5A059]/10 text-[#C5A059]'
                   }`}>
                   {client.name?.charAt(0) || '?'}
                 </div>
@@ -246,7 +265,7 @@ const AdminClientList: React.FC = () => {
           <ClientProfileModal
             clientId={selectedClientId}
             onClose={() => setSelectedClientId(null)}
-            onUpdated={fetchClients}
+            onUpdated={refreshData}
           />
         )}
       </AnimatePresence>

@@ -1,61 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { getAllBookings, updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
+import React, { useState } from 'react';
+import { RefreshCw, Search, Plus, Filter } from 'lucide-react';
+import { updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../common/Toast';
-import api from '../../src/services/api';
+import { useAdminData } from '../../contexts/AdminDataContext';
 import { SERVICES_CONFIG } from '../../utils/constants';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 // Sub-components
 import DashboardMetrics from './DashboardMetrics';
 import CalendarView from './CalendarView';
+import BookingFormModal from './BookingFormModal';
+
 
 const AdminDashboard: React.FC = () => {
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { bookings, loading, refreshData } = useAdminData();
   const diretorNome = user?.email ? user.email.split('@')[0] : 'Diretor';
 
-  // --- LOAD DATA ---
-  const fetchAllData = async () => {
-    try {
-      setLoading(true);
-      const [bookingsRes] = await Promise.all([
-        getAllBookings(),
-      ]);
-      setBookings(Array.isArray(bookingsRes) ? bookingsRes : bookingsRes?.data || []);
-    } catch (err) {
-      showToast('Erro ao carregar dados.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchAllData(); }, []);
+  // --- FILTER LOGIC ---
+  const filteredBookings = React.useMemo(() => {
+    return bookings.filter(b => {
+      const matchesSearch = b.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.client?.phone?.includes(searchTerm);
+      const matchesFilter = filterStatus === 'all' || b.status === filterStatus;
+      return matchesSearch && matchesFilter;
+    });
+  }, [bookings, searchTerm, filterStatus]);
 
   // --- METRICS ---
-  const metrics = (() => {
-    const confirmed = bookings.filter(b => b.status === 'confirmed');
+  const metrics = React.useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayBookings = bookings.filter(b => b.date === todayStr && b.status !== 'blocked' && b.status !== 'cancelled');
     const pending = bookings.filter(b => b.status === 'pending');
-    const totalRevenue = confirmed.reduce((acc, b) => {
-      const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
-      return acc + (config?.price || 0);
-    }, 0);
+
+    // Revenue from today (only confirmed or paid)
+    const todayRevenue = todayBookings
+      .filter(b => b.status === 'confirmed' || b.status === 'paid')
+      .reduce((acc, b) => {
+        const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
+        return acc + (config?.price || 0);
+      }, 0);
+
     return {
-      revenue: totalRevenue,
-      confirmedCount: confirmed.length,
+      revenue: todayRevenue,
+      todayCount: todayBookings.length,
       pendingCount: pending.length,
-      totalBookings: bookings.filter(b => b.status !== 'blocked').length
     };
-  })();
+  }, [bookings]);
 
   // --- ACTIONS ---
   const handleConfirm = async (id: string) => {
     try {
       await updateBookingStatus(id, 'confirmed');
       showToast('Booking confirmado com sucesso!', 'success');
-      await fetchAllData();
+      await refreshData();
     } catch (err) {
       showToast('Erro ao confirmar booking.', 'error');
     }
@@ -67,51 +71,85 @@ const AdminDashboard: React.FC = () => {
     try {
       await deleteBooking(id);
       showToast('Booking eliminado.', 'success');
-      await fetchAllData();
+      await refreshData();
     } catch (err) {
       showToast('Erro ao eliminar booking.', 'error');
     }
   };
 
-
-
-  const openWhatsApp = (client: any, booking: any) => {
-    if (!client?.phone) { showToast('Cliente sem contacto.', 'warning'); return; }
-    let cleanNumber = client.phone.replace(/\D/g, '');
-    if (cleanNumber.length === 9) cleanNumber = '351' + cleanNumber;
-    const config = SERVICES_CONFIG[booking.service as keyof typeof SERVICES_CONFIG];
-    const msg = `Olá ${client.name}! ✨ Studio Braz aqui. Confirmamos para ${config?.label || booking.service} dia ${booking.date} às ${booking.time}?`;
-    window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Sala de Comando</h1>
           <p className="text-braz-pink text-xs font-bold uppercase tracking-widest mt-1">
             Diretor <span className="text-white capitalize">{diretorNome}</span>
           </p>
         </div>
-        <button
-          onClick={fetchAllData}
-          className="p-3 bg-white/5 rounded-xl hover:text-braz-pink border border-white/5 transition-all"
-        >
-          <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-        </button>
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-braz-gold text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all shadow-lg shadow-braz-gold/20"
+          >
+            <Plus size={16} /> Nova Marcação
+          </button>
+          <button
+            onClick={refreshData}
+            title="Atualizar Dados"
+            className="p-3 bg-white/5 rounded-xl hover:text-braz-pink border border-white/5 hover:border-white/20 transition-all"
+          >
+            <RefreshCw size={18} className={loading ? "animate-spin text-braz-pink" : ""} />
+          </button>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
+          <input
+            type="text"
+            placeholder="Pesquisar cliente ou telemóvel..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#121212] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-braz-gold/50 transition-colors"
+          />
+        </div>
+        <div className="relative min-w-[200px]">
+          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full bg-[#121212] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-braz-gold/50 transition-colors appearance-none cursor-pointer"
+          >
+            <option value="all">Todos os Estados</option>
+            <option value="pending">Aguardam Decisão</option>
+            <option value="confirmed">Confirmados</option>
+            <option value="cancelled">Cancelados</option>
+          </select>
+        </div>
       </div>
 
       {/* Metrics */}
-      <DashboardMetrics metrics={metrics} />
+      <DashboardMetrics metrics={metrics} isLoading={loading} />
 
       {/* Calendar */}
       <CalendarView
-        bookings={bookings}
+        bookings={filteredBookings}
+        isLoading={loading}
         onConfirm={handleConfirm}
         onDelete={handleDelete}
         onWhatsApp={openWhatsApp}
       />
+
+      {/* Modals */}
+      {isModalOpen && (
+        <BookingFormModal
+          onClose={() => setIsModalOpen(false)}
+          onSaved={() => { setIsModalOpen(false); refreshData(); }}
+        />
+      )}
     </div>
   );
 };

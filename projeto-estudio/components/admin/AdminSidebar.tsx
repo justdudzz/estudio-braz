@@ -17,9 +17,9 @@ interface AdminSidebarProps {
 }
 
 const NAV_ITEMS = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/dashboard/agenda', icon: Calendar, label: 'Agenda' },
-    { path: '/dashboard/clientes', icon: Users, label: 'Clientes' },
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Visão Central' },
+    { path: '/dashboard/agenda', icon: Calendar, label: 'Histórico & Pesquisa' },
+    { path: '/dashboard/clientes', icon: Users, label: 'Base VIP' },
     { path: '/dashboard/bloqueios', icon: Lock, label: 'Bloqueios' },
     { path: '/dashboard/configuracoes', icon: Settings, label: 'Configurações' },
     { path: '/dashboard/relatorios', icon: BarChart3, label: 'Estatísticas' },

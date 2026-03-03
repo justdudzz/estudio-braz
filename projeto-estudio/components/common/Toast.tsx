@@ -56,7 +56,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             {children}
 
             {/* Toast Container */}
-            <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm">
+            <div className="fixed top-6 right-6 z-[9999990] flex flex-col gap-3 max-w-sm">
                 <AnimatePresence>
                     {toasts.map(toast => {
                         const Icon = TOAST_ICONS[toast.type];

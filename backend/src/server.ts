@@ -39,7 +39,10 @@ app.use(cors({
     // Permite pedidos sem origin (Postman, curl, health checks)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Development fallback para qualquer porta localhost
+    const isLocalhost = !isProduction && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
+
+    if (isLocalhost || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       logger.error(`Tentativa de invasão via CORS bloqueada: ${origin}`);

@@ -5,12 +5,11 @@ import logger from '../utils/logger.js';
 dotenv.config();
 
 // Configuração SMTP via variáveis de ambiente
-// Quando tiveres o domínio, preenche no .env com os dados do teu hosting
 const createTransporter = () => {
-  // Se SMTP está configurado, usa as credenciais reais
-  if (process.env.SMTP_HOST) {
+  // Se SMTP está configurado com password, usa as credenciais reais
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_SECURE === 'true', // true para porta 465, false para 587
       auth: {
@@ -20,16 +19,11 @@ const createTransporter = () => {
     });
   }
 
-  // Modo desenvolvimento: usa Ethereal (email de teste gratuito)
-  logger.warn('⚠️  SMTP não configurado — emails serão simulados via Ethereal (dev mode)');
-  return nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-      user: process.env.ETHEREAL_USER || '',
-      pass: process.env.ETHEREAL_PASS || '',
-    },
-  });
+  // Falha amigável quando não há credenciais de email configuradas
+  logger.error('❌ CREDENCIAIS DE EMAIL (SMTP) NÃO CONFIGURADAS. Emails não serão enviados aos clientes.');
+  return {
+    sendMail: async () => ({ messageId: 'simulated-no-config' })
+  } as any;
 };
 
 const transporter = createTransporter();
@@ -83,8 +77,8 @@ export const sendLuxuryEmail = async (
       `,
     });
 
-    // Em modo Ethereal, mostra o link para ver o email
-    const previewUrl = nodemailer.getTestMessageUrl(info);
+    // Em modo Ethereal/teste pode gerar URL
+    const previewUrl = nodemailer.getTestMessageUrl(info as any);
     if (previewUrl) {
       logger.info(`📧 Email de teste — Preview: ${previewUrl}`);
     }
