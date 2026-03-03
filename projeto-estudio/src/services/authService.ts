@@ -1,10 +1,15 @@
 import api from './api';
 
-export const loginDirector = async (email: string, password: string) => {
+export const loginDirector = async (email: string, password: string, twoFactorCode?: string) => {
   try {
-    const response = await api.post('/auth/login', { email, password });
-    // O token agora é enviado como httpOnly cookie pelo servidor (#1)
-    // Não precisamos guardá-lo no localStorage — apenas retornar os dados
+    const payload = twoFactorCode ? { email, password, twoFactorCode } : { email, password };
+    const response = await api.post('/auth/login', payload);
+
+    // Se o backend pedir 2FA (Código 206 Partial Content)
+    if (response.status === 206 || response.data?.requires2FA) {
+      return { requires2FA: true };
+    }
+
     return response.data;
   } catch (error: any) {
     throw error.response?.data?.message || 'Erro na autenticação.';

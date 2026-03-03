@@ -1,7 +1,7 @@
 import express from 'express';
-import { login, clientLogin, logout } from '../controllers/authController.js';
+import { login, clientLogin, logout, generate2FA, verify2FA } from '../controllers/authController.js';
 import { loginLimiter } from '../middleware/rateLimiter.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -13,5 +13,9 @@ router.post('/client-login', loginLimiter, clientLogin);
 
 // Rota de Logout — limpa cookies e invalida sessão (#13)
 router.post('/logout', protect, logout);
+
+// --- ROTAS DE SEGURANÇA EXTREMA (2FA) ---
+router.post('/2fa/generate', protect, adminOnly, generate2FA);
+router.post('/2fa/verify', protect, adminOnly, verify2FA);
 
 export default router;

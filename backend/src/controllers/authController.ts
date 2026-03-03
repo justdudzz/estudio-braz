@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+// @ts-ignore
+import { authenticator } from 'otplib';
+import qrcode from 'qrcode';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
 
@@ -46,6 +49,25 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) {
       logger.warn(`Login admin falhado — password errada: ${email} | IP: ${clientIp}`);
       return res.status(401).json({ message: 'Credenciais de elite inválidas.' });
+    }
+
+    // --- NOVA CAMADA: 2FA ---
+    if (user.isTwoFactorEnabled) {
+      const { twoFactorCode } = req.body;
+      if (!twoFactorCode) {
+        // Se a password está certa, mas falta o código 2FA, respondemos com 206 Partial Content
+        return res.status(206).json({ message: 'Autenticação em 2 Passos necessária.', requires2FA: true });
+      }
+
+      const isValid = authenticator.verify({
+        token: twoFactorCode,
+        secret: user.twoFactorSecret!
+      });
+
+      if (!isValid) {
+        logger.warn(`Login admin 2FA falhado — código inválido: ${email} | IP: ${clientIp}`);
+        return res.status(401).json({ message: 'Código de Segurança (2FA) inválido.' });
+      }
     }
 
     // Gera o Token com claims de segurança (#12)
@@ -173,4 +195,62 @@ export const logout = async (req: Request, res: Response) => {
 
   logger.info('Sessão terminada com sucesso.');
   res.json({ message: 'Sessão encerrada com segurança.' });
+};
+
+// --- 4. GERAR QR CODE PARA 2FA (ADMIN ONLY) ---
+export const generate2FA = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) return res.status(404).json({ message: 'Admin não encontrado.' });
+    if (user.isTwoFactorEnabled) {
+      return res.status(400).json({ message: 'A Autenticação Avançada (2FA) já está protegida e ativada.' });
+    }
+
+    // Gera segredo
+    const secret = authenticator.generateSecret();
+    const otpauth = authenticator.keyuri(user.email, 'Studio Braz', secret);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorSecret: secret }
+    });
+
+    // Gera Imagem Base64 QR
+    const qrCodeImage = await qrcode.toDataURL(otpauth);
+    res.json({ secret, qrCodeImage });
+  } catch (err: any) {
+    logger.error(`Erro ao gerar 2FA: ${err.message}`);
+    res.status(500).json({ message: 'Erro ao gerar infraestrutura 2FA.' });
+  }
+};
+
+// --- 5. ATIVAR 2FA (ADMIN ONLY) ---
+export const verify2FA = async (req: Request, res: Response) => {
+  const { code } = req.body;
+  try {
+    const userId = (req as any).user.id;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user || user.isTwoFactorEnabled || !user.twoFactorSecret) {
+      return res.status(400).json({ message: 'Pedido inválido ou 2FA já ativado.' });
+    }
+
+    const isValid = authenticator.verify({ token: code, secret: user.twoFactorSecret });
+
+    if (!isValid) {
+      return res.status(401).json({ message: 'Código inválido. Tente novamente.' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isTwoFactorEnabled: true }
+    });
+
+    res.json({ message: 'Autenticação de Dois Fatores (2FA) selada e ativada com sucesso militar.' });
+  } catch (err: any) {
+    logger.error(`Erro ao validar 2FA: ${err.message}`);
+    res.status(500).json({ message: 'Erro interno ao validar o 2FA.' });
+  }
 };

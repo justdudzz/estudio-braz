@@ -52,7 +52,9 @@ model Booking {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
+  password          String
+  role              String   @default("admin")
+  twoFactorSecret   String?  // Chave criptográfica para Google Authenticator
+  isTwoFactorEnabled Boolean @default(false)
+  createdAt         DateTime @default(now())
 }
