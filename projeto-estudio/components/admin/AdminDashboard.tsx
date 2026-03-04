@@ -107,7 +107,7 @@ const AdminDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Sala de Comando</h1>
-          <p className="text-braz-pink text-xs font-bold uppercase tracking-widest mt-1">
+          <p className="text-braz-gold text-xs font-bold uppercase tracking-widest mt-1">
             Diretor <span className="text-white capitalize">{diretorNome}</span>
           </p>
         </div>
@@ -121,9 +121,9 @@ const AdminDashboard: React.FC = () => {
           <button
             onClick={refreshData}
             title="Atualizar Dados"
-            className="p-3 bg-white/5 rounded-xl hover:text-braz-pink border border-white/5 hover:border-white/20 transition-all"
+            className="p-3 bg-white/5 rounded-xl hover:text-braz-gold border border-white/5 hover:border-white/20 transition-all"
           >
-            <RefreshCw size={18} className={loading ? "animate-spin text-braz-pink" : ""} />
+            <RefreshCw size={18} className={loading ? "animate-spin text-braz-gold" : ""} />
           </button>
         </div>
       </div>

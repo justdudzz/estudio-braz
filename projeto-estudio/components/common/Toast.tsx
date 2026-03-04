@@ -82,7 +82,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                                     )}
                                 </div>
                                 <button onClick={() => removeToast(toast.id)} className="opacity-50 hover:opacity-100 transition-opacity">
-                                    <X size={14} />
+                                    <X size={14} strokeWidth={1.5} />
                                 </button>
                             </motion.div>
                         );

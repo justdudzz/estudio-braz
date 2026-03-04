@@ -3,8 +3,14 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/faviconBraz4.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+
+  <!-- 🚀 PRELOADING CRÍTICO (Latência Zero) -->
+  <link rel="preload" href="/fonts/Montserrat-Bold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/Montserrat-SemiBold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/Montserrat-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/iconelogo.png" as="image">
 
   <title>Studio Braz | Estética Avançada Águeda</title>
   <meta name="description"
@@ -13,7 +19,7 @@
   <meta property="og:title" content="Mariana Braz - Estética Avançada | Agendamento e Vouchers" />
   <meta property="og:description"
     content="Studio Braz Estética em Águeda. Especialista em Microblading e Unhas de Gel." />
-  <meta property="og:image" content="/favicon.png" />
+  <meta property="og:image" content="/faviconBraz4.png" />
   <meta property="og:type" content="website" />
 
   <!-- 🛡️ CONTENT SECURITY POLICY (CSP) -->
@@ -21,7 +27,7 @@
     content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://www.livroreclamacoes.pt; frame-src 'self' https://www.google.com; connect-src 'self' http://localhost:5000 wss://localhost:5173 https://your-production-api-url.com;">
 </head>
 
-<body class="bg-braz-black">
+<body class="bg-braz-black overscroll-none">
   <div id="root"></div>
   <script type="module" src="/main.tsx"></script>
 </body>

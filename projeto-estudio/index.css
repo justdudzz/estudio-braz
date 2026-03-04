@@ -56,8 +56,38 @@
   body {
     font-family: 'Montserrat', sans-serif;
     /* Elite Deep Black Background with high-contrast text */
-    @apply bg-[#050505] text-[#F3F3F3]; 
+    @apply bg-[#050505] text-[#F3F3F3];
     letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 🌈 ENGENHARIA CROMÁTICA P3 (HDR Ready) */
+  @media (color-gamut: p3) {
+    :root {
+      --braz-gold: color(display-p3 0.7725 0.6275 0.349);
+      --braz-gold-vibrant: color(display-p3 0.85 0.7 0.4);
+    }
+
+    .text-braz-gold {
+      color: var(--braz-gold) !important;
+    }
+
+    .bg-braz-gold {
+      background-color: var(--braz-gold) !important;
+    }
+
+    .border-braz-gold {
+      border-color: var(--braz-gold) !important;
+    }
+  }
+
+  /* ⚡ ACELERAÇÃO GPU (Hardware Bound) */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
   }
 
   /* Foco visível para acessibilidade de elite */
@@ -73,15 +103,15 @@
   }
 
   /* Dourado de Luxo Corrigido */
-  .text-braz-pink {
+  .text-braz-gold {
     @apply text-[#C5A059];
   }
 
-  .bg-braz-pink {
+  .bg-braz-gold {
     @apply bg-[#C5A059];
   }
 
-  .border-braz-pink {
+  .border-braz-gold {
     @apply border-[#C5A059];
   }
 
@@ -96,6 +126,7 @@
 
 /* 5. Utilitários Customizados */
 @layer utilities {
+
   /* Scrollbar Personalizada Dourada */
   ::-webkit-scrollbar {
     width: 8px;

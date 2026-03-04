@@ -55,8 +55,8 @@ const LoginPage: React.FC = () => {
         className="max-w-md w-full bg-[#121212] p-10 rounded-3xl border border-white/5 shadow-2xl"
       >
         <div className="text-center mb-10">
-          <div className="inline-flex p-4 bg-braz-pink/10 rounded-2xl mb-4">
-            <Lock className="text-braz-pink" size={32} />
+          <div className="inline-flex p-4 bg-braz-gold/10 rounded-2xl mb-4">
+            <Lock className="text-braz-gold" size={32} />
           </div>
           <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">
             Acesso do Diretor
@@ -78,7 +78,7 @@ const LoginPage: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="diretor@studiobraz.com"
-                    className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/5 focus:border-braz-pink/50 transition-all placeholder:text-white/10"
+                    className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/5 focus:border-braz-gold/50 transition-all placeholder:text-white/10 text-[16px]"
                     required
                   />
                 </div>
@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/5 focus:border-braz-pink/50 transition-all placeholder:text-white/10"
+                    className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/5 focus:border-braz-gold/50 transition-all placeholder:text-white/10 text-[16px]"
                     required
                   />
                 </div>
@@ -105,9 +105,9 @@ const LoginPage: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-2"
             >
-              <label className="block text-[10px] font-bold text-braz-pink uppercase tracking-widest ml-1 text-center">Código de Segurança (2FA)</label>
+              <label className="block text-[10px] font-bold text-braz-gold uppercase tracking-widest ml-1 text-center">Código de Segurança (2FA)</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-braz-pink" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-braz-gold" size={18} />
                 <input
                   type="text"
                   maxLength={6}
@@ -135,13 +135,14 @@ const LoginPage: React.FC = () => {
             </motion.div>
           )}
 
-          <button
+          <motion.button
+            whileTap={{ scale: 0.98, opacity: 0.9 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black py-5 rounded-xl font-black uppercase tracking-[0.2em] hover:bg-braz-pink hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
+            className="w-full bg-white text-black py-5 rounded-xl font-black uppercase tracking-[0.2em] hover:bg-braz-gold hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-3"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'ENTRAR NO PAINEL'}
-          </button>
+          </motion.button>
         </form>
       </motion.div>
     </div>

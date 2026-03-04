@@ -61,9 +61,9 @@ const TrustMirror: React.FC = () => {
           className="text-center mb-16"
         >
           <h2 id="trustmirror-heading" className="text-5xl lg:text-6xl font-bold mb-6 text-white uppercase tracking-tighter">
-            O Seu <span className="text-braz-pink">Espelho</span> de Confiança
+            O Seu <span className="text-braz-gold">Espelho</span> de Confiança
           </h2>
-          <div className="w-24 h-1 bg-braz-pink mx-auto mb-8" />
+          <div className="w-24 h-1 bg-braz-gold mx-auto mb-8" />
           <p className="text-xl text-white/60 max-w-3xl mx-auto leading-relaxed">
             A transformação começa aqui. Selecione um dos nossos serviços de elite e visualize o impacto real dos nossos tratamentos.
           </p>
@@ -85,7 +85,7 @@ const TrustMirror: React.FC = () => {
                 setSelectedService(e.target.value);
                 setShowBefore(true); // Reset para o "Antes" ao mudar serviço
               }}
-              className="border-white/10 focus:border-braz-pink"
+              className="border-white/10 focus:border-braz-gold"
             />
           </div>
 
@@ -108,15 +108,15 @@ const TrustMirror: React.FC = () => {
                   />
 
                   {/* Overlay Informativo */}
-                  <div className="absolute top-4 left-4 bg-braz-black/80 backdrop-blur-md px-4 py-1 rounded-full border border-braz-pink/30">
-                    <span className="text-braz-pink text-xs font-bold uppercase tracking-widest">
+                  <div className="absolute top-4 left-4 bg-braz-black/80 backdrop-blur-md px-4 py-1 rounded-full border border-braz-gold/30">
+                    <span className="text-braz-gold text-xs font-bold uppercase tracking-widest">
                       {showBefore ? 'Antes' : 'Depois'}
                     </span>
                   </div>
                 </motion.div>
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white/30 space-y-4">
-                  <Sparkles className="w-12 h-12 opacity-20" />
+                  <Sparkles className="w-12 h-12 opacity-20" strokeWidth={1.5} />
                   <p className="font-montserrat">Selecione um serviço para ver o resultado</p>
                 </div>
               )}
@@ -125,24 +125,26 @@ const TrustMirror: React.FC = () => {
             {/* Controlos de Visualização */}
             {selectedService && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center bg-braz-black/60 backdrop-blur-xl p-2 rounded-full border border-white/10 shadow-2xl">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowBefore(true)}
-                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
+                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all active:scale-95 ${showBefore ? 'bg-braz-gold text-braz-black font-bold' : 'text-white hover:bg-white/10'
                     }`}
                   aria-pressed={showBefore}
                 >
-                  <EyeOff size={18} />
+                  <EyeOff size={18} strokeWidth={1.5} />
                   <span>Antes</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowBefore(false)}
-                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${!showBefore ? 'bg-braz-pink text-braz-black font-bold' : 'text-white hover:bg-white/10'
+                  className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all active:scale-95 ${!showBefore ? 'bg-braz-gold text-braz-black font-bold' : 'text-white hover:bg-white/10'
                     }`}
                   aria-pressed={!showBefore}
                 >
-                  <Eye size={18} />
+                  <Eye size={18} strokeWidth={1.5} />
                   <span>Depois</span>
-                </button>
+                </motion.button>
               </div>
             )}
           </div>

@@ -171,7 +171,7 @@ const ResultDisplay: React.FC<{ src: string; label: string }> = ({ src, label })
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          className="px-4 py-2 rounded-md font-bold text-sm tracking-widest uppercase shadow-lg border-l-4 bg-braz-pink text-braz-black border-white"
+          className="px-4 py-2 rounded-md font-bold text-sm tracking-widest uppercase shadow-lg border-l-4 bg-braz-gold text-braz-black border-white"
         >
           Resultado
         </motion.div>
@@ -179,7 +179,7 @@ const ResultDisplay: React.FC<{ src: string; label: string }> = ({ src, label })
 
       <div className="absolute bottom-6 left-6 right-6 z-10 pointer-events-none">
         <div className="bg-black/70 backdrop-blur-md p-3 rounded-lg border border-white/10 inline-flex items-center shadow-lg">
-          <Sparkles className="w-4 h-4 text-braz-pink mr-2" />
+          <Sparkles className="w-4 h-4 text-braz-gold mr-2" />
           <span className="text-white font-medium text-sm tracking-wide">{label}</span>
         </div>
       </div>
@@ -215,13 +215,14 @@ const ServiceCard: React.FC<{ service: ServiceData, index: number, onOpen: (s: S
           {service.desc}
         </p>
 
-        <button
+        <motion.button
           onClick={() => onOpen(service)}
-          className="w-full bg-transparent border border-white/10 text-white/70 px-4 py-3.5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black hover:border-white transition-all duration-500 rounded-xl active:scale-95 flex items-center justify-center gap-3 group/btn"
+          whileTap={{ scale: 0.98 }}
+          className="w-full bg-transparent border border-white/10 text-white/70 px-4 py-3.5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black hover:border-white transition-all duration-500 rounded-xl active:scale-95 flex items-center justify-center gap-3 group/btn h-12"
         >
           <span>Descobrir</span>
-          <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-        </button>
+          <ChevronRight size={14} strokeWidth={1.5} className="group-hover/btn:translate-x-1 transition-transform" />
+        </motion.button>
       </div>
     </motion.div>
   );
@@ -250,13 +251,13 @@ const ServicesGrid: React.FC = () => {
     <section id="servicos" className="py-24 bg-braz-black relative">
       <div className="container mx-auto px-6">
         <div className="text-center mb-20">
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-braz-pink text-xs font-bold uppercase tracking-[0.4em] mb-4">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-braz-gold text-xs font-bold uppercase tracking-[0.4em] mb-4">
             Menu de Serviços
           </motion.p>
           <h2 className="text-4xl md:text-5xl font-montserrat font-extrabold text-white uppercase tracking-tighter">
             Excelência & Cuidado
           </h2>
-          <div className="w-16 h-1 bg-braz-pink mx-auto mt-6 rounded-full" />
+          <div className="w-16 h-1 bg-braz-gold mx-auto mt-6 rounded-full" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
@@ -290,14 +291,16 @@ const ServicesGrid: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-[#121212] w-full max-w-5xl h-[90vh] md:h-[650px] rounded-2xl border border-braz-pink/20 shadow-2xl flex flex-col md:flex-row overflow-hidden"
+              className="relative bg-[#121212] w-full max-w-5xl h-[90vh] md:h-[650px] rounded-2xl border border-braz-gold/20 shadow-2xl flex flex-col md:flex-row overflow-hidden"
             >
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setSelectedService(null)}
-                className="absolute top-4 right-4 z-30 text-white/50 hover:text-white bg-black/50 p-2 rounded-full transition-colors"
+                aria-label="Fechar Detalhes"
+                className="absolute top-4 right-4 z-30 text-white/50 hover:text-white bg-black/50 p-3 rounded-full transition-all"
               >
-                <X size={24} />
-              </button>
+                <X size={24} strokeWidth={1.5} />
+              </motion.button>
 
               {/* ESQUERDA: Imagem Automática */}
               <div className="w-full md:w-3/5 bg-black relative h-[45%] md:h-full group border-b md:border-b-0 md:border-r border-white/10">
@@ -306,24 +309,28 @@ const ServicesGrid: React.FC = () => {
                   label={selectedService.results[currentResultIndex].label}
                 />
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={(e) => { e.stopPropagation(); prevResult(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-braz-pink text-white p-3 rounded-full backdrop-blur-sm transition-all border border-white/10"
+                  aria-label="Anterior"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-braz-gold text-white p-4 rounded-full backdrop-blur-sm transition-all border border-white/10"
                 >
-                  <ChevronLeft size={24} />
-                </button>
-                <button
+                  <ChevronLeft size={24} strokeWidth={1.5} />
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={(e) => { e.stopPropagation(); nextResult(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-braz-pink text-white p-3 rounded-full backdrop-blur-sm transition-all border border-white/10"
+                  aria-label="Seguinte"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-braz-gold text-white p-4 rounded-full backdrop-blur-sm transition-all border border-white/10"
                 >
-                  <ChevronRight size={24} />
-                </button>
+                  <ChevronRight size={24} strokeWidth={1.5} />
+                </motion.button>
 
                 <div className="absolute bottom-16 md:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
                   {selectedService.results.map((_, idx) => (
                     <div
                       key={idx}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentResultIndex ? 'w-8 bg-braz-pink' : 'w-2 bg-white/40'
+                      className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentResultIndex ? 'w-8 bg-braz-gold' : 'w-2 bg-white/40'
                         }`}
                     />
                   ))}
@@ -333,8 +340,8 @@ const ServicesGrid: React.FC = () => {
               {/* DIREITA: Conteúdo */}
               <div className="w-full md:w-2/5 p-8 flex flex-col h-[55%] md:h-full overflow-y-auto bg-[#171717]">
                 <div className="mb-auto">
-                  <div className="flex items-center space-x-2 text-braz-pink mb-4 opacity-80">
-                    <selectedService.icon size={20} />
+                  <div className="flex items-center space-x-2 text-braz-gold mb-4 opacity-80">
+                    <selectedService.icon size={20} strokeWidth={1.5} />
                     <span className="text-xs font-bold uppercase tracking-widest">Sobre o Serviço</span>
                   </div>
 
@@ -351,7 +358,7 @@ const ServicesGrid: React.FC = () => {
                     <ul className="space-y-2">
                       {selectedService.subServices.map((sub, i) => (
                         <li key={i} className="text-white/90 text-sm flex items-start">
-                          <CheckCircle2 size={14} className="text-braz-pink mr-2 mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 size={14} className="text-braz-gold mr-2 mt-0.5 flex-shrink-0" />
                           {sub}
                         </li>
                       ))}
@@ -360,15 +367,15 @@ const ServicesGrid: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                      <div className="flex items-center text-braz-pink mb-1">
-                        <Clock size={14} className="mr-2" />
+                      <div className="flex items-center text-braz-gold mb-1">
+                        <Clock size={14} className="mr-2" strokeWidth={1.5} />
                         <span className="text-[10px] font-bold uppercase">Tempo</span>
                       </div>
                       <p className="text-white text-sm font-bold">{selectedService.duration}</p>
                     </div>
                     <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                      <div className="flex items-center text-braz-pink mb-1">
-                        <Euro size={14} className="mr-2" />
+                      <div className="flex items-center text-braz-gold mb-1">
+                        <Euro size={14} className="mr-2" strokeWidth={1.5} />
                         <span className="text-[10px] font-bold uppercase text-white/60">Desde (IVA Incl.)</span>
                       </div>
                       <p className="text-white text-sm font-bold">{selectedService.priceStart}</p>
@@ -377,16 +384,17 @@ const ServicesGrid: React.FC = () => {
                 </div>
 
                 <div className="mt-auto pt-6 border-t border-white/10">
-                  <button
+                  <motion.button
                     onClick={() => {
                       setSelectedService(null);
                       setTimeout(() => scrollToSection('agendamento'), 300);
                     }}
-                    className="w-full bg-braz-pink text-braz-black py-4 text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 rounded-sm"
+                    whileTap={{ scale: 0.98, opacity: 0.9 }}
+                    className="w-full bg-braz-gold text-braz-black py-5 text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-xl hover:scale-[1.02] flex items-center justify-center gap-2 rounded-sm h-14"
                   >
                     <span>Agendar Agora</span>
-                    <CheckCircle2 size={16} />
-                  </button>
+                    <CheckCircle2 size={16} strokeWidth={1.5} />
+                  </motion.button>
                 </div>
               </div>
 

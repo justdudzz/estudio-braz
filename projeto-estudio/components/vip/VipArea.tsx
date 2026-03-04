@@ -30,8 +30,8 @@ const VipArea: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center font-montserrat">
-        <div className="flex flex-col items-center gap-4 text-braz-pink">
-          <Crown className="animate-pulse" size={48} />
+        <div className="flex flex-col items-center gap-4 text-braz-gold">
+          <Crown className="animate-pulse" size={48} strokeWidth={1.5} />
           <p className="text-xs font-bold uppercase tracking-[0.3em]">A preparar o seu Salão VIP...</p>
         </div>
       </div>
@@ -50,7 +50,7 @@ const VipArea: React.FC = () => {
 
         {/* Header de Boas-Vindas */}
         <header className="mb-12">
-          <p className="text-braz-pink text-[10px] font-bold uppercase tracking-[0.5em] mb-2">Bem-vinda ao Salão VIP</p>
+          <p className="text-braz-gold text-[10px] font-bold uppercase tracking-[0.5em] mb-2">Bem-vinda ao Salão VIP</p>
           <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-3">
             Olá, {data?.name?.split(' ')[0] || 'Cliente'}!
           </h1>
@@ -69,8 +69,8 @@ const VipArea: React.FC = () => {
             </div>
 
             <div className="flex justify-between items-start mb-16 relative z-10">
-              <ShieldCheck className="text-braz-pink" size={32} />
-              <span className="text-[10px] font-bold bg-gradient-to-r from-braz-pink to-purple-500 text-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-braz-pink/20">
+              <ShieldCheck className="text-braz-gold" size={32} strokeWidth={1.5} />
+              <span className="text-[10px] font-bold bg-gold-gradient text-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-braz-gold/20">
                 Status {data?.tier || 'Silver'}
               </span>
             </div>
@@ -79,7 +79,7 @@ const VipArea: React.FC = () => {
               <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] mb-2">Pontos Acumulados</p>
               <div className="flex items-end gap-3">
                 <span className="text-6xl md:text-7xl font-black tracking-tighter">{points}</span>
-                <span className="text-braz-pink font-bold pb-2 md:pb-3 text-sm uppercase tracking-widest">Pontos</span>
+                <span className="text-braz-gold font-bold pb-2 md:pb-3 text-sm uppercase tracking-widest">Pontos</span>
               </div>
             </div>
 
@@ -88,7 +88,7 @@ const VipArea: React.FC = () => {
               <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden mb-3">
                 <motion.div
                   initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} transition={{ duration: 1.5, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-braz-pink to-purple-500 shadow-[0_0_15px_rgba(255,46,144,0.5)] rounded-full"
+                  className="h-full bg-gold-gradient shadow-[0_0_15px_rgba(197,160,89,0.5)] rounded-full"
                 />
               </div>
               <p className="text-[9px] text-white/40 uppercase font-bold tracking-widest flex justify-between">
@@ -101,14 +101,18 @@ const VipArea: React.FC = () => {
           {/* Widget de Recompensas Rápidas */}
           <div className="space-y-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-[#111] p-6 md:p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
-              <Trophy className="text-yellow-500 mb-4" size={24} />
+              <Trophy className="text-braz-gold mb-4" size={24} strokeWidth={1.5} />
               <h3 className="text-xs font-bold uppercase tracking-widest mb-2 text-white/80">Próximo Mimo</h3>
               <p className="text-white/40 text-[11px] leading-relaxed">Aos 100 pontos ganha um <strong>Design de Sobrancelha</strong> gratuito. Continue a brilhar!</p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-braz-pink/10 to-transparent p-6 md:p-8 rounded-3xl border border-braz-pink/20 hover:border-braz-pink/40 transition-colors cursor-pointer group">
-              <Gift className="text-braz-pink mb-4 group-hover:scale-110 transition-transform" size={24} />
-              <h3 className="text-xs font-bold uppercase tracking-widest mb-2 text-braz-pink">Oferta Especial</h3>
+            <motion.div
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-braz-gold/10 to-transparent p-6 md:p-8 rounded-3xl border border-braz-gold/20 hover:border-braz-gold/40 transition-colors cursor-pointer group active:scale-95"
+            >
+              <Gift className="text-braz-gold mb-4 group-hover:scale-110 transition-transform" size={24} strokeWidth={1.5} />
+              <h3 className="text-xs font-bold uppercase tracking-widest mb-2 text-braz-gold">Oferta Especial</h3>
               <p className="text-white/60 text-[11px] leading-relaxed">Traga uma amiga na próxima visita e ganhe <strong>20 pontos extra</strong> na hora!</p>
             </motion.div>
           </div>
@@ -117,7 +121,7 @@ const VipArea: React.FC = () => {
         {/* Histórico Recente */}
         <section className="mt-16">
           <h2 className="text-xl font-black uppercase mb-8 flex items-center gap-3">
-            <Clock className="text-braz-pink" /> As Suas Visitas
+            <Clock className="text-braz-gold" strokeWidth={1.5} /> As Suas Visitas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {history.length > 0 ? history.map((h: any, i) => (

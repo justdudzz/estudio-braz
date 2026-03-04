@@ -12,16 +12,15 @@ const Select: React.FC<SelectProps> = ({ label, id, options, error, className = 
   return (
     <div className="flex flex-col space-y-2">
       {label && (
-        <label htmlFor={id} className="text-pure-white text-lg font-medium">
+        <label htmlFor={id} className="text-white text-lg font-medium">
           {label}
         </label>
       )}
       <div className="relative">
         <select
           id={id}
-          className={`block w-full px-5 py-3 bg-surface-dark border border-border-dark rounded-xl text-pure-white appearance-none focus:outline-none focus:ring-2 focus:ring-pastel-pink transition-all duration-300 ${
-            error ? 'border-red-500' : ''
-          } ${className}`}
+          className={`block w-full px-5 py-3 bg-braz-charcoal border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:ring-2 focus:ring-braz-gold transition-all duration-300 text-[16px] ${error ? 'border-red-500' : ''
+            } ${className}`}
           {...props}
         >
           {options.map((option) => (

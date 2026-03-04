@@ -71,20 +71,23 @@ const HomePage: React.FC = () => {
                             transition={{ delay: 2.0, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                             className="flex items-center gap-6"
                         >
-                            <Link
-                                to="/agendar"
-                                className="relative group bg-gold-gradient text-braz-black h-14 w-52 flex items-center justify-center text-sm font-bold font-montserrat uppercase tracking-[0.25em] overflow-hidden rounded-sm transition-all duration-500 shadow-elite-glow hover:shadow-elite-glow-hover active:scale-95"
-                            >
-                                <span className="relative z-10 flex items-center gap-3">Agendar <ArrowRight size={14} /></span>
-                                <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[45deg] group-hover:left-[200%] transition-all duration-1000" />
-                            </Link>
+                            <motion.div whileTap={{ scale: 0.98 }}>
+                                <Link
+                                    to="/agendar"
+                                    className="relative group bg-gold-gradient text-braz-black h-14 w-52 flex items-center justify-center text-sm font-bold font-montserrat uppercase tracking-[0.25em] overflow-hidden rounded-sm transition-all duration-500 shadow-elite-glow hover:shadow-elite-glow-hover"
+                                >
+                                    <span className="relative z-10 flex items-center gap-3">Agendar <ArrowRight size={14} /></span>
+                                    <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[45deg] group-hover:left-[200%] transition-all duration-1000" />
+                                </Link>
+                            </motion.div>
 
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
                                 onClick={() => setMenuOpen(true)}
-                                className="relative overflow-hidden text-white/50 text-sm font-bold uppercase tracking-[0.25em] hover:text-braz-gold transition-colors block h-14 w-52 border border-white/10 rounded-sm hover:border-braz-gold/40 hover:bg-white/[0.02] active:scale-95 duration-500 flex items-center justify-center"
+                                className="relative overflow-hidden text-white/50 text-sm font-bold uppercase tracking-[0.25em] hover:text-braz-gold transition-colors block h-14 w-52 border border-white/10 rounded-sm hover:border-braz-gold/40 hover:bg-white/[0.02] duration-500 flex items-center justify-center"
                             >
                                 Explorar
-                            </button>
+                            </motion.button>
                         </motion.div>
 
                         {/* Trust badges */}
@@ -128,6 +131,7 @@ const HomePage: React.FC = () => {
                             return (
                                 <Link to="/servicos" key={s.key}>
                                     <motion.div
+                                        whileTap={{ scale: 0.98 }}
                                         initial={{ opacity: 0, y: 30 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         viewport={{ once: true }}

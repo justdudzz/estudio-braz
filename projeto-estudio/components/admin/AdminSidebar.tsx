@@ -39,7 +39,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <div className="p-6 border-b border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-braz-gold/10 flex items-center justify-center">
-                        <Crown className="text-braz-gold" size={20} />
+                        <Crown className="text-braz-gold" size={20} strokeWidth={1.5} />
                     </div>
                     {!isCollapsed && (
                         <div>
@@ -68,7 +68,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
                                 }`}
                         >
-                            <item.icon size={18} className={active ? 'text-braz-gold' : 'text-white/30 group-hover:text-white/60'} />
+                            <item.icon size={18} className={active ? 'text-braz-gold' : 'text-white/30 group-hover:text-white/60'} strokeWidth={1.5} />
                             {!isCollapsed && (
                                 <>
                                     <span className="flex-1">{item.label}</span>
@@ -101,7 +101,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     onClick={logout}
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-semibold"
                 >
-                    <LogOut size={18} />
+                    <LogOut size={18} strokeWidth={1.5} />
                     {!isCollapsed && <span>Sair</span>}
                 </button>
             </div>
@@ -111,7 +111,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 onClick={onToggleCollapse}
                 className="hidden lg:flex items-center justify-center py-3 border-t border-white/5 text-white/20 hover:text-white/60 transition-colors"
             >
-                <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+                <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} strokeWidth={1.5} />
             </button>
         </div>
     );
@@ -146,7 +146,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 onClick={onClose}
                                 className="absolute top-4 right-4 p-2 text-white/40 hover:text-white z-10"
                             >
-                                <X size={20} />
+                                <X size={20} strokeWidth={1.5} />
                             </button>
                             {sidebarContent}
                         </motion.aside>

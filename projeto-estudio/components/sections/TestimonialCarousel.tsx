@@ -75,17 +75,17 @@ const TestimonialCarousel: React.FC = () => {
                     <button
                         onClick={handlePrev}
                         aria-label="Anterior"
-                        className="hidden lg:flex absolute -left-8 top-[40%] -translate-y-1/2 z-20 w-16 h-16 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-braz-gold hover:border-braz-gold/40 hover:bg-white/5 hover:shadow-elite-glow transition-all duration-500 transform active:scale-95 backdrop-blur-xl"
+                        className="hidden lg:flex absolute -left-8 top-[40%] -translate-y-1/2 z-20 w-16 h-16 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-braz-gold hover:border-braz-gold/40 hover:bg-white/5 hover:shadow-elite-glow transition-all duration-500 transform active:scale-90 backdrop-blur-xl"
                     >
-                        <ChevronLeft size={28} strokeWidth={1} />
+                        <ChevronLeft size={28} strokeWidth={1.5} />
                     </button>
 
                     <button
                         onClick={handleNext}
                         aria-label="Seguinte"
-                        className="hidden lg:flex absolute -right-8 top-[40%] -translate-y-1/2 z-20 w-16 h-16 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-braz-gold hover:border-braz-gold/40 hover:bg-white/5 hover:shadow-elite-glow transition-all duration-500 transform active:scale-95 backdrop-blur-xl"
+                        className="hidden lg:flex absolute -right-8 top-[40%] -translate-y-1/2 z-20 w-16 h-16 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-braz-gold hover:border-braz-gold/40 hover:bg-white/5 hover:shadow-elite-glow transition-all duration-500 transform active:scale-90 backdrop-blur-xl"
                     >
-                        <ChevronRight size={28} strokeWidth={1} />
+                        <ChevronRight size={28} strokeWidth={1.5} />
                     </button>
 
                     {/* Carousel Content */}
@@ -129,7 +129,7 @@ const TestimonialCarousel: React.FC = () => {
                                                 <p className="text-white/90 font-bold tracking-[0.25em] uppercase text-sm mb-2">{currentTestimonial.name}</p>
                                                 <p className="text-braz-gold/80 text-xs uppercase tracking-[0.3em] font-medium">{currentTestimonial.service}</p>
                                             </div>
-                                            <Quote size={40} className="text-braz-gold/20 group-hover:text-braz-gold/40 transition-colors duration-700" strokeWidth={1} />
+                                            <Quote size={40} className="text-braz-gold/20 group-hover:text-braz-gold/40 transition-colors duration-700" strokeWidth={1.5} />
                                         </div>
                                     </div>
 
@@ -163,11 +163,11 @@ const TestimonialCarousel: React.FC = () => {
 
                         {/* Mobile Navigation controls under progress bar */}
                         <div className="flex lg:hidden gap-6">
-                            <button onClick={handlePrev} className="p-4 text-white/50 hover:text-braz-gold transition-colors active:scale-95 border border-white/10 rounded-full hover:bg-white/5">
-                                <ChevronLeft size={24} strokeWidth={1} />
+                            <button onClick={handlePrev} aria-label="Anterior" className="p-4 text-white/50 hover:text-braz-gold transition-colors active:scale-90 border border-white/10 rounded-full hover:bg-white/5">
+                                <ChevronLeft size={24} strokeWidth={1.5} />
                             </button>
-                            <button onClick={handleNext} className="p-4 text-white/50 hover:text-braz-gold transition-colors active:scale-95 border border-white/10 rounded-full hover:bg-white/5">
-                                <ChevronRight size={24} strokeWidth={1} />
+                            <button onClick={handleNext} aria-label="Seguinte" className="p-4 text-white/50 hover:text-braz-gold transition-colors active:scale-90 border border-white/10 rounded-full hover:bg-white/5">
+                                <ChevronRight size={24} strokeWidth={1.5} />
                             </button>
                         </div>
                     </div>

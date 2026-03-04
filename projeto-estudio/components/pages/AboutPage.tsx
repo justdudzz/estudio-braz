@@ -14,9 +14,9 @@ const certifications = [
 ];
 
 const values = [
-    { icon: <Sparkles size={20} />, title: 'Excelência', desc: 'Cada detalhe importa. Usamos apenas produtos premium de referência internacional.' },
-    { icon: <Heart size={20} />, title: 'Cuidado', desc: 'Tratamento personalizado e humanizado. Cada cliente é única.' },
-    { icon: <Award size={20} />, title: 'Formação', desc: 'Atualização constante com as melhores técnicas e tendências do mercado.' },
+    { icon: <Sparkles size={20} strokeWidth={1.5} />, title: 'Excelência', desc: 'Cada detalhe importa. Usamos apenas produtos premium de referência internacional.' },
+    { icon: <Heart size={20} strokeWidth={1.5} />, title: 'Cuidado', desc: 'Tratamento personalizado e humanizado. Cada cliente é única.' },
+    { icon: <Award size={20} strokeWidth={1.5} />, title: 'Formação', desc: 'Atualização constante com as melhores técnicas e tendências do mercado.' },
 ];
 
 const AboutPage: React.FC = () => {
@@ -70,12 +70,12 @@ const AboutPage: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="pt-4">
+                            <motion.div whileTap={{ scale: 0.98 }} className="pt-4">
                                 <Link to="/agendar" className="inline-flex items-center gap-4 bg-gradient-to-r from-braz-gold to-[#e3c178] text-black px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:shadow-[0_0_40px_rgba(197,160,89,0.3)] hover:scale-105">
                                     <span>Agendar com a Mariana</span>
-                                    <ArrowRight size={16} />
+                                    <ArrowRight size={16} strokeWidth={1.5} />
                                 </Link>
-                            </div>
+                            </motion.div>
                         </motion.div>
                     </div>
                 </div>
@@ -117,9 +117,10 @@ const AboutPage: React.FC = () => {
                     <div className="space-y-4">
                         {certifications.map((cert, i) => (
                             <motion.div key={i} initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                                className="flex items-center gap-6 bg-[#121212]/50 p-6 md:p-8 rounded-[1.5rem] border border-white/5 hover:border-braz-gold/20 hover:bg-[#151515] transition-all duration-300 group">
+                                whileTap={{ scale: 0.98, x: 5 }}
+                                className="flex items-center gap-6 bg-[#121212]/50 p-6 md:p-8 rounded-[1.5rem] border border-white/5 hover:border-braz-gold/20 hover:bg-[#151515] transition-all duration-300 group cursor-pointer">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-braz-gold/10 to-transparent flex items-center justify-center text-braz-gold shrink-0 border border-braz-gold/20 shadow-md">
-                                    <CheckCircle2 size={18} className="group-hover:scale-110 transition-transform" />
+                                    <CheckCircle2 size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
                                 </div>
                                 <span className="text-sm md:text-base text-white/80 font-medium tracking-wide group-hover:text-white transition-colors">{cert}</span>
                             </motion.div>

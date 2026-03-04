@@ -165,13 +165,14 @@ const BookingForm: React.FC = () => {
       const isSelected = formData.date === dateStr;
 
       days.push(
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           key={d} type="button" disabled={isDisabled}
           onClick={() => setFormData(prev => ({ ...prev, date: dateStr, time: '' }))}
           className={`h-10 w-full flex items-center justify-center rounded-xl text-sm font-montserrat transition-all duration-300 ${isDisabled ? 'opacity-10 cursor-not-allowed' : isSelected ? 'bg-gradient-to-br from-braz-gold to-[#e3c178] text-black font-black shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-[1.05]' : 'text-white/60 hover:bg-white/5 border border-white/5 hover:border-braz-gold/30 hover:text-white'}`}
         >
           {d}
-        </button>
+        </motion.button>
       );
     }
     return days;
@@ -182,7 +183,7 @@ const BookingForm: React.FC = () => {
       <section className="py-32 bg-gradient-to-b from-braz-black to-[#050505] flex items-center justify-center min-h-screen">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#121212]/90 backdrop-blur-xl p-12 md:p-16 rounded-[2rem] border border-white/10 text-center max-w-lg shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-braz-gold to-transparent opacity-50" />
-          <CheckCircle2 className="w-20 h-20 text-braz-gold mx-auto mb-8 drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]" />
+          <CheckCircle2 className="w-20 h-20 text-braz-gold mx-auto mb-8 drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]" strokeWidth={1.5} />
           <h2 className="text-3xl font-montserrat font-black text-white mb-4 uppercase tracking-tighter">Reserva Confirmada</h2>
           <p className="text-white/50 mb-10 text-sm leading-relaxed font-medium">A sua marcação no Studio Braz foi registada com sucesso.<br />A nossa equipa entrará em contacto muito brevemente.</p>
           <button onClick={() => window.location.reload()} className="w-full bg-gradient-to-r from-braz-gold to-[#e3c178] text-black px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
@@ -238,7 +239,7 @@ const BookingForm: React.FC = () => {
                 <div className="space-y-8">
                   <div className="relative group/input">
                     <label className="text-[10px] font-black font-montserrat text-white/50 uppercase tracking-[0.2em] mb-4 block group-focus-within/input:text-braz-gold transition-colors">Nome Completo *</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-sm placeholder:text-white/20 font-medium" placeholder="Como prefere ser chamada?" />
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium" placeholder="Como prefere ser chamada?" />
                     {errors.name && <p className="text-red-500 text-xs mt-2 font-medium">{errors.name}</p>}
                   </div>
 
@@ -246,7 +247,7 @@ const BookingForm: React.FC = () => {
                     <label className="text-[10px] font-black font-montserrat text-white/50 uppercase tracking-[0.2em] mb-4 block group-focus-within/input:text-braz-gold transition-colors">
                       E-mail {formData.phone.length > 8 ? '(Opcional)' : '*'}
                     </label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-sm placeholder:text-white/20 font-medium" placeholder="geral@exemplo.pt" />
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium" placeholder="geral@exemplo.pt" />
                     {errors.email && <p className="text-red-500 text-xs mt-2 font-medium">{errors.email}</p>}
                   </div>
 
@@ -259,7 +260,7 @@ const BookingForm: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
-                      className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-sm placeholder:text-white/20 font-medium"
+                      className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium"
                       placeholder="+351 900 000 000"
                     />
                     {errors.phone && <p className="text-red-500 text-xs mt-2 font-medium">{errors.phone}</p>}
@@ -286,7 +287,7 @@ const BookingForm: React.FC = () => {
                 </div>
 
                 <div className="relative group/select">
-                  <select name="service" value={formData.service} onChange={handleChange} className={`w-full p-5 bg-[#121212] rounded-2xl text-white border outline-none cursor-pointer transition-all text-sm font-medium appearance-none group-hover/select:border-braz-gold/50 ${errors.service ? 'border-red-500/50' : 'border-white/10 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)]'}`}>
+                  <select name="service" value={formData.service} onChange={handleChange} className={`w-full p-5 bg-[#121212] rounded-2xl text-white border outline-none cursor-pointer transition-all text-[16px] font-medium appearance-none group-hover/select:border-braz-gold/50 ${errors.service ? 'border-red-500/50' : 'border-white/10 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)]'}`}>
                     <option value="" className="text-white/20">Selecione o Tratamento Desejado...</option>
                     {Object.entries(SERVICES_CONFIG).map(([key, s]: any) => (
                       <option key={key} value={key} className="bg-[#121212] py-2">{s.label}</option>
@@ -309,9 +310,9 @@ const BookingForm: React.FC = () => {
 
                     <div className="bg-[#121212] p-8 rounded-3xl border border-white/5 shadow-xl">
                       <div className="flex justify-between items-center mb-8">
-                        <button type="button" onClick={() => changeMonth(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all"><ChevronLeft size={16} /></button>
+                        <button type="button" onClick={() => changeMonth(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all outline-none"><ChevronLeft size={16} strokeWidth={1.5} /></button>
                         <span className="text-white text-[11px] font-black font-montserrat tracking-[0.2em] uppercase">{currentMonth.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
-                        <button type="button" onClick={() => changeMonth(1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all"><ChevronRight size={16} /></button>
+                        <button type="button" onClick={() => changeMonth(1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all outline-none"><ChevronRight size={16} strokeWidth={1.5} /></button>
                       </div>
                       <div className="grid grid-cols-7 gap-y-3 gap-x-1">
                         {renderCalendar()}
@@ -327,9 +328,15 @@ const BookingForm: React.FC = () => {
                           <>
                             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-3">
                               {availableSlots.map((t) => (
-                                <button key={t} type="button" onClick={() => setFormData(p => ({ ...p, time: t }))} className={`py-4 rounded-xl text-[12px] font-black font-montserrat transition-all border ${formData.time === t ? 'bg-gradient-to-br from-braz-gold to-[#e3c178] text-black border-braz-gold shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-[1.05]' : 'bg-[#121212] text-white/60 border-white/5 hover:border-braz-gold/40 hover:text-white'}`}>
+                                <motion.button
+                                  whileTap={{ scale: 0.95 }}
+                                  key={t}
+                                  type="button"
+                                  onClick={() => setFormData(p => ({ ...p, time: t }))}
+                                  className={`py-4 rounded-xl text-[12px] font-black font-montserrat transition-all border ${formData.time === t ? 'bg-gradient-to-br from-braz-gold to-[#e3c178] text-black border-braz-gold shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-[1.05]' : 'bg-[#121212] text-white/60 border-white/5 hover:border-braz-gold/40 hover:text-white'}`}
+                                >
                                   {t}
-                                </button>
+                                </motion.button>
                               ))}
                             </div>
                             {errors.time && <p className="text-red-500 text-center text-xs mt-4 font-medium">{errors.time}</p>}
@@ -352,7 +359,7 @@ const BookingForm: React.FC = () => {
                   <motion.div key="calendar-locked" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow flex flex-col items-center justify-center text-white/30 text-center p-12 border border-dashed border-white/10 rounded-3xl bg-[#121212]/30">
                     <div className="relative mb-8">
                       <div className="absolute inset-0 bg-braz-gold/20 blur-2xl rounded-full" />
-                      <CalendarIcon size={50} className="relative z-10 opacity-30 text-braz-gold" strokeWidth={1} />
+                      <CalendarIcon size={50} className="relative z-10 opacity-30 text-braz-gold" strokeWidth={1.5} />
                       <Sparkles size={20} className="absolute -top-2 -right-2 text-braz-gold animate-pulse z-20" />
                     </div>
                     <p className="text-[11px] font-black font-montserrat uppercase tracking-[0.2em] leading-loose text-white/50">

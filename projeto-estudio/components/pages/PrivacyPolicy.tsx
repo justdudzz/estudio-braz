@@ -20,9 +20,9 @@ const PrivacyPolicy: React.FC = () => {
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 border-b border-braz-pink/30 pb-6"
+          className="text-center mb-12 border-b border-braz-gold/30 pb-6"
         >
-          <ShieldCheck className="w-16 h-16 text-braz-pink mx-auto mb-4" />
+          <ShieldCheck className="w-16 h-16 text-braz-gold mx-auto mb-4" />
           <h1 className="text-5xl font-extrabold text-white uppercase tracking-tighter">Privacidade e RGPD</h1>
           <p className="text-lg text-white/60 mt-2">A sua confiança é a base dos nossos serviços.</p>
         </motion.header>
@@ -34,8 +34,8 @@ const PrivacyPolicy: React.FC = () => {
           className="bg-[#171717] p-8 md:p-12 rounded-2xl shadow-2xl border border-white/5 text-white/80 space-y-10 leading-relaxed"
         >
           <section>
-            <h2 className="text-2xl font-bold text-braz-pink mb-4 flex items-center">
-              <span className="w-1.5 h-6 bg-braz-pink mr-3 rounded-full" />
+            <h2 className="text-2xl font-bold text-braz-gold mb-4 flex items-center">
+              <span className="w-1.5 h-6 bg-braz-gold mr-3 rounded-full" />
               1. Responsável pelo Tratamento
             </h2>
             <p>
@@ -44,8 +44,8 @@ const PrivacyPolicy: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-braz-pink mb-4 flex items-center">
-              <span className="w-1.5 h-6 bg-braz-pink mr-3 rounded-full" />
+            <h2 className="text-2xl font-bold text-braz-gold mb-4 flex items-center">
+              <span className="w-1.5 h-6 bg-braz-gold mr-3 rounded-full" />
               2. Dados e Finalidades
             </h2>
             <p className="mb-4">Recolhemos apenas os dados estritamente necessários para:</p>
@@ -57,8 +57,8 @@ const PrivacyPolicy: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-braz-pink mb-4 flex items-center">
-              <span className="w-1.5 h-6 bg-braz-pink mr-3 rounded-full" />
+            <h2 className="text-2xl font-bold text-braz-gold mb-4 flex items-center">
+              <span className="w-1.5 h-6 bg-braz-gold mr-3 rounded-full" />
               3. Os Seus Direitos (RGPD)
             </h2>
             <p className="mb-4">Nos termos da legislação europeia, tem o direito de:</p>
@@ -72,12 +72,13 @@ const PrivacyPolicy: React.FC = () => {
             {/* CORREÇÃO AQUI: Link mailto adicionado */}
             <p className="mt-4">
               Para exercer estes direitos, contacte-nos através do email{' '}
-              <a
+              <motion.a
+                whileTap={{ scale: 0.98 }}
                 href={`mailto:${BUSINESS_INFO.email}`}
-                className="text-braz-pink font-bold hover:underline transition-colors"
+                className="inline-block text-braz-gold font-bold hover:underline transition-colors"
               >
                 {BUSINESS_INFO.email}
-              </a>.
+              </motion.a>.
             </p>
           </section>
 
@@ -86,14 +87,15 @@ const PrivacyPolicy: React.FC = () => {
             <p className="text-sm">
               Caso considere que o tratamento dos seus dados viola o RGPD, tem o direito de apresentar reclamação à autoridade de controlo em Portugal:
             </p>
-            <a
+            <motion.a
+              whileTap={{ x: 3 }}
               href="https://www.cnpd.pt"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center mt-3 text-braz-pink hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
+              className="inline-flex items-center mt-3 text-braz-gold hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
             >
               Comissão Nacional de Proteção de Dados (CNPD) <ExternalLink size={14} className="ml-2" />
-            </a>
+            </motion.a>
           </section>
         </motion.div>
       </div>

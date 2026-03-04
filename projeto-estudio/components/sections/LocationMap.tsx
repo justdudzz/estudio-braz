@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { MapPin, Navigation } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
 
@@ -45,7 +46,7 @@ const LocationMap: React.FC = () => {
 
           {/* Marcador Decorativo */}
           <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gradient-to-br from-braz-gold to-[#e3c178] text-black p-4 rounded-full shadow-[0_0_20px_rgba(197,160,89,0.4)] border-[6px] border-[#101010]">
-            <MapPin size={28} className="drop-shadow-sm" />
+            <MapPin size={28} strokeWidth={1.5} className="drop-shadow-sm" />
           </div>
 
           <h3 className="text-2xl font-montserrat font-black text-white uppercase tracking-[0.2em] mt-6 mb-3">
@@ -57,15 +58,16 @@ const LocationMap: React.FC = () => {
           </p>
 
           {/* BOTÃO REAL DE REDIRECIONAMENTO */}
-          <a
+          <motion.a
             href={BUSINESS_INFO.addressUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative z-40 inline-flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:bg-braz-gold hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-105"
+            whileTap={{ scale: 0.98 }}
+            className="relative z-40 inline-flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:bg-braz-gold hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-105 active:scale-95"
           >
-            <Navigation size={18} />
+            <Navigation size={18} strokeWidth={1.5} />
             <span>Abrir no GPS</span>
-          </a>
+          </motion.a>
         </div>
       </div>
     </section>

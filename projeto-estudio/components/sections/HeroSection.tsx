@@ -51,17 +51,17 @@ const HeroSection: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black -mt-[104px] md:-mt-[130px] pt-[104px] md:pt-[130px]"
+      className="relative w-full h-[100dvh] flex items-center justify-center overflow-hidden bg-black -mt-[112px] pt-[112px]"
     >
       {/* === CAMADA 1: Background com Ken Burns + Parallax === */}
-      <motion.div className="absolute inset-0 w-full h-full z-0" style={{ y: bgY }}>
+      <motion.div className="absolute inset-0 w-full h-full z-0 gpu-accelerated" style={{ y: bgY }}>
         <motion.div
           className="absolute inset-0 w-full h-full"
           animate={{ scale: [1, 1.06, 1] }}
           transition={{ duration: 30, ease: "linear", repeat: Infinity }}
         >
           <OptimizedImage
-            src="/assets/hero-bg.jpg"
+            src="/footerPaginaInicial.png"
             alt="Studio Braz — ambiente de luxo"
             className="w-full h-full object-cover object-center"
             priority={true}
@@ -99,7 +99,7 @@ const HeroSection: React.FC = () => {
           />
 
           <img
-            src="/footerPaginaInicial.png"
+            src="/iconelogo.png"
             alt="Studio Braz"
             className="h-36 md:h-48 lg:h-56 w-auto object-contain drop-shadow-[0_0_40px_rgba(197,160,89,0.2)]"
           />
@@ -107,7 +107,7 @@ const HeroSection: React.FC = () => {
 
         {/* Linha decorativa */}
         <motion.div
-          className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mb-6"
+          className="w-20 h-[1px] bg-gradient-to-r from-transparent via-braz-gold to-transparent mb-6"
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ duration: 1.2, delay: 1.4 }}
@@ -130,8 +130,8 @@ const HeroSection: React.FC = () => {
           transition={{ duration: 0.8, delay: 2.0 }}
           className="flex flex-wrap justify-center gap-3 mb-10"
         >
-          <div className="bg-white/5 backdrop-blur-xl border border-[#C5A059]/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059] animate-pulse" />
+          <div className="bg-white/5 backdrop-blur-xl border border-braz-gold/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-braz-gold animate-pulse" />
             Especialista Certificada
           </div>
           <div className="bg-white/5 backdrop-blur-xl border border-[#C5A059]/15 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-2">
@@ -149,20 +149,24 @@ const HeroSection: React.FC = () => {
           transition={{ duration: 0.8, delay: 2.3 }}
           className="flex flex-col sm:flex-row items-center gap-4"
         >
-          <Link
-            to="/agendar"
-            className="relative group bg-[#C5A059] text-[#0A0A0A] px-10 py-4 text-xs md:text-sm font-black font-montserrat uppercase tracking-[0.3em] hover:bg-white transition-all duration-500 shadow-[0_0_40px_rgba(197,160,89,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] active:scale-95 rounded-lg overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center gap-2">Agendar <ArrowRight size={14} /></span>
-            <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[45deg] group-hover:left-[200%] transition-all duration-1000" />
-          </Link>
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Link
+              to="/agendar"
+              className="relative group bg-braz-gold text-braz-black px-10 py-4 text-xs md:text-sm font-black font-montserrat uppercase tracking-[0.3em] hover:bg-white transition-all duration-500 shadow-[0_0_40px_rgba(197,160,89,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] rounded-lg overflow-hidden flex items-center"
+            >
+              <span className="relative z-10 flex items-center gap-2">Agendar <ArrowRight size={14} strokeWidth={1.5} /></span>
+              <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[45deg] group-hover:left-[200%] transition-all duration-1000" />
+            </Link>
+          </motion.div>
 
-          <Link
-            to="/servicos"
-            className="text-white/50 text-xs font-bold uppercase tracking-[0.2em] hover:text-[#C5A059] transition-colors flex items-center gap-2 px-6 py-4 border border-white/10 rounded-lg hover:border-[#C5A059]/30"
-          >
-            Explorar
-          </Link>
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Link
+              to="/servicos"
+              className="text-white/50 text-xs font-bold uppercase tracking-[0.2em] hover:text-braz-gold transition-colors flex items-center gap-2 px-6 py-4 border border-white/10 rounded-lg hover:border-braz-gold/30"
+            >
+              Explorar
+            </Link>
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -177,7 +181,7 @@ const HeroSection: React.FC = () => {
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <ChevronDown size={20} className="text-white/20" />
+          <ChevronDown size={20} className="text-white/20" strokeWidth={1.5} />
         </motion.div>
       </motion.div>
     </section>

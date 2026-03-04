@@ -17,9 +17,8 @@ const Input: React.FC<InputProps> = ({ label, id, error, className = '', ...prop
       )}
       <input
         id={id}
-        className={`w-full px-5 py-3 bg-surface-dark border border-border-dark rounded-xl text-pure-white placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-pastel-pink transition-all duration-300 ${
-          error ? 'border-red-500' : ''
-        } ${className}`}
+        className={`w-full px-5 py-3 bg-braz-charcoal border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-braz-gold transition-all duration-300 text-[16px] ${error ? 'border-red-500' : ''
+          } ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}

@@ -53,7 +53,7 @@ const FAQPage: React.FC = () => {
     return (
         <>
             {/* Hero */}
-            <section className="pt-12 pb-16 bg-gradient-to-b from-[#0A0A0A] to-[#080808]">
+            <section className="pt-[112px] pb-16 bg-gradient-to-b from-[#0A0A0A] to-[#080808]">
                 <div className="container mx-auto px-6 text-center">
                     <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#C5A059] text-xs font-bold uppercase tracking-[0.3em] mb-3">Tire as Suas Dúvidas</motion.p>
                     <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4">Perguntas Frequentes</motion.h1>
@@ -76,10 +76,14 @@ const FAQPage: React.FC = () => {
                                     return (
                                         <motion.div key={id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: itemIdx * 0.03 }}
                                             className="bg-[#121212] rounded-xl border border-white/5 overflow-hidden">
-                                            <button onClick={() => toggle(id)} className="w-full flex items-center justify-between px-5 py-4 text-left group">
+                                            <motion.button
+                                                whileTap={{ scale: 0.99, x: 5 }}
+                                                onClick={() => toggle(id)}
+                                                className="w-full flex items-center justify-between px-5 py-4 text-left group"
+                                            >
                                                 <span className="text-sm text-white/80 font-semibold pr-4">{item.q}</span>
-                                                <ChevronDown size={16} className={`text-white/20 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C5A059]' : ''}`} />
-                                            </button>
+                                                <ChevronDown size={16} strokeWidth={1.5} className={`text-white/20 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-braz-gold' : ''}`} />
+                                            </motion.button>
                                             <AnimatePresence>
                                                 {isOpen && (
                                                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
@@ -96,11 +100,16 @@ const FAQPage: React.FC = () => {
 
                     {/* Still have questions? */}
                     <div className="text-center mt-12 bg-[#121212] p-8 rounded-2xl border border-white/5">
-                        <HelpCircle className="text-[#C5A059] mx-auto mb-3" size={24} />
+                        <HelpCircle className="text-braz-gold mx-auto mb-3" size={24} strokeWidth={1.5} />
                         <p className="text-white font-bold mb-2">Ainda tem dúvidas?</p>
                         <p className="text-white/40 text-sm mb-4">Estamos sempre disponíveis para ajudar.</p>
-                        <Link to="/contacto" className="inline-flex items-center gap-2 bg-[#C5A059] text-black px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white transition-all">
-                            Contactar
+                        <Link to="/contacto">
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
+                                className="inline-flex items-center gap-2 bg-braz-gold text-black px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white transition-all shadow-xl active:scale-95"
+                            >
+                                Contactar
+                            </motion.button>
                         </Link>
                     </div>
                 </div>

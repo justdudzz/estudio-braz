@@ -40,7 +40,7 @@ const NotificationBell: React.FC = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-lg hover:bg-white/5 transition-colors relative"
             >
-                <Bell size={18} className="text-white/40" />
+                <Bell size={18} className="text-white/40" strokeWidth={1.5} />
                 {pending.length > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
                         {pending.length > 9 ? '9+' : pending.length}

@@ -17,9 +17,9 @@ const TermsAndConditions: React.FC = () => {
         <motion.header 
           initial={{ opacity: 0, y: -20 }} 
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 border-b border-braz-pink/30 pb-6"
+          className="text-center mb-12 border-b border-braz-gold/30 pb-6"
         >
-          <FileText className="w-16 h-16 text-braz-pink mx-auto mb-4" />
+          <FileText className="w-16 h-16 text-braz-gold mx-auto mb-4" />
           <h1 className="text-5xl font-extrabold text-white uppercase tracking-tighter">Termos e Condições</h1>
         </motion.header>
 
@@ -29,7 +29,7 @@ const TermsAndConditions: React.FC = () => {
           className="bg-[#171717] p-8 md:p-12 rounded-2xl border border-white/5 text-white/80 space-y-10 leading-relaxed"
         >
           <section>
-            <h2 className="text-xl font-bold text-braz-pink mb-4 flex items-center">
+            <h2 className="text-xl font-bold text-braz-gold mb-4 flex items-center">
               <RefreshCcw className="mr-3" size={20} /> 1. Direito de Livre Resolução (Devoluções)
             </h2>
             <p>
@@ -38,7 +38,7 @@ const TermsAndConditions: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-braz-pink mb-4 flex items-center">
+            <h2 className="text-xl font-bold text-braz-gold mb-4 flex items-center">
               <ShieldCheck className="mr-3" size={20} /> 2. Garantia de Conformidade
             </h2>
             <p>
@@ -47,7 +47,7 @@ const TermsAndConditions: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-braz-pink mb-4 flex items-center">
+            <h2 className="text-xl font-bold text-braz-gold mb-4 flex items-center">
               <Scale className="mr-3" size={20} /> 3. Preços e IVA
             </h2>
             <p>
@@ -57,7 +57,7 @@ const TermsAndConditions: React.FC = () => {
 
           {/* NOVA SECÇÃO: VALIDADE DOS VOUCHERS */}
           <section>
-            <h2 className="text-xl font-bold text-braz-pink mb-4 flex items-center">
+            <h2 className="text-xl font-bold text-braz-gold mb-4 flex items-center">
               <Clock className="mr-3" size={20} /> 4. Validade e Utilização de Vouchers
             </h2>
             <p>

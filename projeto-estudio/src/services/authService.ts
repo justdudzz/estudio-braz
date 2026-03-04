@@ -12,7 +12,7 @@ export const loginDirector = async (email: string, password: string, twoFactorCo
 
     return response.data;
   } catch (error: any) {
-    throw error.response?.data?.message || 'Erro na autenticação.';
+    throw error.response?.data?.message || 'Lamentamos, mas não foi possível validar as suas credenciais de elite neste momento.';
   }
 };
 

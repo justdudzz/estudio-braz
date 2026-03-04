@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Instagram, MapPin, Mail } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
@@ -27,13 +28,13 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white/90 font-luxury uppercase tracking-[0.25em] mb-8 text-xs">Explorar</h4>
             <ul className="space-y-4 text-sm text-white/50 font-light">
-              <li><Link to="/servicos" className="hover:text-braz-gold transition-colors duration-300">Serviços</Link></li>
-              <li><Link to="/portfolio" className="hover:text-braz-gold transition-colors duration-300">Portfólio</Link></li>
-              <li><Link to="/sobre" className="hover:text-braz-gold transition-colors duration-300">Sobre Nós</Link></li>
-              <li><Link to="/agendar" className="hover:text-braz-gold transition-colors duration-300">Agendar</Link></li>
-              <li><Link to="/contacto" className="hover:text-braz-gold transition-colors duration-300">Contacto</Link></li>
-              <li><Link to="/faq" className="hover:text-braz-gold transition-colors duration-300">Perguntas Frequentes</Link></li>
-              <li><Link to="/cartoes-presente" className="hover:text-braz-gold transition-colors duration-300">Cartões Presente</Link></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/servicos" className="hover:text-braz-gold transition-colors duration-300">Serviços</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/portfolio" className="hover:text-braz-gold transition-colors duration-300">Portfólio</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/sobre" className="hover:text-braz-gold transition-colors duration-300">Sobre Nós</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/agendar" className="hover:text-braz-gold transition-colors duration-300">Agendar</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/contacto" className="hover:text-braz-gold transition-colors duration-300">Contacto</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/faq" className="hover:text-braz-gold transition-colors duration-300">Perguntas Frequentes</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/cartoes-presente" className="hover:text-braz-gold transition-colors duration-300">Cartões Presente</Link></motion.div></li>
             </ul>
           </div>
 
@@ -41,12 +42,14 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white/90 font-luxury uppercase tracking-[0.25em] mb-8 text-xs">Legal</h4>
             <ul className="space-y-4 text-sm text-white/50 font-light">
-              <li><Link to="/politica-privacidade" className="hover:text-braz-gold transition-colors duration-300">Privacidade & RGPD</Link></li>
-              <li><Link to="/termos-condicoes" className="hover:text-braz-gold transition-colors duration-300">Termos e Condições</Link></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/politica-privacidade" className="hover:text-braz-gold transition-colors duration-300">Privacidade & RGPD</Link></motion.div></li>
+              <li><motion.div whileTap={{ x: 3 }}><Link to="/termos-condicoes" className="hover:text-braz-gold transition-colors duration-300">Termos e Condições</Link></motion.div></li>
               <li>
-                <a href={BUSINESS_INFO.ralUrl} target="_blank" rel="noopener noreferrer" className="hover:text-braz-gold transition-colors duration-300 block">
-                  Resolução de Conflitos (RAL)
-                </a>
+                <motion.div whileTap={{ x: 3 }}>
+                  <a href={BUSINESS_INFO.ralUrl} target="_blank" rel="noopener noreferrer" className="hover:text-braz-gold transition-colors duration-300 block">
+                    Resolução de Conflitos (RAL)
+                  </a>
+                </motion.div>
               </li>
             </ul>
           </div>
@@ -70,22 +73,28 @@ const Footer: React.FC = () => {
 
             {/* Social */}
             <div className="space-y-4">
-              <a href={BUSINESS_INFO.instagramUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center space-x-4 text-white/50 hover:text-braz-gold group bg-white/[0.02] border border-white/5 p-4 rounded-sm hover:bg-white/[0.05] hover:border-braz-gold/20 transition-all duration-300">
+              <motion.a
+                whileTap={{ scale: 0.98 }}
+                href={BUSINESS_INFO.instagramUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center space-x-4 text-white/50 hover:text-braz-gold group bg-white/[0.02] border border-white/5 p-4 rounded-sm hover:bg-white/[0.05] hover:border-braz-gold/20 transition-all duration-300"
+              >
                 <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform duration-500" strokeWidth={1.5} />
                 <div>
                   <p className="text-xs font-bold text-white/80 uppercase tracking-widest">Studio Braz</p>
                   <p className="text-[10px] text-white/40 tracking-wider">@{BUSINESS_INFO.instagram}</p>
                 </div>
-              </a>
-              <a href={BUSINESS_INFO.instagramPersonalUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center space-x-4 text-white/50 hover:text-braz-gold group bg-white/[0.02] border border-white/5 p-4 rounded-sm hover:bg-white/[0.05] hover:border-braz-gold/20 transition-all duration-300">
+              </motion.a>
+              <motion.a
+                whileTap={{ scale: 0.98 }}
+                href={BUSINESS_INFO.instagramPersonalUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center space-x-4 text-white/50 hover:text-braz-gold group bg-white/[0.02] border border-white/5 p-4 rounded-sm hover:bg-white/[0.05] hover:border-braz-gold/20 transition-all duration-300"
+              >
                 <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform duration-500" strokeWidth={1.5} />
                 <div>
                   <p className="text-xs font-bold text-white/80 uppercase tracking-widest">Mariana Braz</p>
                   <p className="text-[10px] text-white/40 tracking-wider">@{BUSINESS_INFO.instagramPersonal}</p>
                 </div>
-              </a>
+              </motion.a>
             </div>
           </div>
         </div>

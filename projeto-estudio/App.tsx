@@ -58,9 +58,9 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: '
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
-    <div className="flex flex-col min-h-screen bg-braz-black">
+    <div className="flex flex-col min-h-screen bg-braz-black overscroll-y-none gpu-accelerated">
       <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} isMenuOpen={isMenuOpen} />
-      <main className="flex-grow pt-[104px] md:pt-[130px]">
+      <main className="flex-grow pt-[112px]">
         {children}
       </main>
       <Footer />

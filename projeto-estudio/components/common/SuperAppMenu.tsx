@@ -39,13 +39,14 @@ const SuperAppMenu: React.FC = () => {
                     key={item.path}
                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
+                    whileTap={{ scale: 0.96 }}
                     transition={{ delay: 2.0 + i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 >
                     <Link
                         to={item.path}
                         className={`
               relative block p-5 rounded-2xl text-center overflow-hidden
-              backdrop-blur-xl border transition-all active:scale-95
+              backdrop-blur-xl border transition-all
               ${item.accent
                                 ? 'bg-[#C5A059]/15 border-[#C5A059]/30 shadow-[0_0_20px_rgba(197,160,89,0.1)]'
                                 : 'bg-white/[0.03] border-white/[0.06] hover:border-white/10'

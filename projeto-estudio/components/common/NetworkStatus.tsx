@@ -52,7 +52,7 @@ const NetworkStatus: React.FC = () => {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A]/90 backdrop-blur-md text-white p-5 rounded-xl border border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] flex items-center space-x-4"
         >
-          <WifiOff className="w-6 h-6 text-red-500" />
+          <WifiOff className="w-6 h-6 text-red-500" strokeWidth={1.5} />
           <div>
             <p className="font-bold text-sm tracking-widest uppercase text-red-400 text-[10px]">Ligação Perdida</p>
             <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">Modo Offline Ativo. Agendamentos guardados localmente.</p>
@@ -66,16 +66,16 @@ const NetworkStatus: React.FC = () => {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A]/90 backdrop-blur-md text-white p-5 rounded-xl border border-braz-pink/50 shadow-[0_0_30px_rgba(197,160,89,0.2)] flex items-center space-x-4"
+          className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A]/90 backdrop-blur-md text-white p-5 rounded-xl border border-braz-gold/50 shadow-[0_0_30px_rgba(197,160,89,0.2)] flex items-center space-x-4"
         >
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
           >
-            <RefreshCw className="w-6 h-6 text-braz-pink" />
+            <RefreshCw className="w-6 h-6 text-braz-gold" strokeWidth={1.5} />
           </motion.div>
           <div>
-            <p className="font-bold text-[10px] tracking-widest uppercase text-braz-pink">A Sincronizar</p>
+            <p className="font-bold text-[10px] tracking-widest uppercase text-braz-gold">A Sincronizar</p>
             <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">A enviar dados para o servidor...</p>
           </div>
         </motion.div>

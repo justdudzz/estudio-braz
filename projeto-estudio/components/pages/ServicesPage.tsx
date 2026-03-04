@@ -76,7 +76,7 @@ const ServicesPage: React.FC = () => {
             {/* Hero */}
             <section className="pt-12 pb-16 bg-gradient-to-b from-[#0A0A0A] to-[#080808]">
                 <div className="container mx-auto px-6 text-center">
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#C5A059] text-xs font-bold uppercase tracking-[0.3em] mb-3">O Que Fazemos</motion.p>
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-braz-gold text-xs font-bold uppercase tracking-[0.3em] mb-3">O Que Fazemos</motion.p>
                     <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4">Os Nossos Serviços</motion.h1>
                     <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-white/40 text-sm max-w-lg mx-auto">
                         Cada tratamento é uma experiência personalizada, com produtos premium e atenção ao detalhe.
@@ -95,6 +95,7 @@ const ServicesPage: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.08 }}
                                 onClick={() => { setSelected(s); setImgIdx(0); }}
+                                whileTap={{ scale: 0.98 }}
                                 className="group relative bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-md rounded-3xl border border-white/5 p-8 cursor-pointer hover:border-braz-gold/40 hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(197,160,89,0.1)] transition-all duration-700 overflow-hidden"
                             >
                                 {/* Subtle Glow Effect on Hover */}
@@ -119,7 +120,7 @@ const ServicesPage: React.FC = () => {
                                             <span className="flex items-center gap-1.5"><Clock size={12} className="text-braz-gold" /> {s.duration}</span>
                                             <span className="flex items-center gap-1.5"><Euro size={12} className="text-braz-gold" /> {s.price}</span>
                                         </div>
-                                        <ArrowRight size={18} className="text-white/20 group-hover:text-braz-gold group-hover:translate-x-1 transition-all" />
+                                        <ArrowRight size={18} className="text-white/20 group-hover:text-braz-gold group-hover:translate-x-1 transition-all" strokeWidth={1.5} />
                                     </div>
                                 </div>
                             </motion.div>
@@ -129,7 +130,9 @@ const ServicesPage: React.FC = () => {
                     {/* CTA */}
                     <div className="text-center mt-20">
                         <Link to="/agendar" className="inline-flex items-center gap-3 bg-braz-gold text-black px-12 py-5 rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all shadow-xl shadow-braz-gold/20">
-                            Agendar Agora <ArrowRight size={16} />
+                            <motion.span whileTap={{ scale: 0.98 }} className="flex items-center gap-3">
+                                Agendar Agora <ArrowRight size={16} strokeWidth={1.5} />
+                            </motion.span>
                         </Link>
                     </div>
                 </div>
@@ -143,7 +146,13 @@ const ServicesPage: React.FC = () => {
                         <motion.div initial={{ scale: 0.95, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
                             onClick={e => e.stopPropagation()} className="relative bg-[#121212] border border-white/10 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-8 md:p-10 shadow-2xl">
 
-                            <button onClick={() => setSelected(null)} className="absolute top-6 right-6 p-2 text-white/40 hover:text-white bg-white/5 rounded-full backdrop-blur-sm transition-all hover:bg-white/10 z-10"><X size={20} /></button>
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setSelected(null)}
+                                className="absolute top-6 right-6 p-2 text-white/40 hover:text-white bg-white/5 rounded-full backdrop-blur-sm transition-all hover:bg-white/10 z-10"
+                            >
+                                <X size={20} strokeWidth={1.5} />
+                            </motion.button>
 
                             <div className="flex flex-col md:flex-row items-start gap-6 mb-8 relative z-0">
                                 <div className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl flex items-center justify-center border border-white/5 shrink-0 shadow-lg">
@@ -197,8 +206,20 @@ const ServicesPage: React.FC = () => {
 
                                         {selected.images.length > 1 && (
                                             <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-4">
-                                                <button onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p - 1 + selected.images.length) % selected.images.length); }} className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"><ChevronLeft size={20} /></button>
-                                                <button onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p + 1) % selected.images.length); }} className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"><ChevronRight size={20} /></button>
+                                                <motion.button
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p - 1 + selected.images.length) % selected.images.length); }}
+                                                    className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"
+                                                >
+                                                    <ChevronLeft size={20} strokeWidth={1.5} />
+                                                </motion.button>
+                                                <motion.button
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); setImgIdx(p => (p + 1) % selected.images.length); }}
+                                                    className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-braz-gold hover:text-black transition-colors border border-white/10"
+                                                >
+                                                    <ChevronRight size={20} strokeWidth={1.5} />
+                                                </motion.button>
                                             </div>
                                         )}
                                         {selected.images.length > 1 && (
@@ -213,8 +234,9 @@ const ServicesPage: React.FC = () => {
                             )}
 
                             <Link to="/agendar" className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-braz-gold to-[#e3c178] text-black py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
-                                <span>Agendar Serviço</span>
-                                <ArrowRight size={16} />
+                                <motion.span whileTap={{ scale: 0.98 }} className="flex items-center gap-2">
+                                    Agendar Serviço <ArrowRight size={16} strokeWidth={1.5} />
+                                </motion.span>
                             </Link>
                         </motion.div>
                     </motion.div>

@@ -15,7 +15,7 @@ export const createNewBooking = async (bookingData: BookingData) => {
     const response = await api.post('/bookings', bookingData);
     return response.data;
   } catch (error: any) {
-    throw error.response?.data?.message || 'Erro ao comunicar com o servidor.';
+    throw error.response?.data?.message || 'Lamentamos, mas ocorreu um imprevisto na nossa ligação de elite. Por favor, tente novamente.';
   }
 };
 
@@ -24,7 +24,7 @@ export const getAllBookings = async () => {
     const response = await api.get('/bookings');
     return response.data;
   } catch (error: any) {
-    throw error.response?.data?.message || 'Erro ao carregar a agenda.';
+    throw error.response?.data?.message || 'Lamentamos, mas não foi possível preparar o seu menu de reservas de elite neste momento.';
   }
 };
 export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'paid' | 'pending' | 'blocked') => {

@@ -57,7 +57,7 @@ const CookieBanner: React.FC = () => {
           >
             <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
               <div className="flex items-center space-x-4 flex-1 max-w-3xl text-center lg:text-left">
-                <ShieldAlert className="w-8 h-8 text-braz-pink hidden md:block flex-shrink-0" />
+                <ShieldAlert className="w-8 h-8 text-braz-gold hidden md:block flex-shrink-0" strokeWidth={1.5} />
                 <p className="text-sm text-white/80 leading-relaxed">
                   Utilizamos cookies para personalizar a sua experiência, analisar tráfego e oferecer conteúdo relevante.
                   Pode configurar as suas preferências ou aceitar todas.
@@ -65,18 +65,20 @@ const CookieBanner: React.FC = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowConfig(true)}
-                  className="px-6 py-3 border border-braz-pink/50 text-white/70 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all duration-300"
+                  className="px-6 py-3 border border-braz-gold/50 text-white/70 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all duration-300"
                 >
                   Configurar Opcionais
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleAcceptAll}
-                  className="px-8 py-3 bg-braz-pink text-braz-black text-xs font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 shadow-lg shadow-braz-pink/20 active:scale-95"
+                  className="px-8 py-3 bg-braz-gold text-braz-black text-xs font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 shadow-lg shadow-braz-gold/20 active:scale-95"
                 >
                   Aceitar Tudo
-                </button>
+                </motion.button>
               </div>
             </div>
           </motion.div>
@@ -96,7 +98,7 @@ const CookieBanner: React.FC = () => {
               <p className="font-bold text-white">Necessários</p>
               <p className="text-xs text-white/50">Essenciais para o funcionamento do site.</p>
             </div>
-            <Check className="text-braz-pink w-5 h-5" />
+            <Check className="text-braz-gold w-5 h-5" strokeWidth={1.5} />
           </div>
 
           {/* Estatísticas / Analytics */}
@@ -109,7 +111,7 @@ const CookieBanner: React.FC = () => {
               type="checkbox"
               checked={preferences.analytics}
               onChange={e => setPreferences({ ...preferences, analytics: e.target.checked })}
-              className="w-5 h-5 accent-braz-pink cursor-pointer"
+              className="w-5 h-5 accent-braz-gold cursor-pointer"
             />
           </div>
 
@@ -123,16 +125,17 @@ const CookieBanner: React.FC = () => {
               type="checkbox"
               checked={preferences.marketing}
               onChange={e => setPreferences({ ...preferences, marketing: e.target.checked })}
-              className="w-5 h-5 accent-braz-pink cursor-pointer"
+              className="w-5 h-5 accent-braz-gold cursor-pointer"
             />
           </div>
 
-          <button
+          <motion.button
+            whileTap={{ scale: 0.98 }}
             onClick={() => savePreferences(preferences)}
-            className="w-full py-4 bg-braz-pink text-braz-black font-bold uppercase text-xs tracking-widest hover:bg-white transition-all duration-300 shadow-lg shadow-braz-pink/20"
+            className="w-full py-4 bg-braz-gold text-braz-black font-bold uppercase text-xs tracking-widest hover:bg-white transition-all duration-300 shadow-lg shadow-braz-gold/20"
           >
             Guardar Preferências
-          </button>
+          </motion.button>
         </div>
       </Modal>
     </>

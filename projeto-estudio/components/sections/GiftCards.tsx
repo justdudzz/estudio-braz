@@ -42,15 +42,16 @@ const GiftCards: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#171717] p-16 text-center shadow-2xl rounded-xl border-t-8 border-braz-pink"
+            className="bg-[#171717] p-16 text-center shadow-2xl rounded-xl border-t-8 border-braz-gold"
           >
-            <CheckCircle2 className="w-20 h-20 text-braz-pink mx-auto mb-6 animate-bounce" />
+            <CheckCircle2 className="w-20 h-20 text-braz-gold mx-auto mb-6 animate-bounce" strokeWidth={1.5} />
             <h2 className="text-4xl font-montserrat font-bold text-white uppercase mb-4 tracking-tight">Redirecionado!</h2>
             <div className="text-white/70 font-montserrat mb-8 text-lg leading-relaxed space-y-2">
               <p>O seu pedido de voucher está pronto.</p>
               <p>Foi redirecionado para o nosso WhatsApp para finalizar o pagamento de forma segura.</p>
             </div>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               onClick={() => {
                 setStatus('idle');
                 setName('');
@@ -58,10 +59,10 @@ const GiftCards: React.FC = () => {
                 setPhone('');
                 setAmount(50);
               }}
-              className="text-braz-pink font-montserrat font-bold uppercase tracking-widest hover:text-white transition-colors border border-braz-pink px-8 py-4 hover:bg-braz-pink hover:text-braz-black shadow-lg shadow-braz-pink/10"
+              className="text-braz-gold font-montserrat font-bold uppercase tracking-widest hover:text-white transition-colors border border-braz-gold px-8 py-4 hover:bg-braz-gold hover:text-braz-black shadow-lg shadow-braz-gold/10"
             >
               Voltar aos Vouchers
-            </button>
+            </motion.button>
           </motion.div>
         </div>
       </section>
@@ -80,21 +81,21 @@ const GiftCards: React.FC = () => {
           <h2 className="text-5xl font-montserrat font-extrabold uppercase tracking-tighter mb-4 text-white">
             Cartões Presente
           </h2>
-          <div className="w-20 h-1 bg-braz-pink mx-auto mb-6" />
+          <div className="w-20 h-1 bg-braz-gold mx-auto mb-6" />
           <p className="text-lg text-white/60 font-montserrat">Ofereça um momento de puro luxo e bem-estar.</p>
         </motion.div>
 
         <div className="bg-[#171717] p-8 md:p-12 rounded-xl shadow-2xl border border-white/5 grid lg:grid-cols-2 gap-12">
 
           {/* Lado Visual do Voucher */}
-          <div className="relative flex flex-col justify-center items-center p-8 bg-braz-black rounded-2xl border border-braz-pink/20 shadow-inner">
-            <Gift className="w-20 h-20 text-braz-pink mb-6 animate-pulse" />
+          <div className="relative flex flex-col justify-center items-center p-8 bg-braz-black rounded-2xl border border-braz-gold/20 shadow-inner">
+            <Gift className="w-20 h-20 text-braz-gold mb-6 animate-pulse" strokeWidth={1.5} />
             <h3 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest text-center">Voucher {BUSINESS_INFO.name}</h3>
             <p className="text-white/50 mb-8 text-center text-sm">O presente perfeito para quem merece excelência.</p>
 
             <div className="text-center p-6 bg-[#171717] rounded-xl w-full max-w-xs border border-white/5 shadow-2xl">
               <p className="text-xs uppercase text-white/40 tracking-[0.2em] mb-2">Valor do Mimo</p>
-              <p className="text-5xl font-extrabold text-braz-pink">€{amount}</p>
+              <p className="text-5xl font-extrabold text-braz-gold">€{amount}</p>
               <p className="text-xs text-white/60 mt-1.5 font-medium">IVA incluído à taxa legal</p>
             </div>
 
@@ -104,7 +105,7 @@ const GiftCards: React.FC = () => {
           {/* Formulário */}
           <form onSubmit={handleGiftCardSubmit} className="space-y-6">
             <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3 flex items-center">
-              <span className="w-2 h-2 bg-braz-pink rounded-full mr-3" />
+              <span className="w-2 h-2 bg-braz-gold rounded-full mr-3" />
               Personalizar Voucher
             </h3>
 
@@ -123,7 +124,7 @@ const GiftCards: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-pink transition-all outline-none"
+                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
                   placeholder="Nome completo"
                 />
               </div>
@@ -136,7 +137,7 @@ const GiftCards: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-pink transition-all outline-none"
+                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
                   placeholder="exemplo@email.com"
                 />
               </div>
@@ -150,7 +151,7 @@ const GiftCards: React.FC = () => {
                   onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 9))}
                   required
                   maxLength={9}
-                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-pink transition-all outline-none"
+                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
                   placeholder="912 345 678"
                 />
               </div>
@@ -158,7 +159,7 @@ const GiftCards: React.FC = () => {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label htmlFor="gc-amount" className="block text-xs font-bold text-white/50 uppercase tracking-wider">Valor do Voucher</label>
-                  <span className="text-braz-pink font-bold">€{amount}</span>
+                  <span className="text-braz-gold font-bold">€{amount}</span>
                 </div>
                 <input
                   id="gc-amount"
@@ -168,22 +169,23 @@ const GiftCards: React.FC = () => {
                   step="25"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-braz-pink"
+                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-braz-gold"
                 />
               </div>
             </div>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isSubmitting || status === 'loading'}
-              className="w-full bg-braz-pink text-braz-black py-4 font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 flex items-center justify-center space-x-3 shadow-xl shadow-braz-pink/10 disabled:opacity-50"
+              className="w-full bg-braz-gold text-braz-black py-4 font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 flex items-center justify-center space-x-3 shadow-xl shadow-braz-gold/10 disabled:opacity-50"
             >
               {status === 'loading' ? (
-                <><Loader2 className="animate-spin" size={20} /><span>A preparar...</span></>
+                <><Loader2 className="animate-spin" size={20} strokeWidth={1.5} /><span>A preparar...</span></>
               ) : (
-                <><Gift className="w-5 h-5" /><span>Finalizar via WhatsApp</span></>
+                <><Gift className="w-5 h-5" strokeWidth={1.5} /><span>Finalizar via WhatsApp</span></>
               )}
-            </button>
+            </motion.button>
           </form>
         </div>
       </div>

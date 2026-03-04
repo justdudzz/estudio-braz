@@ -32,12 +32,12 @@ const Breadcrumbs: React.FC = () => {
     return (
         <nav className="flex items-center gap-2 text-xs text-white/30 mb-6">
             <Link to="/dashboard" className="flex items-center gap-1 hover:text-white/60 transition-colors">
-                <LayoutDashboard size={12} />
+                <LayoutDashboard size={12} strokeWidth={1.5} />
                 <span>Dashboard</span>
             </Link>
             {crumbs.slice(1).map((crumb, i) => (
                 <React.Fragment key={crumb.path}>
-                    <ChevronRight size={12} className="text-white/15" />
+                    <ChevronRight size={12} className="text-white/15" strokeWidth={1.5} />
                     <Link
                         to={crumb.path}
                         className={`hover:text-white/60 transition-colors ${i === crumbs.length - 2 ? 'text-braz-gold font-semibold' : ''

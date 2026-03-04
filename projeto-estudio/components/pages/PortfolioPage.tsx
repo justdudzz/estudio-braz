@@ -48,15 +48,18 @@ const PortfolioPage: React.FC = () => {
                 <div className="container mx-auto px-6">
                     {/* Filters */}
                     <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
-                        <Filter size={16} className="text-braz-gold mr-2 opacity-50 hidden sm:block" />
+                        <Filter size={16} strokeWidth={1.5} className="text-braz-gold mr-2 opacity-50 hidden sm:block" />
                         {categories.map(cat => (
-                            <button key={cat} onClick={() => setFilter(cat)}
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                key={cat}
+                                onClick={() => setFilter(cat)}
                                 className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-500 overflow-hidden relative group`}
                             >
                                 <div className={`absolute inset-0 bg-gradient-to-r from-braz-gold/20 to-transparent transition-opacity duration-500 ${filter === cat ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
                                 <span className={`relative z-10 ${filter === cat ? 'text-braz-gold drop-shadow-md' : 'text-white/40 group-hover:text-white'}`}>{cat}</span>
                                 <div className={`absolute inset-0 border rounded-xl transition-colors duration-500 ${filter === cat ? 'border-braz-gold/50 shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/5 group-hover:border-white/20'}`} />
-                            </button>
+                            </motion.button>
                         ))}
                     </div>
 
@@ -73,6 +76,7 @@ const PortfolioPage: React.FC = () => {
                                     transition={{ delay: i * 0.05, duration: 0.5 }}
                                     onClick={() => setLightbox(item)}
                                     className="relative aspect-[4/5] rounded-3xl overflow-hidden cursor-pointer group shadow-2xl border border-white/5"
+                                    style={{ transform: 'translateZ(0)' }}
                                 >
                                     {/* Black and white to color effect on hover */}
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
@@ -108,7 +112,13 @@ const PortfolioPage: React.FC = () => {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] flex items-center justify-center p-4 md:p-8" onClick={() => setLightbox(null)}>
 
-                        <button onClick={() => setLightbox(null)} className="absolute top-6 right-6 md:top-10 md:right-10 p-4 text-white/50 hover:text-white bg-white/5 rounded-full backdrop-blur-md transition-all hover:bg-white/10 hover:scale-110 z-10 border border-white/10"><X size={24} /></button>
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setLightbox(null)}
+                            className="absolute top-6 right-6 md:top-10 md:right-10 p-4 text-white/50 hover:text-white bg-white/5 rounded-full backdrop-blur-md transition-all hover:bg-white/10 hover:scale-110 z-10 border border-white/10 flex items-center justify-center min-w-[48px] min-h-[48px]"
+                        >
+                            <X size={24} strokeWidth={1.5} />
+                        </motion.button>
 
                         <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", damping: 25 }} onClick={e => e.stopPropagation()} className="max-w-5xl w-full mx-auto relative group">
                             <div className="relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] border border-white/10">

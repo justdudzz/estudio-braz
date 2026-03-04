@@ -4,22 +4,22 @@ import { Users, Sparkles, Award, Clock } from 'lucide-react';
 
 const stats = [
     {
-        icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-braz-pink mb-4" />,
+        icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
         value: "2000+",
         label: "Clientes Satisfeitas",
     },
     {
-        icon: <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-braz-pink mb-4" />,
+        icon: <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
         value: "5000+",
         label: "Tratamentos Realizados",
     },
     {
-        icon: <Award className="w-8 h-8 md:w-10 md:h-10 text-braz-pink mb-4" />,
+        icon: <Award className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
         value: "5",
         label: "Estrelas no Google",
     },
     {
-        icon: <Clock className="w-8 h-8 md:w-10 md:h-10 text-braz-pink mb-4" />,
+        icon: <Clock className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
         value: "4+",
         label: "Anos de Experiência",
     },
@@ -56,12 +56,12 @@ const StatsBar: React.FC = () => {
                             className="flex flex-col items-center text-center p-6 rounded-3xl hover:bg-white/5 transition-colors group"
                         >
                             <motion.div
-                                whileHover={{ scale: 1.1, rotate: 5 }}
+                                whileTap={{ scale: 0.9 }}
                                 transition={{ type: "spring", stiffness: 300 }}
                             >
                                 {stat.icon}
                             </motion.div>
-                            <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-2 group-hover:text-braz-pink transition-colors">
+                            <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-2 group-hover:text-braz-gold transition-colors">
                                 {stat.value}
                             </h3>
                             <p className="text-[10px] md:text-xs text-white/50 uppercase tracking-[0.2em] font-bold">

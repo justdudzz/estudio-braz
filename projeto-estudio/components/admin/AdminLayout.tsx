@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
+import { motion } from 'framer-motion';
 import AdminSidebar from './AdminSidebar';
 import Breadcrumbs from './Breadcrumbs';
 import NotificationBell from './NotificationBell';
@@ -29,12 +30,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ pendingCount = 0 }) => {
                 }`}>
                 {/* Top bar (mobile) */}
                 <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0a0a0a] border-b border-white/5 sticky top-0 z-30">
-                    <button
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => setSidebarOpen(true)}
                         className="p-2 rounded-lg hover:bg-white/5 transition-colors"
                     >
-                        <Menu size={22} className="text-white/60" />
-                    </button>
+                        <Menu size={22} className="text-white/60" strokeWidth={1.5} />
+                    </motion.button>
                     <span className="text-xs font-black text-white/40 uppercase tracking-widest">Painel Admin</span>
                     <NotificationBell />
                 </header>

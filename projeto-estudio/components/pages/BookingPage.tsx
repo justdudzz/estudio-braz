@@ -13,7 +13,7 @@ const BookingPage: React.FC = () => {
             <section className="pt-12 pb-8 bg-gradient-to-b from-[#0A0A0A] to-[#080808]">
                 <div className="container mx-auto px-6 text-center">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                        <Calendar className="text-[#C5A059] mx-auto mb-4" size={28} />
+                        <Calendar className="text-braz-gold mx-auto mb-4" size={28} strokeWidth={1.5} />
                         <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4">Reserve a Sua Experiência</h1>
                         <p className="text-white/40 text-sm max-w-lg mx-auto">
                             Preencha os dados abaixo para aceder à agenda e confirmar o seu horário no Studio Braz.
