@@ -29,7 +29,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     const decoded = jwt.verify(token, process.env.JWT_SECRET!, JWT_VERIFY_OPTIONS) as any;
 
     // 4. Verificar se o token foi revogado (logout) (#13)
-    if (decoded.jti && isBlacklisted(decoded.jti)) {
+    if (decoded.jti && (await isBlacklisted(decoded.jti))) {
       return res.status(401).json({ message: 'Sessão terminada. Faça login novamente.' });
     }
 

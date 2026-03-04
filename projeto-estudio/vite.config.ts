@@ -1,4 +1,5 @@
 // vite.config.ts
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -11,7 +12,8 @@ export default defineConfig({
       injectRegister: 'auto',
       workbox: {
         maximumFileSizeToCacheInBytes: 4000000,
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
+        // 🚀 NEXT-GEN IMAGES (Point #29): Suporte nativo para WebP para performance de elite
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,webp,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,

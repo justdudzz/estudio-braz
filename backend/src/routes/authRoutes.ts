@@ -16,7 +16,7 @@ router.post('/logout', protect, logout);
 
 // --- ROTAS DE SEGURANÇA EXTREMA (2FA) ---
 router.post('/2fa/generate', protect, adminOnly, generate2FA);
-router.post('/2fa/verify', protect, adminOnly, verify2FA);
+router.post('/2fa/verify', protect, adminOnly, loginLimiter, verify2FA);
 router.post('/2fa/disable', protect, adminOnly, disable2FA);
 
 export default router;

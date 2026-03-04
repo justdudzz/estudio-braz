@@ -65,3 +65,12 @@ model User {
   isTwoFactorEnabled Boolean @default(false)
   createdAt         DateTime @default(now())
 }
+
+model TokenBlacklist {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}

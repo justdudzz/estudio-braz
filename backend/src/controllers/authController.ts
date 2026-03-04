@@ -7,6 +7,7 @@ import { generateSecret, verify, generateURI } from 'otplib';
 import qrcode from 'qrcode';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
+import { loginSchema, verify2FASchema, disable2FASchema } from '../schemas/authSchema.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -31,7 +32,11 @@ const JWT_OPTIONS = {
 
 // --- 1. LOGIN DO DIRETOR (ADMIN) ---
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const result = loginSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados de acesso inválidos.', errors: result.error.format() });
+  }
+  const { email, password } = result.data;
   const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
 
   try {
@@ -126,7 +131,11 @@ export const login = async (req: Request, res: Response) => {
 
 // --- 2. LOGIN PARA CLIENTES VIP ---
 export const clientLogin = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const result = loginSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados VIP inválidos.', errors: result.error.format() });
+  }
+  const { email, password } = result.data;
   const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
 
   try {
@@ -240,7 +249,11 @@ export const generate2FA = async (req: Request, res: Response) => {
 
 // --- 5. ATIVAR 2FA (ADMIN ONLY) ---
 export const verify2FA = async (req: Request, res: Response) => {
-  const { code } = req.body;
+  const result = verify2FASchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Código de verificação inválido.' });
+  }
+  const { code } = result.data;
   try {
     const userId = (req as any).user.id;
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -276,7 +289,11 @@ export const verify2FA = async (req: Request, res: Response) => {
 
 // --- 6. DESATIVAR 2FA (ADMIN ONLY) ---
 export const disable2FA = async (req: Request, res: Response) => {
-  const { password } = req.body;
+  const result = disable2FASchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Password necessária para desativar segurança.' });
+  }
+  const { password } = result.data;
   try {
     const userId = (req as any).user.id;
     const user = await prisma.user.findUnique({ where: { id: userId } });

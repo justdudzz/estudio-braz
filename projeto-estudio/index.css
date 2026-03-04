@@ -55,8 +55,8 @@
 
   body {
     font-family: 'Montserrat', sans-serif;
-    /* Elite Deep Black Background with subtle noise texture potential */
-    @apply bg-[#050505] text-[#E8E8E8];
+    /* Elite Deep Black Background with high-contrast text */
+    @apply bg-[#050505] text-[#F3F3F3]; 
     letter-spacing: 0.02em;
   }
 

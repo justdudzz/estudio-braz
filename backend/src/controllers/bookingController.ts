@@ -1,20 +1,17 @@
 // backend/src/controllers/bookingController.ts
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
-import { sendNotification } from '../services/notificationService.js';
 import { sendLuxuryEmail } from '../services/emailService.js';
+import { sendNotification } from '../services/notificationService.js';
+import { createBookingSchema } from '../schemas/bookingSchema.js';
+import { BUSINESS_HOURS, SERVICES_CONFIG } from '../config/businessRules.js';
 
-// 🛠️ DICIONÁRIO DE DURAÇÕES (em minutos) — Alinhado com o Frontend
-const SERVICE_DURATIONS: Record<string, number> = {
-  'Microblading': 150,    // 2h30
-  'Limpeza de Pele': 90,  // 1h30
-  'Unhas de Gel': 90,     // 1h30
-  'Verniz Gel': 45,       // 45min
-  'Massagem': 60,         // 1h
-  'Depilacao': 30,        // 30min
-  'BLOQUEIO_ADMIN': 60    // Padrão para bloqueios do diretor
-};
+// 🛠️ DICIONÁRIO DE DURAÇÕES (em minutos) — Obtido da Versão de Elite Centralizada
+const SERVICE_DURATIONS: Record<string, number> = Object.fromEntries(
+  Object.entries(SERVICES_CONFIG).map(([k, v]) => [k, v.duration])
+);
 
 // 🔒 Função utilitária: Garante que existe um Client de sistema para bloqueios admin
 const getOrCreateAdminClient = async (): Promise<string> => {
@@ -29,7 +26,7 @@ const getOrCreateAdminClient = async (): Promise<string> => {
         phone: null,
       }
     });
-    logger.info(`Cliente de sistema criado com ID: ${adminClient.id}`);
+    logger.info(`Cliente de sistema criado com ID: ${adminClient.id} `);
   }
 
   return adminClient.id;
@@ -40,7 +37,11 @@ const getOrCreateAdminClient = async (): Promise<string> => {
  * Resolve conflitos de identidade transferindo históricos e apagando duplicados.
  */
 export const createBooking = async (req: Request, res: Response) => {
-  const { name, email, phone, service, date, time } = req.body;
+  const result = createBookingSchema.safeParse(req);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados de marcação inválidos.', errors: result.error.format() });
+  }
+  const { name, email, phone, service, date, time } = result.data.body;
 
   try {
     // 1. Higiene de Dados (Sanitização)
@@ -54,37 +55,40 @@ export const createBooking = async (req: Request, res: Response) => {
 
     let masterClient;
 
-    // 🚀 3. LÓGICA DE FUSÃO DE ELITE
+    // 🚀 3. LÓGICA DE FUSÃO DE ELITE (TRANSACIONAL)
     if (clientByEmail && clientByPhone && clientByEmail.id !== clientByPhone.id) {
-      console.log("⚠️ [FUSÃO] Detetada identidade dividida. Unificando perfis...");
+      console.log("⚠️ [FUSÃO] Detetada identidade dividida. Unificando perfis via Transação...");
 
-      // O Cliente do Email será o "Master". O do Telefone será o "Slave".
-      masterClient = clientByEmail;
-      const slaveClient = clientByPhone;
+      masterClient = await prisma.$transaction(async (tx) => {
+        const slaveClient = clientByPhone!;
+        const leadClient = clientByEmail!;
 
-      // A) Movemos todos os agendamentos do 'Slave' para o 'Master'
-      await prisma.booking.updateMany({
-        where: { clientId: slaveClient.id },
-        data: { clientId: masterClient.id }
+        // A) Movemos todos os agendamentos do 'Slave' para o 'Master'
+        await tx.booking.updateMany({
+          where: { clientId: slaveClient.id },
+          data: { clientId: leadClient.id }
+        });
+
+        // B) Transferimos os Pontos de Fidelidade
+        const combinedPoints = leadClient.points + slaveClient.points;
+
+        // C) Atualizamos o Master com o telefone, nome novo e pontos combinados
+        const updatedMaster = await tx.client.update({
+          where: { id: leadClient.id },
+          data: {
+            phone: cleanPhone,
+            name: formattedName,
+            points: combinedPoints
+          }
+        });
+
+        // D) Apagamos o registo duplicado (Slave)
+        await tx.client.delete({ where: { id: slaveClient.id } });
+
+        return updatedMaster;
       });
 
-      // B) Transferimos os Pontos de Fidelidade! (Pequeno bónus de lógica)
-      const combinedPoints = masterClient.points + slaveClient.points;
-
-      // C) Atualizamos o Master com o telefone, nome novo e pontos combinados
-      masterClient = await prisma.client.update({
-        where: { id: masterClient.id },
-        data: {
-          phone: cleanPhone,
-          name: formattedName,
-          points: combinedPoints
-        }
-      });
-
-      // D) Apagamos o registo duplicado (Slave)
-      await prisma.client.delete({ where: { id: slaveClient.id } });
-
-      console.log(`✅ [FUSÃO] Perfil ${slaveClient.id} fundido com sucesso no ${masterClient.id}`);
+      console.log(`✅[FUSÃO] Perfil unificado com sucesso no ID: ${masterClient.id} `);
     }
     else if (clientByEmail) {
       // Já existe por email? Atualiza dados.
@@ -110,9 +114,9 @@ export const createBooking = async (req: Request, res: Response) => {
     // 📅 4. Criar o agendamento para o Utilizador Unificado
     const booking = await prisma.booking.create({
       data: {
-        date: String(date),
-        time,
         service,
+        date,
+        time,
         clientId: masterClient.id
       },
       include: { client: true }
@@ -135,9 +139,9 @@ export const createBooking = async (req: Request, res: Response) => {
     if (adminEmail) {
       sendLuxuryEmail(
         adminEmail,
-        `🔔 Nova Reserva • ${masterClient.name} • ${service}`,
+        `🔔 Nova Reserva • ${masterClient.name} • ${service} `,
         'Diretor',
-        `Nova reserva de ${masterClient.name}: ${service}`,
+        `Nova reserva de ${masterClient.name}: ${service} `,
         date,
         time
       ).catch((e: any) => console.error("⚠️ Falha ao notificar admin:", e));
@@ -181,14 +185,14 @@ export const getBusySlots = async (req: Request, res: Response) => {
       while (currentMinutes < endMinutes) {
         const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
         const m = (currentMinutes % 60).toString().padStart(2, '0');
-        occupiedSlots.add(`${h}:${m}`);
+        occupiedSlots.add(`${h}:${m} `);
         currentMinutes += 30;
       }
     });
 
     res.json(Array.from(occupiedSlots));
   } catch (error: any) {
-    logger.error(`Erro no servidor: ${error.message}`);
+    logger.error(`Erro no servidor: ${error.message} `);
     res.status(500).json([]);
   }
 };
@@ -198,15 +202,30 @@ export const getBusySlots = async (req: Request, res: Response) => {
  * Suporta: dia único, intervalo de datas, dia inteiro, intervalo de horas
  */
 export const blockSchedule = async (req: Request, res: Response) => {
-  const { date, dateEnd, time, timeStart, timeEnd, reason, fullDay } = req.body;
+  const blockSchema = z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    dateEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+    time: z.string().max(5).optional().nullable(),
+    timeStart: z.string().max(5).optional().nullable(),
+    timeEnd: z.string().max(5).optional().nullable(),
+    reason: z.string().max(255, 'Motivo demasiado longo').optional(),
+    fullDay: z.boolean().optional(),
+  });
+
+  const result = blockSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados de bloqueio inválidos.', errors: result.error.format() });
+  }
+
+  const { date, dateEnd, time, timeStart, timeEnd, reason, fullDay } = result.data;
 
   try {
     const adminClientId = await getOrCreateAdminClient();
 
     // 1. Calcular todas as datas a bloquear
     const datesToBlock: string[] = [];
-    const startDate = new Date(`${date}T12:00:00Z`);
-    const endDate = dateEnd ? new Date(`${dateEnd}T12:00:00Z`) : startDate;
+    const startDate = new Date(`${date} T12:00:00Z`);
+    const endDate = dateEnd ? new Date(`${dateEnd} T12:00:00Z`) : startDate;
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
@@ -253,7 +272,7 @@ export const blockSchedule = async (req: Request, res: Response) => {
 
       for (const booking of affectedBookings) {
         if (booking.client && booking.clientId !== adminClientId) {
-          const msg = `Lamentamos informar, mas tivemos de cancelar o seu horário de ${booking.service} no dia ${booking.date} às ${booking.time}. Motivo: ${reason || 'Imprevisto no estúdio'}.`;
+          const msg = `Lamentamos informar, mas tivemos de cancelar o seu horário de ${booking.service} no dia ${booking.date} às ${booking.time}.Motivo: ${reason || 'Imprevisto no estúdio'}.`;
 
           if (booking.client.phone) {
             await sendNotification(booking.client.phone, booking.client.name, msg, 'sms');
@@ -264,7 +283,7 @@ export const blockSchedule = async (req: Request, res: Response) => {
               booking.client.email,
               'Aviso de Cancelamento • Studio Braz',
               booking.client.name,
-              `Cancelado: ${booking.service}`,
+              `Cancelado: ${booking.service} `,
               booking.date,
               booking.time
             ).catch((e: any) => console.error("⚠️ Erro ao enviar email de cancelamento:", e));
@@ -290,13 +309,13 @@ export const blockSchedule = async (req: Request, res: Response) => {
     }
 
     res.json({
-      message: `${totalBlocked} slots bloqueados em ${datesToBlock.length} dia(s). ${totalClientsNotified} clientes notificados.`,
+      message: `${totalBlocked} slots bloqueados em ${datesToBlock.length} dia(s).${totalClientsNotified} clientes notificados.`,
       totalBlocked,
       totalDays: datesToBlock.length,
       totalClientsNotified
     });
   } catch (error: any) {
-    logger.error(`Erro ao trancar horários: ${error.message}`);
+    logger.error(`Erro ao trancar horários: ${error.message} `);
     res.status(500).json({ message: 'Erro ao bloquear horário.' });
   }
 };
@@ -321,7 +340,7 @@ export const batchDeleteBlocks = async (req: Request, res: Response) => {
 
     res.json({ message: `${deleted.count} bloqueio(s) removido(s) com sucesso.`, count: deleted.count });
   } catch (error: any) {
-    logger.error(`Erro no batch delete: ${error.message}`);
+    logger.error(`Erro no batch delete: ${error.message} `);
     res.status(500).json({ message: 'Erro ao remover bloqueios.' });
   }
 };
@@ -354,12 +373,18 @@ export const getAllBookings = async (req: Request, res: Response) => {
   }
 };
 
+import { updateBookingStatusSchema } from '../schemas/bookingStatusSchema.js';
+
 /**
  * 5. ATUALIZAR STATUS & FIDELIZAÇÃO
  */
 export const updateBookingStatus = async (req: Request, res: Response) => {
+  const result = updateBookingStatusSchema.safeParse(req);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Status inválido.', errors: result.error.format() });
+  }
   const { id } = req.params;
-  const { status } = req.body;
+  const { status } = result.data.body;
 
   try {
     const booking = await prisma.booking.update({
@@ -457,8 +482,23 @@ export const restoreBooking = async (req: Request, res: Response) => {
  * 8. EDITAR BOOKING (Mudar serviço, data, hora)
  */
 export const updateBooking = async (req: Request, res: Response) => {
+  const editSchema = z.object({
+    service: z.string().max(100).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    time: z.string().max(5).optional(),
+    notes: z.string().max(1000, 'Notas demasiado longas').optional(),
+    status: z.string().optional(),
+    extraServices: z.array(z.string()).optional(),
+    totalPrice: z.number().optional(),
+  });
+
+  const result = editSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados de edição inválidos.' });
+  }
+
   const { id } = req.params;
-  const { service, date, time, notes, status, extraServices, totalPrice } = req.body;
+  const { service, date, time, notes, status, extraServices, totalPrice } = result.data;
 
   try {
     // Verificar conflitos de horário
@@ -486,16 +526,16 @@ export const updateBooking = async (req: Request, res: Response) => {
         ...(time && { time }),
         ...(notes !== undefined && { notes }),
         ...(status && { status }),
-        ...(extraServices !== undefined && { extraServices }),
+        ...(extraServices !== undefined && { extraServices: JSON.stringify(extraServices) }),
         ...(totalPrice !== undefined && { totalPrice }),
       },
       include: { client: true }
     });
 
-    logger.info(`Booking ${id} editado: ${service || 'mesmo'} em ${date || 'mesma data'} às ${time || 'mesma hora'}`);
+    logger.info(`Booking ${id} editado: ${service || 'mesmo'} em ${date || 'mesma data'} às ${time || 'mesma hora'} `);
     res.json(updated);
   } catch (error: any) {
-    logger.error(`Erro ao editar booking: ${error.message}`);
+    logger.error(`Erro ao editar booking: ${error.message} `);
     res.status(500).json({ message: 'Erro ao editar agendamento.' });
   }
 };
@@ -528,7 +568,7 @@ export const getAllClients = async (req: Request, res: Response) => {
 
     res.json(clients);
   } catch (error: any) {
-    logger.error(`Erro ao listar clientes: ${error.message}`);
+    logger.error(`Erro ao listar clientes: ${error.message} `);
     res.status(500).json({ message: 'Erro ao carregar clientes.' });
   }
 };
@@ -537,8 +577,22 @@ export const getAllClients = async (req: Request, res: Response) => {
  * 10. ATUALIZAR CLIENTE (Tier, Pontos, Dados)
  */
 export const updateClient = async (req: Request, res: Response) => {
+  const clientUpdateSchema = z.object({
+    name: z.string().max(100).optional(),
+    email: z.string().email().max(100).optional().nullable(),
+    phone: z.string().max(20).optional().nullable(),
+    tier: z.string().max(20).optional(),
+    points: z.number().optional(),
+    notes: z.string().max(1000).optional().nullable(),
+  });
+
+  const result = clientUpdateSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ message: 'Dados de cliente inválidos.', errors: result.error.format() });
+  }
+
   const { id } = req.params;
-  const { name, email, phone, tier, points, notes } = req.body;
+  const { name, email, phone, tier, points, notes } = result.data;
 
   try {
     const updated = await prisma.client.update({
@@ -553,10 +607,10 @@ export const updateClient = async (req: Request, res: Response) => {
       }
     });
 
-    logger.info(`Cliente ${id} atualizado: ${name || updated.name}`);
+    logger.info(`Cliente ${id} atualizado: ${name || updated.name} `);
     res.json(updated);
   } catch (error: any) {
-    logger.error(`Erro ao atualizar cliente: ${error.message}`);
+    logger.error(`Erro ao atualizar cliente: ${error.message} `);
     res.status(500).json({ message: 'Erro ao atualizar cliente.' });
   }
 };
@@ -585,7 +639,7 @@ export const getClientProfile = async (req: Request, res: Response) => {
 
     res.json(client);
   } catch (error: any) {
-    logger.error(`Erro ao obter perfil: ${error.message}`);
+    logger.error(`Erro ao obter perfil: ${error.message} `);
     res.status(500).json({ message: 'Erro ao carregar perfil.' });
   }
 };

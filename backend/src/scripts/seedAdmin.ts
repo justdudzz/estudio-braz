@@ -2,6 +2,10 @@ import bcrypt from 'bcryptjs';
 import prisma from '../config/prisma.js';
 
 async function seed() {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ SEGURANÇA: O script de SEED está bloqueado em ambiente de PRODUÇÃO.');
+    process.exit(1);
+  }
   const email = "admin@studiobraz.com";
 
   // Password obrigatória via variável de ambiente (#8)

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -9,8 +9,10 @@ import { motion } from 'framer-motion';
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
+  useLayoutEffect(() => {
+    // 🚀 LUXURY SCROLL RESET (Point #13)
+    // Instantâneo antes da pintura do browser para evitar lag visual
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as any });
   }, [pathname]);
 
   return null;

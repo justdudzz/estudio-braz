@@ -11,6 +11,7 @@ import CookieBanner from './components/common/CookieBanner';
 import NetworkStatus from './components/common/NetworkStatus';
 import { ToastProvider } from './components/common/Toast';
 import ScrollToTop from './utils/scroll';
+import PWAUpdatePrompt from './src/components/common/PWAUpdatePrompt';
 
 import AnimatedCursor from './components/common/AnimatedCursor';
 import FloatingWhatsApp from './components/common/FloatingWhatsApp';
@@ -43,6 +44,7 @@ import BlockManagement from './components/admin/BlockManagement';
 import SettingsPage from './components/admin/SettingsPage';
 import ReportsPage from './components/admin/ReportsPage';
 import { AdminDataProvider } from './contexts/AdminDataContext';
+import NotFoundPage from './components/common/NotFoundPage';
 
 // Proteção de Rota
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: 'admin' | 'client' }) => {
@@ -71,6 +73,7 @@ const AppContent = () => {
   return (
     <>
       <ScrollToTop />
+      <PWAUpdatePrompt />
       <NetworkStatus />
 
       <Routes>
@@ -117,8 +120,8 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
 
-        {/* 🔄 Catch-all */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* 🔄 Catch-all Luxury 404 (Point #20) */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       <CookieBanner />

@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
@@ -11,8 +12,14 @@ import logger from './utils/logger.js';
 
 dotenv.config();
 
+import { env } from './config/env.js';
+
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
+
+// --- CONFIANÇA EM PROXY (#6) ---
+// Essencial para obter o IP real atrás de Cloudflare/Nginx e não bloquear todos por engano.
+app.set('trust proxy', 1);
 
 // --- HTTPS FORÇADO EM PRODUÇÃO (#3) ---
 if (isProduction) {
@@ -55,9 +62,24 @@ app.use(cors({
 }));
 
 // Camadas de Proteção
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      "connect-src": ["'self'", "http://localhost:5000", "wss://localhost:5173", "https://*.studiobraz.pt"],
+    },
+  },
+}));
+
+// 🛡️ BLOQUEIO DE PERIFÉRICOS (Point #26)
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
+  next();
+});
 app.use(cookieParser()); // Parser de cookies para httpOnly auth
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
+app.use(compression());
 
 // Rate Limiting Global (#6) — 100 req/15min por IP
 app.use(generalLimiter);
@@ -82,6 +104,17 @@ app.use(notFound);
 
 // Central de Erros
 app.use(errorHandler);
+
+// --- PARAQUEDAS GLOBAL (#7) ---
+// Evita que erros fatais derrubem o processo sem registo no Logger
+process.on('uncaughtException', (err) => {
+  logger.error('💥 ERRO FATAL (Uncaught Exception):', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('💥 PROMESSA REJEITADA (Unhandled Rejection) em:', promise, 'razão:', reason);
+});
 
 const PORT = process.env.PORT || 5000;
 

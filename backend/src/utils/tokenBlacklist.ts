@@ -1,18 +1,21 @@
-// backend/src/utils/tokenBlacklist.ts
-// In-memory token blacklist para suportar logout no servidor
-// Para produção com múltiplas instâncias, substituir por Redis
+import prisma from '../config/prisma.js';
 
-const blacklistedTokens = new Set<string>();
-
-export const blacklistToken = (tokenId: string): void => {
-    blacklistedTokens.add(tokenId);
+/**
+ * 🛡️ BLACKLIST PERSISTENTE (SQL)
+ * Garante que tokens invalidados (logout) continuam inválidos mesmo
+ * que o servidor reinicie.
+ */
+export const blacklistToken = async (token: string, expiresAt: Date): Promise<void> => {
+    await prisma.tokenBlacklist.upsert({
+        where: { token },
+        update: { expiresAt },
+        create: { token, expiresAt }
+    });
 };
 
-export const isBlacklisted = (tokenId: string): boolean => {
-    return blacklistedTokens.has(tokenId);
+export const isBlacklisted = async (token: string): Promise<boolean> => {
+    const found = await prisma.tokenBlacklist.findUnique({
+        where: { token }
+    });
+    return !!found;
 };
-
-// Limpeza automática a cada hora (evita memory leak em long-running servers)
-setInterval(() => {
-    blacklistedTokens.clear();
-}, 60 * 60 * 1000); // 1 hora — tokens expirados já não passam no jwt.verify()

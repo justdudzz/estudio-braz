@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async'; // Opcional, mas recomendado para SEO
 import App from './App.tsx';
+import ErrorBoundary from './src/components/common/ErrorBoundary.tsx';
 import './index.css';
 
 /**
@@ -26,7 +27,9 @@ root.render(
     */}
     <HelmetProvider>
       <Router>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </Router>
     </HelmetProvider>
   </StrictMode>,
