@@ -22,7 +22,8 @@ const HomePage: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <>
+        <div className="relative">
+            <FullScreenMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
             {/* ===== IMMERSIVE HERO ===== */}
             <ImmersiveHero>
                 <div className="flex flex-col items-center text-center px-6">
@@ -111,8 +112,7 @@ const HomePage: React.FC = () => {
                 </div>
             </ImmersiveHero>
 
-            {/* Desktop Full-Screen Menu */}
-            <FullScreenMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+            {/* Desktop Full-Screen Menu moved to top level */}
 
             {/* ===== STATS ===== */}
             <StatsBar />
@@ -191,7 +191,7 @@ const HomePage: React.FC = () => {
 
             {/* ===== GOOGLE MAPS ===== */}
             <LocationMap />
-        </>
+        </div>
     );
 };
 
