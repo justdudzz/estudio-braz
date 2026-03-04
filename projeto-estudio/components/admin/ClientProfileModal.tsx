@@ -45,7 +45,8 @@ const ClientProfileModal: React.FC<ClientProfileModalProps> = ({ clientId, onClo
     };
 
     const ltv = client?.bookings?.reduce((total: number, b: any) => {
-        if (b.status === 'confirmed') {
+        if (b.status === 'confirmed' || b.status === 'paid') {
+            if (b.totalPrice) return total + b.totalPrice;
             const price = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.price || 0;
             return total + price;
         }
@@ -178,8 +179,9 @@ const ClientProfileModal: React.FC<ClientProfileModalProps> = ({ clientId, onClo
                                             <p className="text-[11px] font-medium text-white/40 mt-0.5">{b.date} • {b.time}</p>
                                         </div>
                                         <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${b.status === 'confirmed' ? 'bg-green-500/10 border border-green-500/20 text-green-400' :
-                                            b.status === 'cancelled' ? 'bg-red-500/10 border border-red-500/20 text-red-400' :
-                                                'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'
+                                                b.status === 'paid' ? 'bg-braz-gold/10 border border-braz-gold/30 text-braz-gold shadow-[0_0_10px_rgba(197,160,89,0.1)]' :
+                                                    b.status === 'cancelled' ? 'bg-red-500/10 border border-red-500/20 text-red-400' :
+                                                        'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'
                                             }`}>{b.status}</span>
                                     </div>
                                 )) : (

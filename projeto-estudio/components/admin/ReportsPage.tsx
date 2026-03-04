@@ -39,6 +39,7 @@ const ReportsPage: React.FC = () => {
 
         // Revenue (only from Paid)
         const totalRevenue = paid.reduce((acc, b) => {
+            if (b.totalPrice) return acc + b.totalPrice;
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
@@ -57,10 +58,12 @@ const ReportsPage: React.FC = () => {
         const lastMonthPaid = paid.filter(b => b.date?.startsWith(lastMonthStr));
 
         const thisMonthRevenue = thisMonthPaid.reduce((acc, b) => {
+            if (b.totalPrice) return acc + b.totalPrice;
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
         const lastMonthRevenue = lastMonthPaid.reduce((acc, b) => {
+            if (b.totalPrice) return acc + b.totalPrice;
             const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
             return acc + (config?.price || 0);
         }, 0);
@@ -71,8 +74,12 @@ const ReportsPage: React.FC = () => {
         const validForBreakdown = [...confirmed, ...paid];
         validForBreakdown.forEach(b => {
             serviceCount[b.service] = (serviceCount[b.service] || 0) + 1;
-            const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
-            serviceRevenue[b.service] = (serviceRevenue[b.service] || 0) + (config?.price || 0);
+            if (b.totalPrice) {
+                serviceRevenue[b.service] = (serviceRevenue[b.service] || 0) + b.totalPrice;
+            } else {
+                const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
+                serviceRevenue[b.service] = (serviceRevenue[b.service] || 0) + (config?.price || 0);
+            }
         });
 
         const serviceBreakdown = Object.entries(serviceCount)
@@ -115,6 +122,7 @@ const ReportsPage: React.FC = () => {
             const mPaid = paid.filter(b => b.date?.startsWith(mStr));
 
             const mRevenue = mPaid.reduce((acc, b) => {
+                if (b.totalPrice) return acc + b.totalPrice;
                 const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
                 return acc + (config?.price || 0);
             }, 0);

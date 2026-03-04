@@ -34,3 +34,8 @@ export const updateBookingStatus = async (id: string, status: 'confirmed' | 'can
 export const deleteBooking = async (id: string) => {
   await api.delete(`/bookings/${id}`);
 };
+
+export const restoreBooking = async (id: string) => {
+  const response = await api.patch(`/bookings/${id}/restore`);
+  return response.data;
+};

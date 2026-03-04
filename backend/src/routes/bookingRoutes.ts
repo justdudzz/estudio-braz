@@ -6,6 +6,7 @@ import {
   updateBookingStatus,
   updateBooking,
   deleteBooking,
+  restoreBooking,
   blockSchedule,
   batchDeleteBlocks,
   getTopClients,
@@ -42,6 +43,7 @@ router.post('/block', protect, adminOnly, blockSchedule);
 router.post('/batch-delete', protect, adminOnly, batchDeleteBlocks);
 router.get('/', protect, adminOnly, getAllBookings);
 router.patch('/:id/status', protect, adminOnly, validate(updateBookingStatusSchema), updateBookingStatus);
+router.patch('/:id/restore', protect, adminOnly, restoreBooking);
 router.put('/:id', protect, adminOnly, updateBooking);
 router.delete('/:id', protect, adminOnly, deleteBooking);
 

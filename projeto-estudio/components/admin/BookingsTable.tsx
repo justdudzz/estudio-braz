@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2, Euro } from 'lucide-react';
+import { Calendar, Filter, Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2, Euro, FileText } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
+import { updateBookingStatus, deleteBooking, restoreBooking } from '../../src/services/bookingService';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { StatusBadge } from './ui/Badges';
@@ -57,6 +57,7 @@ const BookingsTable: React.FC = () => {
 
     const handleMarkAsPaid = async (id: string, currentStatus: string) => {
         if (currentStatus === 'paid') return;
+        if (!window.confirm('Marcar como pago?')) return;
         try {
             await updateBookingStatus(id, 'paid');
             showToast('Marcado como Pago!', 'success');
@@ -69,7 +70,18 @@ const BookingsTable: React.FC = () => {
         if (!confirmed) return;
         try {
             await deleteBooking(id);
-            showToast('Eliminado.', 'success');
+            showToast('Eliminado com sucesso.', 'warning', {
+                label: 'Desfazer',
+                onClick: async () => {
+                    try {
+                        await restoreBooking(id);
+                        showToast('Booking restaurado.', 'success');
+                        await refreshData();
+                    } catch {
+                        showToast('Erro ao restaurar.', 'error');
+                    }
+                }
+            });
             await refreshData();
         } catch { showToast('Erro.', 'error'); }
     };
@@ -163,7 +175,17 @@ const BookingsTable: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="p-4 text-sm text-white/70">
-                                            {SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service}
+                                            <div className="flex items-center gap-1.5">
+                                                {SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service}
+                                                {b.notes && (
+                                                    <span title={b.notes} className="cursor-help">
+                                                        <FileText size={12} className="text-braz-gold/40" />
+                                                    </span>
+                                                )}
+                                                {b.totalPrice && (
+                                                    <span className="text-[10px] text-braz-gold font-bold ml-1">€{b.totalPrice}</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="p-4 text-sm text-white/50 font-mono">{b.date}</td>
                                         <td className="p-4 text-sm text-white/50 font-mono">{b.time}</td>

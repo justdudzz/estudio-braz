@@ -12,9 +12,10 @@ interface CalendarViewProps {
     onConfirm: (id: string) => void;
     onDelete: (id: string) => void;
     onWhatsApp: (client: any, booking: any) => void;
+    onMarkPaid?: (id: string) => void;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConfirm, onDelete, onWhatsApp }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConfirm, onDelete, onWhatsApp, onMarkPaid }) => {
     const { showToast } = useToast();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -149,6 +150,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
                                     onConfirm={onConfirm}
                                     onDelete={onDelete}
                                     onWhatsApp={onWhatsApp}
+                                    onMarkPaid={onMarkPaid}
                                 />
                             </motion.div>
                         </motion.div>

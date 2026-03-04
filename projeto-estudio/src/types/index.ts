@@ -11,7 +11,7 @@ export interface Client {
     _count?: { bookings: number };
 }
 
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'paid' | 'blocked' | 'rejected';
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'paid' | 'blocked' | 'rejected' | 'completed';
 
 export interface Booking {
     id: string;
@@ -21,6 +21,10 @@ export interface Booking {
     date: string;
     time: string;
     status: BookingStatus;
+    notes?: string;
+    extraServices?: string;
+    totalPrice?: number;
+    deletedAt?: string;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Save, Clock, Euro, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Save, Clock, Euro, Loader2, ShieldCheck, QrCode, Smartphone } from 'lucide-react';
 import { useToast } from '../common/Toast';
 import { SERVICES_CONFIG, OPENING_HOURS, BUSINESS_INFO } from '../../utils/constants';
+import * as authService from '../../src/services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 // localStorage keys
 const LS_KEY_BUSINESS = 'admin_settings_business';
@@ -10,9 +12,20 @@ const LS_KEY_SERVICES = 'admin_settings_services';
 
 const SettingsPage: React.FC = () => {
     const { showToast } = useToast();
+    const { user, updateUser } = useAuth();
     const [saving, setSaving] = useState(false);
 
-    // Business info state — loads from localStorage or falls back to constants
+    // 2FA State
+    const [is2FAEnabled, setIs2FAEnabled] = useState(user?.isTwoFactorEnabled || false);
+    const [qrCode, setQrCode] = useState<string | null>(null);
+    const [otpCode, setOtpCode] = useState('');
+    const [generating2FA, setGenerating2FA] = useState(false);
+    const [verifying2FA, setVerifying2FA] = useState(false);
+    const [disabling2FA, setDisabling2FA] = useState(false);
+    const [showDisableForm, setShowDisableForm] = useState(false);
+    const [disablePassword, setDisablePassword] = useState('');
+
+    // Business info state
     const [business, setBusiness] = useState(() => {
         try {
             const stored = localStorage.getItem(LS_KEY_BUSINESS);
@@ -75,8 +88,59 @@ const SettingsPage: React.FC = () => {
         }
     };
 
+    const handleGenerate2FA = async () => {
+        setGenerating2FA(true);
+        try {
+            const data = await authService.generate2FA();
+            setQrCode(data.qrCodeImage);
+            showToast('QR Code gerado. Digitalize com o Google Authenticator.', 'info');
+        } catch (err: any) {
+            showToast(err.message || 'Erro ao gerar 2FA', 'error');
+        } finally {
+            setGenerating2FA(false);
+        }
+    };
+
+    const handleVerify2FA = async () => {
+        if (otpCode.length !== 6) return;
+        setVerifying2FA(true);
+        try {
+            await authService.verify2FASetup(otpCode);
+            setIs2FAEnabled(true);
+            setQrCode(null);
+            setOtpCode('');
+            // Update local user state globally
+            updateUser({ isTwoFactorEnabled: true });
+            showToast('Autenticação de 2 Passos ativada com sucesso!', 'success');
+        } catch (err: any) {
+            showToast(err.message || 'Código inválido', 'error');
+        } finally {
+            setVerifying2FA(false);
+        }
+    };
+
+    const handleDisable2FA = async () => {
+        if (!disablePassword) { showToast('Introduza a password.', 'warning'); return; }
+        setDisabling2FA(true);
+        try {
+            await authService.disable2FA(disablePassword);
+            setIs2FAEnabled(false);
+            setShowDisableForm(false);
+            setDisablePassword('');
+            setQrCode(null);
+            setOtpCode('');
+            // Update local user state globally
+            updateUser({ isTwoFactorEnabled: false });
+            showToast('2FA desativado com sucesso.', 'success');
+        } catch (err: any) {
+            showToast(err.response?.data?.message || 'Erro ao desativar 2FA.', 'error');
+        } finally {
+            setDisabling2FA(false);
+        }
+    };
+
     return (
-        <div>
+        <div className="pb-20">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-2xl font-black uppercase tracking-tighter">Configurações</h1>
                 <button
@@ -132,18 +196,6 @@ const SettingsPage: React.FC = () => {
                                     className="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-sm text-white outline-none focus:border-braz-gold/50" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-[10px] text-white/30 uppercase tracking-widest font-semibold block mb-1.5">Abertura (Sábado)</label>
-                                <input type="number" value={hours.weekendStart} min={8} max={14} onChange={(e) => setHours({ ...hours, weekendStart: parseInt(e.target.value) || 9 })}
-                                    className="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-sm text-white outline-none focus:border-braz-gold/50" />
-                            </div>
-                            <div>
-                                <label className="text-[10px] text-white/30 uppercase tracking-widest font-semibold block mb-1.5">Fecho (Sábado)</label>
-                                <input type="number" value={hours.weekendEnd} min={12} max={20} onChange={(e) => setHours({ ...hours, weekendEnd: parseInt(e.target.value) || 13 })}
-                                    className="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-sm text-white outline-none focus:border-braz-gold/50" />
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -170,6 +222,116 @@ const SettingsPage: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* --- 🔐 SEGURANÇA AVANÇADA (2FA) --- */}
+                <div className="bg-[#121212] rounded-2xl border border-braz-gold/10 p-6 lg:col-span-2 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-braz-gold/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-braz-gold mb-6 flex items-center gap-2">
+                        <ShieldCheck size={18} /> Segurança de Elite (2FA)
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                        <div className="space-y-4">
+                            <p className="text-xs text-white/50 leading-relaxed">
+                                A Autenticação de Dois Passos adiciona uma camada de proteção inquebrável ao seu painel.
+                            </p>
+
+                            <div className="flex items-center gap-4 py-4">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${is2FAEnabled ? 'bg-green-500/20 text-green-500' : 'bg-white/5 text-white/20'}`}>
+                                    <ShieldCheck size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                        Estado: {is2FAEnabled ? 'PROTEGIDO' : 'VULNERÁVEL'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {!is2FAEnabled && !qrCode && (
+                                <button
+                                    onClick={handleGenerate2FA}
+                                    disabled={generating2FA}
+                                    className="px-6 py-3 bg-braz-gold text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {generating2FA ? <Loader2 size={14} className="animate-spin" /> : <QrCode size={14} />}
+                                    ATIVAR GOOGLE AUTHENTICATOR
+                                </button>
+                            )}
+                        </div>
+
+                        {qrCode && !is2FAEnabled && (
+                            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col items-center text-center">
+                                <p className="text-[10px] font-bold text-braz-gold uppercase tracking-widest mb-4">1. Digitalize o código</p>
+                                <div className="bg-white p-2 rounded-xl mb-6">
+                                    <img src={qrCode} alt="QR Code 2FA" className="w-44 h-44" />
+                                </div>
+                                <div className="flex gap-2 w-full max-w-[200px]">
+                                    <input
+                                        type="text"
+                                        maxLength={6}
+                                        value={otpCode}
+                                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                                        placeholder="000000"
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-center text-xl font-mono tracking-[0.3em] text-white outline-none focus:border-braz-gold transition-all"
+                                    />
+                                    <button
+                                        onClick={handleVerify2FA}
+                                        disabled={verifying2FA || otpCode.length !== 6}
+                                        className="bg-braz-gold text-black p-3 rounded-xl hover:bg-white transition-all disabled:opacity-30"
+                                    >
+                                        {verifying2FA ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {is2FAEnabled && (
+                            <div className="space-y-4">
+                                <div className="bg-green-500/5 rounded-2xl p-6 border border-green-500/10 flex items-center gap-4">
+                                    <Smartphone className="text-green-500 shrink-0" size={32} />
+                                    <p className="text-[10px] text-green-500/70 uppercase tracking-widest font-bold leading-loose">
+                                        O seu dispositivo está emparelhado. Segurança ativa.
+                                    </p>
+                                </div>
+                                {!showDisableForm ? (
+                                    <button
+                                        onClick={() => setShowDisableForm(true)}
+                                        className="px-6 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        <ShieldCheck size={14} /> DESATIVAR 2FA
+                                    </button>
+                                ) : (
+                                    <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-5 space-y-3">
+                                        <p className="text-[10px] text-red-400/70 uppercase tracking-widest font-bold">Confirme com a sua password:</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="password"
+                                                placeholder="Password"
+                                                value={disablePassword}
+                                                onChange={(e) => setDisablePassword(e.target.value)}
+                                                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-red-500/50"
+                                            />
+                                            <button
+                                                onClick={handleDisable2FA}
+                                                disabled={disabling2FA}
+                                                className="px-4 py-3 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-red-600 transition-all disabled:opacity-50"
+                                            >
+                                                {disabling2FA ? <Loader2 size={14} className="animate-spin" /> : 'CONFIRMAR'}
+                                            </button>
+                                            <button
+                                                onClick={() => { setShowDisableForm(false); setDisablePassword(''); }}
+                                                className="px-3 py-3 bg-white/5 text-white/40 rounded-xl text-[10px] font-bold uppercase hover:text-white"
+                                            >
+                                                CANCELAR
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

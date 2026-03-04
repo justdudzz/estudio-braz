@@ -27,3 +27,18 @@ export const logoutDirector = async () => {
   localStorage.removeItem('braz_expires_at');
   window.location.href = '/login';
 };
+
+export const generate2FA = async () => {
+  const response = await api.post('/auth/2fa/generate');
+  return response.data;
+};
+
+export const verify2FASetup = async (code: string) => {
+  const response = await api.post('/auth/2fa/verify', { code });
+  return response.data;
+};
+
+export const disable2FA = async (password: string) => {
+  const response = await api.post('/auth/2fa/disable', { password });
+  return response.data;
+};

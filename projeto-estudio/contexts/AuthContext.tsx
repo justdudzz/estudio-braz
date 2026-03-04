@@ -8,11 +8,13 @@ interface User {
   name?: string;
   tier?: string;
   points?: number;
+  isTwoFactorEnabled?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (userData: any) => void;
+  updateUser: (updates: Partial<User>) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -51,12 +53,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: userData.name,
       tier: userData.tier,
       points: userData.points,
+      isTwoFactorEnabled: userData.isTwoFactorEnabled,
     };
 
     setUser(finalUser);
     // Guardar apenas dados do user e expiração (NÃO o token!) (#1, #2)
     localStorage.setItem('braz_user', JSON.stringify(finalUser));
     localStorage.setItem('braz_expires_at', String(data.expiresAt));
+  };
+
+  const updateUser = (updates: Partial<User>) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem('braz_user', JSON.stringify(updatedUser));
   };
 
   const logout = async () => {
@@ -78,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{
       user,
       login,
+      updateUser,
       logout,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin'

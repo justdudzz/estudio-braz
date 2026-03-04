@@ -99,10 +99,14 @@ export const createBooking = async (req, res) => {
             },
             include: { client: true }
         });
-        // 📧 5. Envio de Email Seguro (ASSÍNCRONO - Fire and Forget)
+        // 📧 5. Envio de Email ao CLIENTE (ASSÍNCRONO)
         if (masterClient.email) {
-            // Não usamos await aqui para não bloquear a resposta ao Frontend caso o SMTP esteja lento
             sendLuxuryEmail(masterClient.email, 'Agendamento Recebido • Studio Braz', masterClient.name, service, date, time).catch((e) => console.error("⚠️ Falha silenciosa no envio de email ao cliente:", e));
+        }
+        // 📧 6. Notificação ao ADMIN (ASSÍNCRONO)
+        const adminEmail = process.env.SMTP_USER;
+        if (adminEmail) {
+            sendLuxuryEmail(adminEmail, `🔔 Nova Reserva • ${masterClient.name} • ${service}`, 'Diretor', `Nova reserva de ${masterClient.name}: ${service}`, date, time).catch((e) => console.error("⚠️ Falha ao notificar admin:", e));
         }
         return res.status(201).json(booking);
     }
@@ -264,7 +268,19 @@ export const batchDeleteBlocks = async (req, res) => {
  */
 export const getAllBookings = async (req, res) => {
     try {
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const whereClause = { deletedAt: null };
+        // Só filtra por data se as datas forem fornecidas (retrocompatível)
+        if (startDate || endDate) {
+            whereClause.date = {};
+            if (startDate)
+                whereClause.date.gte = startDate;
+            if (endDate)
+                whereClause.date.lte = endDate;
+        }
         const bookings = await prisma.booking.findMany({
+            where: whereClause,
             include: { client: true },
             orderBy: [{ date: 'desc' }, { time: 'desc' }]
         });
@@ -289,7 +305,7 @@ export const updateBookingStatus = async (req, res) => {
         if (status === 'confirmed') {
             await prisma.client.update({
                 where: { id: booking.clientId },
-                data: { points: { increment: 10 } }
+                data: { points: { increment: 1 } }
             });
             if (booking.client.email) {
                 // Envio assíncrono para os emails de aceitação
@@ -329,7 +345,11 @@ export const getTopClients = async (req, res) => {
 export const deleteBooking = async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.booking.delete({ where: { id } });
+        // Soft delete — marca como eliminado mas mantém na BD
+        await prisma.booking.update({
+            where: { id },
+            data: { deletedAt: new Date() }
+        });
         res.status(204).send();
     }
     catch (error) {
@@ -337,11 +357,27 @@ export const deleteBooking = async (req, res) => {
     }
 };
 /**
+ * 7B. RESTAURAR BOOKING (Undo)
+ */
+export const restoreBooking = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.booking.update({
+            where: { id },
+            data: { deletedAt: null }
+        });
+        res.json({ message: 'Booking restaurado com sucesso.' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Erro ao restaurar.' });
+    }
+};
+/**
  * 8. EDITAR BOOKING (Mudar serviço, data, hora)
  */
 export const updateBooking = async (req, res) => {
     const { id } = req.params;
-    const { service, date, time } = req.body;
+    const { service, date, time, notes, status, extraServices, totalPrice } = req.body;
     try {
         // Verificar conflitos de horário
         if (date && time) {
@@ -350,7 +386,8 @@ export const updateBooking = async (req, res) => {
                     date,
                     time,
                     id: { not: id },
-                    status: { not: 'cancelled' }
+                    status: { not: 'cancelled' },
+                    deletedAt: null
                 }
             });
             if (conflict) {
@@ -363,6 +400,10 @@ export const updateBooking = async (req, res) => {
                 ...(service && { service }),
                 ...(date && { date }),
                 ...(time && { time }),
+                ...(notes !== undefined && { notes }),
+                ...(status && { status }),
+                ...(extraServices !== undefined && { extraServices }),
+                ...(totalPrice !== undefined && { totalPrice }),
             },
             include: { client: true }
         });
@@ -380,17 +421,23 @@ export const updateBooking = async (req, res) => {
 export const getAllClients = async (req, res) => {
     try {
         const search = req.query.search || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50; // Limite padrão de segurança
+        const skip = (page - 1) * limit;
         const clients = await prisma.client.findMany({
             where: search ? {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },
                     { email: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search, mode: 'insensitive' } },
                 ]
             } : {},
             include: {
                 _count: { select: { bookings: true } }
             },
             orderBy: { points: 'desc' },
+            take: limit,
+            skip: skip,
         });
         res.json(clients);
     }
@@ -404,7 +451,7 @@ export const getAllClients = async (req, res) => {
  */
 export const updateClient = async (req, res) => {
     const { id } = req.params;
-    const { name, email, phone, tier, points } = req.body;
+    const { name, email, phone, tier, points, notes } = req.body;
     try {
         const updated = await prisma.client.update({
             where: { id },
@@ -414,6 +461,7 @@ export const updateClient = async (req, res) => {
                 ...(phone !== undefined && { phone }),
                 ...(tier && { tier }),
                 ...(points !== undefined && { points }),
+                ...(notes !== undefined && { notes }),
             }
         });
         logger.info(`Cliente ${id} atualizado: ${name || updated.name}`);

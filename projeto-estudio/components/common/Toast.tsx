@@ -8,10 +8,11 @@ interface Toast {
     id: string;
     message: string;
     type: ToastType;
+    action?: { label: string; onClick: () => void };
 }
 
 interface ToastContextType {
-    showToast: (message: string, type?: ToastType) => void;
+    showToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -39,12 +40,12 @@ const TOAST_COLORS = {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
-    const showToast = useCallback((message: string, type: ToastType = 'success') => {
+    const showToast = useCallback((message: string, type: ToastType = 'success', action?: { label: string; onClick: () => void }) => {
         const id = Date.now().toString();
-        setToasts(prev => [...prev, { id, message, type }]);
+        setToasts(prev => [...prev, { id, message, type, action }]);
         setTimeout(() => {
             setToasts(prev => prev.filter(t => t.id !== id));
-        }, 4000);
+        }, action ? 8000 : 4000); // 8 segundos para dar tempo de clicar no Undo
     }, []);
 
     const removeToast = (id: string) => {
@@ -68,8 +69,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                                 exit={{ opacity: 0, x: 100, scale: 0.9 }}
                                 className={`flex items-center gap-3 px-5 py-4 rounded-xl border backdrop-blur-xl shadow-2xl ${TOAST_COLORS[toast.type]}`}
                             >
-                                <Icon size={18} className="flex-shrink-0" />
-                                <p className="text-sm font-semibold flex-1">{toast.message}</p>
+                                <Icon size={18} className="flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold">{toast.message}</p>
+                                    {toast.action && (
+                                        <button
+                                            onClick={() => { toast.action?.onClick(); removeToast(toast.id); }}
+                                            className="mt-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-colors active:scale-95"
+                                        >
+                                            {toast.action.label}
+                                        </button>
+                                    )}
+                                </div>
                                 <button onClick={() => removeToast(toast.id)} className="opacity-50 hover:opacity-100 transition-opacity">
                                     <X size={14} />
                                 </button>

@@ -114,7 +114,8 @@ const LoginPage: React.FC = () => {
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="w-full p-4 pl-12 bg-braz-pink/5 rounded-xl text-white outline-none border border-braz-pink/30 focus:border-braz-pink transition-all placeholder:text-white/10 text-center text-2xl tracking-[0.5em] font-mono"
+                  className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/20 focus:border-braz-gold transition-all placeholder:text-white/10 text-center text-2xl tracking-[0.5em] font-mono !text-white"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'white' }}
                   required
                 />
               </div>

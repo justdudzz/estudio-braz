@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Calendar, X, Check, MessageCircle } from 'lucide-react';
+import { Calendar, X, Check, MessageCircle, Euro, FileText } from 'lucide-react';
 import { SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
 import { getBookingColorClasses } from '../../utils/themeHelpers';
 
@@ -10,10 +10,11 @@ interface DailyAgendaProps {
     onConfirm: (id: string) => void;
     onDelete: (id: string) => void;
     onWhatsApp: (client: any, booking: any) => void;
+    onMarkPaid?: (id: string) => void;
 }
 
 
-const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onConfirm, onDelete, onWhatsApp }) => {
+const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onConfirm, onDelete, onWhatsApp, onMarkPaid }) => {
     const [hideCancelled, setHideCancelled] = React.useState(true);
 
     // Generate working hours dynamically from OPENING_HOURS
@@ -97,13 +98,27 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
                                             </div>
                                             <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">
                                                 {SERVICES_CONFIG[appointment.service as keyof typeof SERVICES_CONFIG]?.label || appointment.service || appointment.reason || 'Reserva'}
+                                                {appointment.totalPrice && (
+                                                    <span className="ml-2 text-braz-gold">€{appointment.totalPrice}</span>
+                                                )}
                                             </p>
+                                            {appointment.notes && (
+                                                <p className="text-[9px] text-white/25 mt-1 flex items-center gap-1">
+                                                    <FileText size={8} className="text-braz-gold/40" />
+                                                    {appointment.notes}
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="flex gap-2 opacity-100 sm:opacity-50 group-hover:opacity-100 transition-opacity">
-                                            {appointment.status !== 'confirmed' && appointment.status !== 'blocked' && (
-                                                <button onClick={() => onConfirm(appointment.id)} title="Confirmar" className="p-2 border border-green-500/20 text-green-500 bg-[#121212] rounded-[10px] hover:bg-green-500 hover:text-white transition-all shadow-sm">
+                                            {appointment.status !== 'confirmed' && appointment.status !== 'blocked' && appointment.status !== 'paid' && (
+                                                <button onClick={() => { if (window.confirm('Confirmar esta reserva?')) onConfirm(appointment.id); }} title="Confirmar" className="p-2 border border-green-500/20 text-green-500 bg-[#121212] rounded-[10px] hover:bg-green-500 hover:text-white transition-all shadow-sm">
                                                     <Check size={14} />
+                                                </button>
+                                            )}
+                                            {appointment.status === 'confirmed' && onMarkPaid && (
+                                                <button onClick={() => { if (window.confirm('Marcar como pago?')) onMarkPaid(appointment.id); }} title="Marcar como Pago" className="p-2 border border-braz-gold/30 text-braz-gold bg-[#121212] rounded-[10px] hover:bg-braz-gold hover:text-black transition-all shadow-sm">
+                                                    <Euro size={14} />
                                                 </button>
                                             )}
                                             {appointment.client?.phone && (

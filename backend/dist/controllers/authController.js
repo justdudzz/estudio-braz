@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+// @ts-ignore
+import { generateSecret, verify, generateURI } from 'otplib';
+import qrcode from 'qrcode';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
 const isProduction = process.env.NODE_ENV === 'production';
@@ -38,6 +41,25 @@ export const login = async (req, res) => {
             logger.warn(`Login admin falhado — password errada: ${email} | IP: ${clientIp}`);
             return res.status(401).json({ message: 'Credenciais de elite inválidas.' });
         }
+        // --- NOVA CAMADA: 2FA ---
+        if (user.isTwoFactorEnabled) {
+            const { twoFactorCode } = req.body;
+            if (!twoFactorCode) {
+                // Se a password está certa, mas falta o código 2FA, respondemos com 206 Partial Content
+                return res.status(206).json({ message: 'Autenticação em 2 Passos necessária.', requires2FA: true });
+            }
+            // Verificação com tolerância temporal (2 janelas de 30s) para evitar erros de relógio
+            const isValid = await verify({
+                token: twoFactorCode,
+                secret: user.twoFactorSecret,
+                epochTolerance: 2
+            });
+            logger.info(`Validando 2FA - UID: ${user.id} | Result: ${JSON.stringify(isValid)}`);
+            if (!isValid || !isValid.valid) {
+                logger.warn(`Login admin 2FA falhado — código inválido: ${email} | IP: ${clientIp}`);
+                return res.status(401).json({ message: 'Código de Segurança (2FA) inválido.' });
+            }
+        }
         // Gera o Token com claims de segurança (#12)
         const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET, {
             expiresIn: '30d',
@@ -65,7 +87,8 @@ export const login = async (req, res) => {
             user: {
                 id: user.id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                isTwoFactorEnabled: user.isTwoFactorEnabled
             },
             expiresAt, // Para o frontend saber quando expira (#2)
         });
@@ -136,4 +159,94 @@ export const logout = async (req, res) => {
     res.clearCookie('braz_csrf', { path: '/' });
     logger.info('Sessão terminada com sucesso.');
     res.json({ message: 'Sessão encerrada com segurança.' });
+};
+// --- 4. GERAR QR CODE PARA 2FA (ADMIN ONLY) ---
+export const generate2FA = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            return res.status(404).json({ message: 'Admin não encontrado.' });
+        if (user.isTwoFactorEnabled) {
+            return res.status(400).json({ message: 'A Autenticação Avançada (2FA) já está protegida e ativada.' });
+        }
+        // Gera Segredo Master
+        const secret = generateSecret();
+        // Salva o segredo (Ainda desativado até verificação)
+        await prisma.user.update({
+            where: { id: userId },
+            data: { twoFactorSecret: secret, isTwoFactorEnabled: false }
+        });
+        // Gera Link para APP (Google Authenticator)
+        const otpauth = generateURI({
+            issuer: 'Studio Braz',
+            label: user.email,
+            secret
+        });
+        // Gera Imagem Base64 QR
+        const qrCodeImage = await qrcode.toDataURL(otpauth);
+        res.json({ secret, qrCodeImage });
+    }
+    catch (err) {
+        logger.error(`Erro ao gerar 2FA: ${err.message}`);
+        res.status(500).json({ message: 'Erro ao gerar infraestrutura 2FA.' });
+    }
+};
+// --- 5. ATIVAR 2FA (ADMIN ONLY) ---
+export const verify2FA = async (req, res) => {
+    const { code } = req.body;
+    try {
+        const userId = req.user.id;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || user.isTwoFactorEnabled || !user.twoFactorSecret) {
+            return res.status(400).json({ message: 'Pedido inválido ou 2FA já ativado.' });
+        }
+        // Verificação inicial com tolerância temporal
+        const isValid = await verify({
+            token: code,
+            secret: user.twoFactorSecret,
+            epochTolerance: 2
+        });
+        logger.info(`Ativação 2FA - UID: ${userId} | Result: ${JSON.stringify(isValid)}`);
+        if (!isValid || !isValid.valid) {
+            return res.status(400).json({ message: 'Código inválido. Tente novamente.' });
+        }
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isTwoFactorEnabled: true }
+        });
+        res.json({ message: 'Autenticação de Dois Fatores (2FA) selada e ativada com sucesso militar.' });
+    }
+    catch (err) {
+        logger.error(`Erro ao validar 2FA: ${err.message}`);
+        res.status(500).json({ message: 'Erro interno ao validar o 2FA.' });
+    }
+};
+// --- 6. DESATIVAR 2FA (ADMIN ONLY) ---
+export const disable2FA = async (req, res) => {
+    const { password } = req.body;
+    try {
+        const userId = req.user.id;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            return res.status(404).json({ message: 'Admin não encontrado.' });
+        if (!user.isTwoFactorEnabled) {
+            return res.status(400).json({ message: '2FA já está desativado.' });
+        }
+        // Verificar password para segurança
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Password incorreta. Não é possível desativar o 2FA.' });
+        }
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isTwoFactorEnabled: false, twoFactorSecret: null }
+        });
+        logger.info(`2FA desativado para UID: ${userId}`);
+        res.json({ message: 'Autenticação de Dois Fatores (2FA) desativada com sucesso.' });
+    }
+    catch (err) {
+        logger.error(`Erro ao desativar 2FA: ${err.message}`);
+        res.status(500).json({ message: 'Erro interno ao desativar o 2FA.' });
+    }
 };

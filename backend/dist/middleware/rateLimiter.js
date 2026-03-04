@@ -2,7 +2,7 @@ import rateLimit from 'express-rate-limit';
 // Limitador Geral: Protege o servidor contra excesso de tráfego
 export const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // Janela de 15 minutos
-    max: 100, // Limite de 100 pedidos por IP
+    max: 1000, // Aumentado para suportar o auto-refresh do dashboard a cada 30s
     message: {
         message: 'Demasiados pedidos vindos deste IP. Por favor, tente mais tarde.'
     },
@@ -10,11 +10,14 @@ export const generalLimiter = rateLimit({
     legacyHeaders: false,
 });
 // Limitador de Login: Proteção máxima contra brute-force
+const isDev = process.env.NODE_ENV !== 'production';
 export const loginLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // Janela de 1 hora
-    max: 5, // Apenas 5 tentativas de login por hora
+    windowMs: isDev ? 1 * 60 * 1000 : 60 * 60 * 1000, // 1 min em dev, 1 hora em prod
+    max: isDev ? 100 : 5, // 100 em dev, 5 em prod
     message: {
-        message: 'Demasiadas tentativas de login. Acesso bloqueado por 1 hora por segurança.'
+        message: isDev
+            ? 'Demasiadas tentativas (Dev Mode). Aguarde 1 minuto.'
+            : 'Demasiadas tentativas de login. Acesso bloqueado por 1 hora por segurança.'
     },
     standardHeaders: true,
     legacyHeaders: false,

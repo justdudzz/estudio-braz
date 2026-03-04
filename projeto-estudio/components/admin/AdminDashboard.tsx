@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCw, Search, Plus, Filter } from 'lucide-react';
-import { updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
+import { updateBookingStatus, deleteBooking, restoreBooking } from '../../src/services/bookingService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
@@ -26,8 +26,10 @@ const AdminDashboard: React.FC = () => {
   // --- FILTER LOGIC ---
   const filteredBookings = React.useMemo(() => {
     return bookings.filter(b => {
-      const matchesSearch = b.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.client?.phone?.includes(searchTerm);
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = b.client?.name?.toLowerCase().includes(term) ||
+        b.client?.phone?.includes(searchTerm) ||
+        b.client?.email?.toLowerCase().includes(term);
       const matchesFilter = filterStatus === 'all' || b.status === filterStatus;
       return matchesSearch && matchesFilter;
     });
@@ -39,10 +41,11 @@ const AdminDashboard: React.FC = () => {
     const todayBookings = bookings.filter(b => b.date === todayStr && b.status !== 'blocked' && b.status !== 'cancelled');
     const pending = bookings.filter(b => b.status === 'pending');
 
-    // Revenue from today (only confirmed or paid)
+    // Revenue from today (only confirmed or paid) — use totalPrice when available
     const todayRevenue = todayBookings
       .filter(b => b.status === 'confirmed' || b.status === 'paid')
       .reduce((acc, b) => {
+        if (b.totalPrice) return acc + b.totalPrice;
         const config = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG];
         return acc + (config?.price || 0);
       }, 0);
@@ -70,10 +73,31 @@ const AdminDashboard: React.FC = () => {
     if (!confirmed) return;
     try {
       await deleteBooking(id);
-      showToast('Booking eliminado.', 'success');
+      showToast('Booking eliminado.', 'warning', {
+        label: 'Desfazer',
+        onClick: async () => {
+          try {
+            await restoreBooking(id);
+            showToast('Booking restaurado.', 'success');
+            await refreshData();
+          } catch {
+            showToast('Erro ao restaurar.', 'error');
+          }
+        }
+      });
       await refreshData();
     } catch (err) {
       showToast('Erro ao eliminar booking.', 'error');
+    }
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    try {
+      await updateBookingStatus(id, 'paid');
+      showToast('Booking marcado como pago!', 'success');
+      await refreshData();
+    } catch (err) {
+      showToast('Erro ao marcar como pago.', 'error');
     }
   };
 
@@ -126,6 +150,8 @@ const AdminDashboard: React.FC = () => {
             <option value="all">Todos os Estados</option>
             <option value="pending">Aguardam Decisão</option>
             <option value="confirmed">Confirmados</option>
+            <option value="paid">Pagos</option>
+            <option value="blocked">Bloqueados</option>
             <option value="cancelled">Cancelados</option>
           </select>
         </div>
@@ -141,6 +167,7 @@ const AdminDashboard: React.FC = () => {
         onConfirm={handleConfirm}
         onDelete={handleDelete}
         onWhatsApp={openWhatsApp}
+        onMarkPaid={handleMarkPaid}
       />
 
       {/* Modals */}

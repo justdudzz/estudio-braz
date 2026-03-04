@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Booking, Client, Expense } from '../src/types';
-import { getAllBookings } from '../src/services/bookingService';
 import api from '../src/services/api';
 
 interface AdminDataContextProps {
@@ -36,9 +35,15 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
     const refreshData = useCallback(async () => {
         try {
             setLoading(true);
+
+            // Calcular Janela de Tempo (Mês Atual e Mês Seguinte)
+            const hoje = new Date();
+            const startStr = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
+            const endStr = new Date(hoje.getFullYear(), hoje.getMonth() + 2, 0).toISOString().split('T')[0];
+
             const [bookingsRes, clientsRes] = await Promise.all([
-                getAllBookings(),
-                api.get('/bookings/clients')
+                api.get(`/bookings?startDate=${startStr}&endDate=${endStr}`),
+                api.get('/bookings/clients?page=1&limit=50') // Initial load: Top 50 clients
             ]);
 
             const bk: Booking[] = Array.isArray(bookingsRes) ? bookingsRes : bookingsRes?.data || [];
@@ -55,8 +60,9 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         refreshData();
-        // Refresh periodically or rely on manual refresh triggers?
-        // Let's rely on manual triggers when mutations happen to save network calls.
+        // Auto-refresh a cada 30 segundos para visibilidade em tempo real
+        const interval = setInterval(refreshData, 30000);
+        return () => clearInterval(interval);
     }, [refreshData]);
 
     const addExpense = useCallback((expense: Expense) => {

@@ -8,6 +8,7 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
     cancelled: 'bg-red-500/10 text-red-400 border-red-500/20',
     blocked: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
     rejected: 'bg-red-500/10 text-red-500 border-red-500/20',
+    completed: 'bg-green-500/10 text-green-400 border-green-500/20',
 };
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
@@ -17,6 +18,7 @@ const STATUS_LABELS: Record<BookingStatus, string> = {
     cancelled: 'Cancelado',
     blocked: 'Bloqueio',
     rejected: 'Rejeitado',
+    completed: 'Concluído',
 };
 
 export const StatusBadge = ({ status, className = '' }: { status: BookingStatus, className?: string }) => {
