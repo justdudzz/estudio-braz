@@ -1,0 +1,37 @@
+﻿\App.tsx:143 - default
+\vite.config.ts:7 - default
+\vitest.config.ts:3 - default
+\utils\constants.ts:24 - UI_COLORS
+\utils\constants.ts:53 - ServiceType
+\utils\offlineStorage.ts:6 - initDB (used in module)
+\utils\offlineStorage.ts:20 - saveBookingIntent
+\utils\scroll.tsx:34 - FadeInWhenVisible
+\utils\security.ts:6 - sanitizeInput
+\utils\security.ts:36 - validatePassword
+\utils\security.ts:50 - checkRateLimit
+\utils\seo.ts:4 - generateLocalBusinessSchema
+\utils\themeHelpers.ts:31 - getStatusLabel
+\components\admin\BookingSkeleton.tsx:24 - default
+\components\admin\VipRanking.tsx:42 - default
+\components\auth\ProtectedRoute.tsx:15 - default
+\components\common\NotFound.tsx:43 - default
+\components\common\Preloader.tsx:216 - default
+\components\common\RouteAnnouncer.tsx:47 - default
+\components\common\VoucherPopup.tsx:84 - default
+\components\sections\HeroSection.tsx:191 - default
+\components\sections\ServicesGrid.tsx:409 - default
+\components\sections\SpecialistSection.tsx:99 - default
+\components\sections\Testimonials.tsx:103 - default
+\components\sections\TrustMirror.tsx:157 - default
+\components\ui\Input.tsx:29 - default
+\components\ui\ShimmerButton.tsx:56 - default
+\components\ui\Textarea.tsx:30 - default
+\src\hooks\useScrollToTop.ts:20 - default
+\src\services\authService.ts:19 - logoutDirector
+\src\services\bookingService.ts:4 - BookingData (used in module)
+\src\types\index.ts:1 - Client (used in module)
+\src\types\index.ts:14 - BookingStatus (used in module)
+\src\types\index.ts:16 - Booking
+\src\types\index.ts:32 - Expense
+\components\admin\ui\Skeletons.tsx:11 - AgendaSkeleton
+\src\components\common\ErrorBoundary.tsx:53 - default

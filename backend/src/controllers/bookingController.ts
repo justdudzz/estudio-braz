@@ -111,17 +111,46 @@ export const createBooking = async (req: Request, res: Response) => {
       });
     }
 
-    // 📅 4. Criar o agendamento para o Utilizador Unificado
-    const booking = await prisma.booking.create({
-      data: {
-        service,
-        date,
-        time,
-        clientId: masterClient.id
-      },
-      include: { client: true }
+    // 📅 4. Verificar conflito REAL e reutilizar slot cancelado/eliminado
+    const existingBooking = await prisma.booking.findUnique({
+      where: { date_time: { date, time } }
     });
 
+    let booking;
+
+    if (existingBooking) {
+      // Se o slot tem um booking ATIVO (não cancelado, não eliminado) → bloquear
+      const isActive = ['pending', 'confirmed', 'blocked'].includes(existingBooking.status) && !existingBooking.deletedAt;
+      if (isActive) {
+        return res.status(409).json({ message: 'Este horário já está reservado. Por favor escolha outro.' });
+      }
+
+      // Se o slot tem um booking CANCELADO/ELIMINADO → reutilizar o registo
+      booking = await prisma.booking.update({
+        where: { id: existingBooking.id },
+        data: {
+          service,
+          status: 'pending',
+          clientId: masterClient.id,
+          deletedAt: null,        // Reativar se estava soft-deleted
+          notes: null,
+          extraServices: null,
+          totalPrice: null,
+        },
+        include: { client: true }
+      });
+    } else {
+      // Slot completamente livre → criar novo
+      booking = await prisma.booking.create({
+        data: {
+          service,
+          date,
+          time,
+          clientId: masterClient.id
+        },
+        include: { client: true }
+      });
+    }
     // 📧 5. Envio de Email ao CLIENTE (ASSÍNCRONO)
     if (masterClient.email) {
       sendLuxuryEmail(
@@ -139,9 +168,9 @@ export const createBooking = async (req: Request, res: Response) => {
     if (adminEmail) {
       sendLuxuryEmail(
         adminEmail,
-        `🔔 Nova Reserva • ${masterClient.name} • ${service} `,
+        `🔔 Nova Reserva • ${masterClient.name} • ${service}`,
         'Diretor',
-        `Nova reserva de ${masterClient.name}: ${service} `,
+        `Nova reserva de ${masterClient.name}: ${service}`,
         date,
         time
       ).catch((e: any) => console.error("⚠️ Falha ao notificar admin:", e));
@@ -153,7 +182,7 @@ export const createBooking = async (req: Request, res: Response) => {
     console.error("❌ ERRO NO SERVIDOR:", error);
 
     if (error.code === 'P2002') {
-      return res.status(400).json({ message: "Conflito de horários. Este slot já foi conquistado." });
+      return res.status(409).json({ message: "Conflito de horários. Este slot já foi conquistado." });
     }
 
     return res.status(500).json({ message: "Erro interno ao processar identidade." });
@@ -170,7 +199,8 @@ export const getBusySlots = async (req: Request, res: Response) => {
     const bookings = await prisma.booking.findMany({
       where: {
         date: String(date),
-        status: { in: ['pending', 'confirmed', 'blocked'] }
+        status: { in: ['pending', 'confirmed', 'blocked'] },
+        deletedAt: null,  // Excluir bookings soft-deleted
       }
     });
 
@@ -185,7 +215,7 @@ export const getBusySlots = async (req: Request, res: Response) => {
       while (currentMinutes < endMinutes) {
         const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
         const m = (currentMinutes % 60).toString().padStart(2, '0');
-        occupiedSlots.add(`${h}:${m} `);
+        occupiedSlots.add(`${h}:${m}`);
         currentMinutes += 30;
       }
     });
@@ -365,7 +395,8 @@ export const getAllBookings = async (req: Request, res: Response) => {
     const bookings = await prisma.booking.findMany({
       where: whereClause,
       include: { client: true },
-      orderBy: [{ date: 'desc' }, { time: 'desc' }]
+      orderBy: [{ date: 'desc' }, { time: 'desc' }],
+      take: 500, // Safety limit — previne respostas com milhares de registos
     });
     res.json(bookings);
   } catch (error: any) {

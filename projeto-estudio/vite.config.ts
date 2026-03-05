@@ -52,5 +52,15 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: 'esbuild'
+  },
+  server: {
+    allowedHosts: true,
+    proxy: {
+      '/api/v1': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 });

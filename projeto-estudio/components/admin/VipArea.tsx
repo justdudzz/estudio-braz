@@ -265,7 +265,7 @@ const AdminClientList: React.FC = () => {
           <ClientProfileModal
             clientId={selectedClientId}
             onClose={() => setSelectedClientId(null)}
-            onUpdated={refreshData}
+            onUpdated={() => refreshData(true)}
           />
         )}
       </AnimatePresence>

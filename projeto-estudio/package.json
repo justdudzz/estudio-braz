@@ -11,15 +11,15 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@netlify/functions": "^5.1.2",
     "axios": "^1.13.6",
-    "dotenv": "^17.3.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet-async": "^2.0.4",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

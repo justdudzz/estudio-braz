@@ -51,7 +51,7 @@ const BookingsTable: React.FC = () => {
         try {
             await updateBookingStatus(id, 'confirmed');
             showToast('Confirmado!', 'success');
-            await refreshData();
+            await refreshData(true);
         } catch { showToast('Erro.', 'error'); }
     };
 
@@ -61,7 +61,7 @@ const BookingsTable: React.FC = () => {
         try {
             await updateBookingStatus(id, 'paid');
             showToast('Marcado como Pago!', 'success');
-            await refreshData();
+            await refreshData(true);
         } catch { showToast('Erro.', 'error'); }
     };
 
@@ -76,13 +76,13 @@ const BookingsTable: React.FC = () => {
                     try {
                         await restoreBooking(id);
                         showToast('Booking restaurado.', 'success');
-                        await refreshData();
+                        await refreshData(true);
                     } catch {
                         showToast('Erro ao restaurar.', 'error');
                     }
                 }
             });
-            await refreshData();
+            await refreshData(true);
         } catch { showToast('Erro.', 'error'); }
     };
 
@@ -254,7 +254,7 @@ const BookingsTable: React.FC = () => {
                     <BookingFormModal
                         booking={editingBooking}
                         onClose={() => setEditingBooking(null)}
-                        onSaved={refreshData}
+                        onSaved={() => refreshData(true)}
                     />
                 )}
             </AnimatePresence>

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import logger from './utils/logger.js';
@@ -46,10 +47,11 @@ app.use(cors({
     // Permite pedidos sem origin (Postman, curl, health checks)
     if (!origin) return callback(null, true);
 
-    // Development fallback para qualquer porta localhost
+    // Development fallback para qualquer porta localhost e ngrok urls
     const isLocalhost = !isProduction && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
+    const isNgrok = origin?.includes('.ngrok-free.dev');
 
-    if (isLocalhost || allowedOrigins.indexOf(origin) !== -1) {
+    if (isLocalhost || isNgrok || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       logger.error(`Tentativa de invasão via CORS bloqueada: ${origin}`);
@@ -87,6 +89,7 @@ app.use(generalLimiter);
 // Rotas do Império
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/expenses', expenseRoutes);
 
 // Health Check
 app.get('/api/v1/health', (req, res) => {

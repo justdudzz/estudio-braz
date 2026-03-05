@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async'; // Opcional, mas recomendado para SEO
 import App from './App.tsx';
-import ErrorBoundary from './src/components/common/ErrorBoundary.tsx';
 import './index.css';
 
 /**
@@ -26,10 +25,8 @@ root.render(
       título e meta-tags de forma dinâmica para um SEO perfeito.
     */}
     <HelmetProvider>
-      <Router>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <App />
       </Router>
     </HelmetProvider>
   </StrictMode>,

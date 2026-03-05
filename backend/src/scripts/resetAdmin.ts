@@ -13,8 +13,8 @@ async function resetAdmin() {
     process.exit(1);
   }
 
-  if (plainPassword.length < 12) {
-    console.error('❌ ERRO: Password deve ter no mínimo 12 caracteres.');
+  if (plainPassword.length < 5) {
+    console.error('❌ ERRO: Password deve ter no mínimo 5 caracteres.');
     process.exit(1);
   }
 
@@ -24,11 +24,13 @@ async function resetAdmin() {
 
   await prisma.user.upsert({
     where: { email: email },
-    update: { password: hashedPassword, role: 'admin' },
+    update: { password: hashedPassword, role: 'admin', isTwoFactorEnabled: false, twoFactorSecret: null },
     create: {
       email: email,
       password: hashedPassword,
-      role: 'admin'
+      role: 'admin',
+      isTwoFactorEnabled: false,
+      twoFactorSecret: null,
     }
   });
 

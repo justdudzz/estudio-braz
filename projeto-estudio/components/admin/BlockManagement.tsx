@@ -32,7 +32,7 @@ const BlockManagement: React.FC = () => {
 
     const fetchBlocks = async () => {
         try {
-            setLoading(true);
+            if (blocks.length === 0) setLoading(true);
             const data = await getAllBookings();
             const allBookings = Array.isArray(data) ? data : data?.data || [];
             setBlocks(allBookings.filter((b: any) => b.status === 'blocked').sort((a: any, b: any) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)));

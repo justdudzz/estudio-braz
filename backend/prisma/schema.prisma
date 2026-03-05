@@ -53,6 +53,18 @@ model Booking {
   // Previne conflitos de horários e acelera pesquisas
   @@unique([date, time])
   @@index([date])
+  @@index([status, date])
+}
+
+// Tabela de Despesas: Contabilidade Mensal
+model Expense {
+  id          String   @id @default(uuid())
+  description String
+  amount      Float
+  date        String   // Formato "YYYY-MM" para associar ao mês
+  createdAt   DateTime @default(now())
+
+  @@index([date])
 }
 
 // Tabela do Diretor: Acesso à Fortaleza

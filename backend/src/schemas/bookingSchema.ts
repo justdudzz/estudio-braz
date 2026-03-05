@@ -29,7 +29,7 @@ export const createBookingSchema = z.object({
       .max(50, 'Serviço inválido'),
 
     date: z.string()
-      .regex(/^\d{4}-\ d{2}-\d{2}$/, 'Formato de data deve ser YYYY-MM-DD'),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data deve ser YYYY-MM-DD'),
 
     time: z.string()
       .regex(/^\d{2}:\d{2}$/, 'Formato de hora deve ser HH:mm')

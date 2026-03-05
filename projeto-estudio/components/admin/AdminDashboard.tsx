@@ -41,7 +41,6 @@ const AdminDashboard: React.FC = () => {
     const todayBookings = bookings.filter(b => b.date === todayStr && b.status !== 'blocked' && b.status !== 'cancelled');
     const pending = bookings.filter(b => b.status === 'pending');
 
-    // Revenue from today (only confirmed or paid) — use totalPrice when available
     const todayRevenue = todayBookings
       .filter(b => b.status === 'confirmed' || b.status === 'paid')
       .reduce((acc, b) => {
@@ -62,7 +61,7 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateBookingStatus(id, 'confirmed');
       showToast('Booking confirmado com sucesso!', 'success');
-      await refreshData();
+      await refreshData(true);
     } catch (err) {
       showToast('Erro ao confirmar booking.', 'error');
     }
@@ -79,13 +78,13 @@ const AdminDashboard: React.FC = () => {
           try {
             await restoreBooking(id);
             showToast('Booking restaurado.', 'success');
-            await refreshData();
+            await refreshData(true);
           } catch {
             showToast('Erro ao restaurar.', 'error');
           }
         }
       });
-      await refreshData();
+      await refreshData(true);
     } catch (err) {
       showToast('Erro ao eliminar booking.', 'error');
     }
@@ -95,7 +94,7 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateBookingStatus(id, 'paid');
       showToast('Booking marcado como pago!', 'success');
-      await refreshData();
+      await refreshData(true);
     } catch (err) {
       showToast('Erro ao marcar como pago.', 'error');
     }
@@ -117,13 +116,6 @@ const AdminDashboard: React.FC = () => {
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-braz-gold text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all shadow-lg shadow-braz-gold/20"
           >
             <Plus size={16} /> Nova Marcação
-          </button>
-          <button
-            onClick={refreshData}
-            title="Atualizar Dados"
-            className="p-3 bg-white/5 rounded-xl hover:text-braz-gold border border-white/5 hover:border-white/20 transition-all"
-          >
-            <RefreshCw size={18} className={loading ? "animate-spin text-braz-gold" : ""} />
           </button>
         </div>
       </div>
@@ -174,7 +166,7 @@ const AdminDashboard: React.FC = () => {
       {isModalOpen && (
         <BookingFormModal
           onClose={() => setIsModalOpen(false)}
-          onSaved={() => { setIsModalOpen(false); refreshData(); }}
+          onSaved={() => { setIsModalOpen(false); refreshData(true); }}
         />
       )}
     </div>
