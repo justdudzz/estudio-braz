@@ -699,3 +699,100 @@ export const getClientProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao carregar perfil.' });
   }
 };
+
+/**
+ * 12. LIMPEZA PROFUNDA DA BASE DE DADOS (JANITOR)
+ * Hard Delete de lixo obsoleto para acelerar Queries, enquanto preservamos Financeiro.
+ */
+export const deepCleanDatabase = async (req: Request, res: Response) => {
+  try {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Data de há 60 dias (para pendentes esquecidos e clientes inativos)
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(today.getDate() - 60);
+    const date60Lim = sixtyDaysAgo.toISOString().split('T')[0];
+
+    const halfYearAgo = new Date();
+    halfYearAgo.setDate(today.getDate() - 180);
+    const date180Lim = halfYearAgo.toISOString().split('T')[0];
+
+    // 1. Apagar bloqueios físicos cujo dia já passou
+    const delBlocked = await prisma.booking.deleteMany({
+      where: {
+        status: 'blocked',
+        date: { lt: todayStr }
+      }
+    });
+
+    // 2. Apagar pendentes muito velhos (> 2 meses)
+    const delPending = await prisma.booking.deleteMany({
+      where: {
+        status: 'pending',
+        date: { lt: date60Lim }
+      }
+    });
+
+    // 3. Apagar cancelados/rejeitados sem utilidade rápida
+    const delCancelled = await prisma.booking.deleteMany({
+      where: {
+        status: { in: ['cancelled', 'rejected'] },
+        date: { lt: date180Lim }
+      }
+    });
+
+    // 4. Apagar lixo da Lixeira (Soft Deleted) com mais de 30 dias
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const delSoft = await prisma.booking.deleteMany({
+      where: { deletedAt: { lt: thirtyDaysAgo } }
+    });
+
+    // 5. Apagar Clientes Fantasmas: Zero agendamentos válidos e inativos há 60 dias
+    // Primeiro encontramos clientes suspeitos...
+    const ghostClients = await prisma.client.findMany({
+      where: {
+        bookings: { none: {} }, // Sem bookings agora (podes ter apagado todos os antigos no passo acima)
+        createdAt: { lt: sixtyDaysAgo } // E que já foram criados há mais de 60 dias
+      }
+    });
+
+    let delClientsCount = 0;
+    if (ghostClients.length > 0) {
+       // Não apagar o cliente de admin
+       const toDelete = ghostClients.filter(c => c.email !== 'system@studiobraz.internal').map(c => c.id);
+       if (toDelete.length > 0) {
+         const delClients = await prisma.client.deleteMany({
+           where: { id: { in: toDelete } }
+         });
+         delClientsCount = delClients.count;
+       }
+    }
+
+    // 6. Limpar TokenBlacklist de logins passados que já caducaram o tempo de expiração
+    const delTokens = await prisma.tokenBlacklist.deleteMany({
+      where: { expiresAt: { lt: today } }
+    });
+
+    const totalPurged = delBlocked.count + delPending.count + delCancelled.count + delSoft.count + delClientsCount + delTokens.count;
+
+    logger.info(`🧹 Limpeza Profunda executada. Registos mortos purgatos: ${totalPurged}`);
+    
+    res.json({
+      message: 'Limpeza do Sistema concluída com sucesso.',
+      stats: {
+        blockedPurged: delBlocked.count,
+        pendingPurged: delPending.count,
+        cancelledPurged: delCancelled.count,
+        softDeletesPurged: delSoft.count,
+        clientsPurged: delClientsCount,
+        expiredTokensPurged: delTokens.count,
+        totalMemorySaved: totalPurged
+      }
+    });
+  } catch (error: any) {
+    logger.error(`❌ Erro crítico na Limpeza Profunda:`, { message: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao executar a limpeza profunda.' });
+  }
+};

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Settings, Save, Clock, Euro, Loader2, ShieldCheck, QrCode, Smartphone } from 'lucide-react';
+import { Settings, Save, Clock, Euro, Loader2, ShieldCheck, QrCode, Smartphone, Trash2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
+import { useConfirm } from '../common/ConfirmContext';
 import { SERVICES_CONFIG, OPENING_HOURS, BUSINESS_INFO } from '../../utils/constants';
 import * as authService from '../../src/services/authService';
+import api from '../../src/services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 // localStorage keys
@@ -12,8 +14,10 @@ const LS_KEY_SERVICES = 'admin_settings_services';
 
 const SettingsPage: React.FC = () => {
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
     const { user, updateUser } = useAuth();
     const [saving, setSaving] = useState(false);
+    const [cleaning, setCleaning] = useState(false);
 
     // 2FA State
     const [is2FAEnabled, setIs2FAEnabled] = useState(user?.isTwoFactorEnabled || false);
@@ -137,6 +141,29 @@ const SettingsPage: React.FC = () => {
         } finally {
             setDisabling2FA(false);
         }
+    };
+
+    const handleDeepClean = () => {
+        confirm({
+            title: "Limpeza Profunda do Sistema",
+            message: "Esta ação apagará definitivamente dados obsoletos (Marcações pendentes antigas, bloqueios passados, clientes inativos há >60 dias e tokens expirados). A rentabilidade (Pago / Completo) e histórico contábil recente NUNCA serão apagados. Deseja prosseguir com a otimização?",
+            confirmText: "EXECUTAR LIMPEZA CLÍNICA",
+            cancelText: "CANCELAR",
+            type: "danger",
+            onConfirm: async () => {
+                setCleaning(true);
+                try {
+                    const res = await api.delete('/bookings/database/deep-clean');
+                    const data = res.data;
+                    showToast(data.message || 'Limpeza realizada!', 'success');
+                    console.log("Stats da limpeza:", data.stats);
+                } catch (error: any) {
+                    showToast(error.response?.data?.message || 'Erro ao efetuar limpeza da base de dados.', 'error');
+                } finally {
+                    setCleaning(false);
+                }
+            }
+        });
     };
 
     return (
@@ -334,6 +361,36 @@ const SettingsPage: React.FC = () => {
                         )}
                     </div>
                 </div>
+
+                {/* --- 🧹 LIMPEZA DE SISTEMA (JANITOR) --- */}
+                <div className="bg-[#121212] rounded-2xl border border-red-500/10 p-6 lg:col-span-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+                    
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-red-500/90 mb-4 flex items-center gap-2">
+                        <Trash2 size={18} /> Otimização Clínica e Limpeza de Lixo
+                    </h2>
+                    
+                    <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between">
+                        <div className="space-y-2 flex-1">
+                            <p className="text-xs text-white/50 leading-relaxed italic">
+                                "Ao longo do tempo, o sistema acumula fantasmas: clientes que nunca marcaram, bloqueios de calendário de meses passados, e pendentes esquecidos, atrasando a pesquisa na Base de Dados."
+                            </p>
+                            <p className="text-[11px] text-white/40 font-bold uppercase tracking-widest mt-2">
+                                ✅ O que fica intacto: Todo o seu Painel de Contabilidade, Faturação (Pagos/Completos) e Análises.
+                            </p>
+                        </div>
+                        
+                        <button
+                            onClick={handleDeepClean}
+                            disabled={cleaning}
+                            className="shrink-0 px-6 py-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50 flex items-center gap-3 group"
+                        >
+                            {cleaning ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
+                            {cleaning ? 'A LIMPAR O CÓDIGO...' : 'EFETUAR LIMPEZA SEGURA'}
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     );
