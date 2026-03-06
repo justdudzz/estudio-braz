@@ -5,10 +5,12 @@ import { updateBookingStatus } from '../../src/services/bookingService';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { SERVICES_CONFIG } from '../../utils/constants';
+import { useConfirm } from '../common/ConfirmContext';
 
 const CheckoutView: React.FC = () => {
     const { bookings, loading, refreshData } = useAdminData();
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
     const [searchTerm, setSearchTerm] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -50,21 +52,26 @@ const CheckoutView: React.FC = () => {
             return;
         }
 
-        const confirmed = window.confirm(`Confirmar o pagamento de €${finalPrice} para ${booking.client?.name}?`);
-        if (!confirmed) return;
-
-        setProcessingId(booking.id);
-        try {
-            await updateBookingStatus(booking.id, 'paid', finalPrice);
-            showToast(`Pagamento de €${finalPrice} registado com sucesso!`, 'success');
-            await refreshData(true);
-        } catch (error) {
-            showToast('Erro ao validar pagamento.', 'error');
-            console.error(error);
-        } finally {
-            setProcessingId(null);
-            setPrices(prev => ({ ...prev, [booking.id]: '' }));
-        }
+        confirm({
+            title: 'Confirmar Fecho',
+            message: `Confirmar o pagamento final de €${finalPrice} para ${booking.client?.name}?`,
+            type: 'success',
+            confirmText: 'Confirmar & Fechar',
+            onConfirm: async () => {
+                setProcessingId(booking.id);
+                try {
+                    await updateBookingStatus(booking.id, 'paid', finalPrice);
+                    showToast(`Pagamento de €${finalPrice} registado com sucesso!`, 'success');
+                    await refreshData(true);
+                } catch (error) {
+                    showToast('Erro ao validar pagamento.', 'error');
+                    console.error(error);
+                } finally {
+                    setProcessingId(null);
+                    setPrices(prev => ({ ...prev, [booking.id]: '' }));
+                }
+            }
+        });
     };
 
     return (

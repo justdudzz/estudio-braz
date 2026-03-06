@@ -18,10 +18,6 @@ model Client {
   email     String?   @unique
   phone     String?   
   
-  password  String?   // Permite acesso ao Salão VIP
-  points    Int       @default(0)
-  tier      String    @default("Silver") // Silver, Gold, VIP
-  notes     String?   // Notas internas sobre o cliente
   bookings  Booking[] // Relação: Uma cliente pode ter vários agendamentos
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -39,8 +35,7 @@ model Booking {
   service       String
   status        String    @default("pending") // pending, confirmed, paid, completed, cancelled, blocked
   notes         String?   // Notas privadas do admin sobre o booking
-  extraServices String?   // JSON array de serviços adicionais
-  totalPrice    Float?    // Preço real (serviço principal + extras)
+  totalPrice    Float?    // Preço real
   deletedAt     DateTime? // Soft delete — null = ativo
   
   // Elo de ligação indestrutível (Relacional)
@@ -50,8 +45,7 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Previne conflitos de horários e acelera pesquisas
-  @@unique([date, time])
+  // Indexes para acelerar as queries
   @@index([date])
   @@index([status, date])
 }

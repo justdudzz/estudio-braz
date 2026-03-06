@@ -6,6 +6,7 @@ import { useAdminData } from '../../contexts/AdminDataContext';
 import { SERVICES_CONFIG } from '../../utils/constants';
 import { updateBookingStatus, deleteBooking } from '../../src/services/bookingService';
 import { useToast } from '../common/Toast';
+import { useConfirm } from '../common/ConfirmContext';
 
 // Componente Cartão (Extraído para fora de DayViewPage para não perder o "focus" no input de preço)
 const BookingCard = React.memo(({
@@ -16,7 +17,7 @@ const BookingCard = React.memo(({
     getBasePrice,
     handlePriceChange,
     handleWhatsApp,
-    handleDelete,
+    handleCancel,
     handleConfirm,
     handleCheckout
 }: any) => {
@@ -29,17 +30,21 @@ const BookingCard = React.memo(({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className={`bg-[#121212] border p-5 rounded-2xl relative overflow-hidden group transition-all ${type === 'pendente' ? 'border-yellow-500/20 hover:border-yellow-500/50' :
-                    type === 'confirmado' ? 'border-braz-gold/20 hover:border-braz-gold/50' :
-                        'border-emerald-500/20 hover:border-emerald-500/50'
-                }`}
+            className={`bg-[#121212] border p-5 rounded-2xl relative overflow-hidden group transition-all ${
+                type === 'pendente' ? 'border-yellow-500/20 hover:border-yellow-500/50' :
+                type === 'confirmado' ? 'border-braz-gold/20 hover:border-braz-gold/50' :
+                type === 'pago' ? 'border-emerald-500/20 hover:border-emerald-500/50' :
+                'border-red-500/20 hover:border-red-500/50 opacity-60'
+            }`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shadow-inner ${type === 'pendente' ? 'bg-yellow-500/10 text-yellow-500' :
-                            type === 'confirmado' ? 'bg-braz-gold/10 text-braz-gold' :
-                                'bg-emerald-500/10 text-emerald-500'
-                        }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shadow-inner ${
+                        type === 'pendente' ? 'bg-yellow-500/10 text-yellow-500' :
+                        type === 'confirmado' ? 'bg-braz-gold/10 text-braz-gold' :
+                        type === 'pago' ? 'bg-emerald-500/10 text-emerald-500' :
+                        'bg-red-500/10 text-red-500'
+                    }`}>
                         {booking.client?.name?.charAt(0).toUpperCase() || <User size={18} />}
                     </div>
                     <div>
@@ -56,8 +61,8 @@ const BookingCard = React.memo(({
                             <MessageCircle size={14} />
                         </button>
                     )}
-                    {(type === 'pendente' || type === 'confirmado') && (
-                        <button onClick={() => handleDelete(booking.id)} className="p-1.5 text-white/30 hover:text-red-500 transition-colors rounded-lg hover:bg-white/5">
+                    {type === 'confirmado' && (
+                        <button onClick={() => handleCancel(booking.id)} title="Cancelar Marcação" className="p-1.5 text-white/30 hover:text-red-500 transition-colors rounded-lg hover:bg-white/5">
                             <X size={14} />
                         </button>
                     )}
@@ -81,12 +86,21 @@ const BookingCard = React.memo(({
 
             {/* Área de Ação Específica da Coluna */}
             {type === 'pendente' && (
-                <button
-                    onClick={() => handleConfirm(booking.id)}
-                    className="w-full bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white border border-green-500/20 hover:border-transparent transition-all py-2.5 rounded-xl font-black uppercase tracking-widest flex justify-center items-center gap-2 text-xs"
-                >
-                    <Check size={16} /> Aceitar Marcação
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleCancel(booking.id)}
+                        className="w-1/3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 hover:border-transparent transition-all py-2.5 rounded-xl font-black uppercase tracking-widest flex justify-center items-center text-xs"
+                        title="Rejeitar"
+                    >
+                        <X size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleConfirm(booking.id)}
+                        className="w-2/3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white border border-green-500/20 hover:border-transparent transition-all py-2.5 rounded-xl font-black uppercase tracking-widest flex justify-center items-center gap-2 text-xs"
+                    >
+                        <Check size={16} /> Aceitar
+                    </button>
+                </div>
             )}
 
             {type === 'confirmado' && (
@@ -113,10 +127,9 @@ const BookingCard = React.memo(({
                 </div>
             )}
 
-            {type === 'pago' && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-xl flex justify-between items-center text-sm font-black uppercase tracking-widest">
-                    <span>PAGO</span>
-                    <span>€{booking.totalPrice?.toFixed(2) || basePrice.toFixed(2)}</span>
+            {type === 'cancelado' && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl flex justify-center text-sm font-black uppercase tracking-widest">
+                    <span>CANCELADO</span>
                 </div>
             )}
         </motion.div>
@@ -128,6 +141,7 @@ const DayViewPage: React.FC = () => {
     const navigate = useNavigate();
     const { bookings, loading, refreshData } = useAdminData();
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
 
     // Estado para checkout
     const [prices, setPrices] = useState<Record<string, string>>({});
@@ -152,6 +166,7 @@ const DayViewPage: React.FC = () => {
     const pendentes = dayBookings.filter(b => b.status === 'pending');
     const confirmados = dayBookings.filter(b => b.status === 'confirmed');
     const pagos = dayBookings.filter(b => b.status === 'paid' || b.status === 'completed');
+    const cancelados = dayBookings.filter(b => b.status === 'cancelled' || b.status === 'rejected');
 
     // MÉTODOS DE ACÇÃO passados para o BookingCard
     const handleConfirm = async (id: string) => {
@@ -162,13 +177,20 @@ const DayViewPage: React.FC = () => {
         } catch { showToast('Erro ao confirmar.', 'error'); }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem a certeza que quer rejeitar / eliminar esta marcação?')) return;
-        try {
-            await deleteBooking(id);
-            showToast('Marcação eliminada.', 'warning');
-            await refreshData(true);
-        } catch { showToast('Erro ao eliminar.', 'error'); }
+    const handleCancel = (id: string) => {
+        confirm({
+            title: 'Cancelar Marcação',
+            message: 'Tem a certainty que quer CANCELAR esta marcação? O horário ficará livre para outras pessoas e um email de aviso será enviado se houver endereço registado.',
+            type: 'danger',
+            confirmText: 'Sim, Cancelar',
+            onConfirm: async () => {
+                try {
+                    await updateBookingStatus(id, 'cancelled');
+                    showToast('Marcação cancelada.', 'warning');
+                    await refreshData(true);
+                } catch { showToast('Erro ao cancelar.', 'error'); }
+            }
+        });
     };
 
     const handleWhatsApp = (client: any, booking: any) => {
@@ -194,20 +216,25 @@ const DayViewPage: React.FC = () => {
             return;
         }
 
-        const confirmed = window.confirm(`Confirmar o pagamento de €${finalPrice} para ${booking.client?.name}?`);
-        if (!confirmed) return;
-
-        setProcessingId(booking.id);
-        try {
-            await updateBookingStatus(booking.id, 'paid', finalPrice);
-            showToast(`Pagamento registado no valor de €${finalPrice}`, 'success');
-            await refreshData(true);
-        } catch {
-            showToast('Erro ao fechar pagamento.', 'error');
-        } finally {
-            setProcessingId(null);
-            setPrices(prev => ({ ...prev, [booking.id]: '' }));
-        }
+        confirm({
+            title: 'Confirmar Pagamento',
+            message: `Confirmar o pagamento de €${finalPrice} para ${booking.client?.name}?`,
+            type: 'success',
+            confirmText: 'Pagar',
+            onConfirm: async () => {
+                setProcessingId(booking.id);
+                try {
+                    await updateBookingStatus(booking.id, 'paid', finalPrice);
+                    showToast(`Pagamento registado no valor de €${finalPrice}`, 'success');
+                    await refreshData(true);
+                } catch {
+                    showToast('Erro ao fechar pagamento.', 'error');
+                } finally {
+                    setProcessingId(null);
+                    setPrices(prev => ({ ...prev, [booking.id]: '' }));
+                }
+            }
+        });
     };
 
     // Só exibe spinner geral de ecrã inteiro se não houver NENHUM dado em cache (evita ecrã piscar)
@@ -221,7 +248,7 @@ const DayViewPage: React.FC = () => {
 
     const cardProps = {
         prices, processingId, getBasePrice, handlePriceChange,
-        handleWhatsApp, handleDelete, handleConfirm, handleCheckout
+        handleWhatsApp, handleCancel, handleConfirm, handleCheckout
     };
 
     return (
@@ -251,7 +278,7 @@ const DayViewPage: React.FC = () => {
             </div>
 
             {/* Quadro Kanban / Triagem */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
                 {/* COLUNA 1: PENDENTES */}
                 <div className="flex flex-col gap-4">
@@ -314,6 +341,28 @@ const DayViewPage: React.FC = () => {
                         {pagos.length === 0 && (
                             <div className="text-center p-8 border border-white/5 border-dashed rounded-2xl text-white/20 text-xs uppercase tracking-widest font-bold">
                                 Sem serviços concluídos
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* COLUNA 4: CANCELADOS */}
+                <div className="flex flex-col gap-4 opacity-50 hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+                        <h2 className="text-xs font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
+                            <X size={16} /> Cancelados
+                        </h2>
+                        <span className="bg-red-500 text-black text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full">
+                            {cancelados.length}
+                        </span>
+                    </div>
+                    <div className="space-y-4">
+                        <AnimatePresence>
+                            {cancelados.map(b => <BookingCard key={b.id} booking={b} type="cancelado" {...cardProps} />)}
+                        </AnimatePresence>
+                        {cancelados.length === 0 && (
+                            <div className="text-center p-8 border border-white/5 border-dashed rounded-2xl text-white/20 text-xs uppercase tracking-widest font-bold">
+                                Sem cancelamentos
                             </div>
                         )}
                     </div>

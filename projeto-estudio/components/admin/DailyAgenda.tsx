@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Calendar, X, Check, MessageCircle, Euro, FileText } from 'lucide-react';
 import { SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
 import { getBookingColorClasses } from '../../utils/themeHelpers';
+import { useConfirm } from '../common/ConfirmContext';
 
 interface DailyAgendaProps {
     date: string;
@@ -16,6 +17,7 @@ interface DailyAgendaProps {
 
 const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onConfirm, onDelete, onWhatsApp, onMarkPaid }) => {
     const [hideCancelled, setHideCancelled] = React.useState(true);
+    const { confirm } = useConfirm();
 
     // Generate working hours dynamically from OPENING_HOURS
     const workingHours = useMemo(() => {
@@ -112,12 +114,27 @@ const DailyAgenda: React.FC<DailyAgendaProps> = ({ date, bookings, onClose, onCo
 
                                         <div className="flex gap-2 opacity-100 sm:opacity-50 group-hover:opacity-100 transition-opacity">
                                             {appointment.status !== 'confirmed' && appointment.status !== 'blocked' && appointment.status !== 'paid' && (
-                                                <button onClick={() => { if (window.confirm('Confirmar esta reserva?')) onConfirm(appointment.id); }} title="Confirmar" className="p-2 border border-green-500/20 text-green-500 bg-[#121212] rounded-[10px] hover:bg-green-500 hover:text-white transition-all shadow-sm">
+                                                <button onClick={() => {
+                                                    confirm({
+                                                        title: 'Confirmar Reserva',
+                                                        message: 'Deseja confirmar esta reserva e notificar o cliente?',
+                                                        type: 'info',
+                                                        onConfirm: () => onConfirm(appointment.id)
+                                                    });
+                                                }} title="Confirmar" className="p-2 border border-green-500/20 text-green-500 bg-[#121212] rounded-[10px] hover:bg-green-500 hover:text-white transition-all shadow-sm">
                                                     <Check size={14} />
                                                 </button>
                                             )}
                                             {appointment.status === 'confirmed' && onMarkPaid && (
-                                                <button onClick={() => { if (window.confirm('Marcar como pago?')) onMarkPaid(appointment.id); }} title="Marcar como Pago" className="p-2 border border-braz-gold/30 text-braz-gold bg-[#121212] rounded-[10px] hover:bg-braz-gold hover:text-black transition-all shadow-sm">
+                                                <button onClick={() => {
+                                                    confirm({
+                                                        title: 'Registar Pagamento',
+                                                        message: 'Confirma que este serviço já foi pago?',
+                                                        type: 'success',
+                                                        confirmText: 'Sim, Pago',
+                                                        onConfirm: () => onMarkPaid(appointment.id)
+                                                    });
+                                                }} title="Marcar como Pago" className="p-2 border border-braz-gold/30 text-braz-gold bg-[#121212] rounded-[10px] hover:bg-braz-gold hover:text-black transition-all shadow-sm">
                                                     <Euro size={14} />
                                                 </button>
                                             )}

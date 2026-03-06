@@ -10,6 +10,7 @@ import Footer from './components/layout/Footer';
 import CookieBanner from './components/common/CookieBanner';
 import NetworkStatus from './components/common/NetworkStatus';
 import { ToastProvider } from './components/common/Toast';
+import { ConfirmProvider } from './components/common/ConfirmContext';
 import ScrollToTop from './utils/scroll';
 import PWAUpdatePrompt from './src/components/common/PWAUpdatePrompt';
 
@@ -141,10 +142,12 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <AnimatedCursor />
-        <AppContent />
-      </ToastProvider>
+      <ConfirmProvider>
+        <ToastProvider>
+          <AnimatedCursor />
+          <AppContent />
+        </ToastProvider>
+      </ConfirmProvider>
     </AuthProvider>
   );
 }

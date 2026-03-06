@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Lock, Calendar, Clock, Trash2, Plus, AlertTriangle, Loader2, CheckSquare, Square, Undo2, CalendarRange } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../common/Toast';
+import { useConfirm } from '../common/ConfirmContext'; // Added this import
 import api from '../../src/services/api';
 import { getAllBookings, deleteBooking } from '../../src/services/bookingService';
 
@@ -16,6 +17,7 @@ type BlockMode = 'fullDay' | 'singleTime' | 'timeRange';
 
 const BlockManagement: React.FC = () => {
     const { showToast } = useToast();
+    const { confirm } = useConfirm(); // Added this line
     const [blocks, setBlocks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -122,35 +124,46 @@ const BlockManagement: React.FC = () => {
     };
 
     // Batch delete
-    const handleBatchDelete = async () => {
+    const handleBatchDelete = () => {
         if (selectedIds.size === 0) return;
-        const confirmed = window.confirm(`Remover ${selectedIds.size} bloqueio(s)? Esta ação não pode ser desfeita.`);
-        if (!confirmed) return;
-
-        setBatchDeleting(true);
-        try {
-            const res = await api.post('/bookings/batch-delete', { ids: Array.from(selectedIds) });
-            showToast(res.data?.message || 'Bloqueios removidos!', 'success');
-            setSelectedIds(new Set());
-            fetchBlocks();
-        } catch {
-            showToast('Erro ao remover bloqueios.', 'error');
-        } finally {
-            setBatchDeleting(false);
-        }
+        confirm({
+            title: 'Remover Vários Bloqueios',
+            message: `Tem a certainty que deseja remover ${selectedIds.size} bloqueio(s)? Esta ação não pode ser desfeita e os horários voltarão a ficar disponíveis.`,
+            type: 'warning',
+            confirmText: 'Sim, Remover',
+            onConfirm: async () => {
+                setBatchDeleting(true);
+                try {
+                    const res = await api.post('/bookings/batch-delete', { ids: Array.from(selectedIds) });
+                    showToast(res.data?.message || 'Bloqueios removidos!', 'success');
+                    setSelectedIds(new Set());
+                    fetchBlocks();
+                } catch {
+                    showToast('Erro ao remover bloqueios.', 'error');
+                } finally {
+                    setBatchDeleting(false);
+                }
+            }
+        });
     };
 
     // Single remove
-    const handleRemove = async (id: string) => {
-        const confirmed = window.confirm('Desbloquear este horário?');
-        if (!confirmed) return;
-        try {
-            await deleteBooking(id);
-            showToast('Desbloqueado.', 'success');
-            fetchBlocks();
-        } catch {
-            showToast('Erro ao desbloquear.', 'error');
-        }
+    const handleRemove = (id: string) => {
+        confirm({
+            title: 'Desbloquear Horário',
+            message: 'Tem a certainty que deseja desbloquear este horário?',
+            type: 'info',
+            confirmText: 'Desbloquear',
+            onConfirm: async () => {
+                try {
+                    await deleteBooking(id);
+                    showToast('Desbloqueado.', 'success');
+                    fetchBlocks();
+                } catch {
+                    showToast('Erro ao desbloquear.', 'error');
+                }
+            }
+        });
     };
 
     const formatDate = (dateStr: string) => {

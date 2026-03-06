@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 // @ts-ignore
-import { generateSecret, verify, generateURI } from 'otplib';
+import { authenticator } from '@otplib/preset-default';
 import qrcode from 'qrcode';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
@@ -64,16 +64,15 @@ export const login = async (req: Request, res: Response) => {
         return res.status(206).json({ message: 'Autenticação em 2 Passos necessária.', requires2FA: true });
       }
 
-      // Verificação com tolerância temporal (2 janelas de 30s) para evitar erros de relógio
-      const isValid = await verify({
+      // Verificação com tolerância temporal
+      const isValid = authenticator.verify({
         token: twoFactorCode,
-        secret: user.twoFactorSecret!,
-        epochTolerance: 2
+        secret: user.twoFactorSecret!
       });
 
-      logger.info(`Validando 2FA - UID: ${user.id} | Result: ${JSON.stringify(isValid)}`);
+      logger.info(`Validando 2FA - UID: ${user.id} | Result: ${isValid}`);
 
-      if (!isValid || !isValid.valid) {
+      if (!isValid) {
         logger.warn(`Login admin 2FA falhado — código inválido: ${email} | IP: ${clientIp}`);
         return res.status(401).json({ message: 'Código de Segurança (2FA) inválido.' });
       }
@@ -131,75 +130,7 @@ export const login = async (req: Request, res: Response) => {
 
 // --- 2. LOGIN PARA CLIENTES VIP ---
 export const clientLogin = async (req: Request, res: Response) => {
-  const result = loginSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ message: 'Dados VIP inválidos.', errors: result.error.format() });
-  }
-  const { email, password } = result.data;
-  const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-
-  try {
-    const client = await prisma.client.findUnique({
-      where: { email }
-    });
-
-    if (!client || !client.password) {
-      logger.warn(`Login VIP falhado — cliente inexistente: ${email} | IP: ${clientIp}`);
-      return res.status(401).json({ message: 'Acesso VIP não configurado ou cliente inexistente.' });
-    }
-
-    const isMatch = await bcrypt.compare(password, client.password);
-    if (!isMatch) {
-      logger.warn(`Login VIP falhado — password errada: ${email} | IP: ${clientIp}`);
-      return res.status(401).json({ message: 'Credenciais VIP incorretas.' });
-    }
-
-    const token = jwt.sign(
-      { id: client.id, role: 'client', email: client.email },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: '7d',
-        ...JWT_OPTIONS
-      }
-    );
-
-    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 dias
-
-    const csrfToken = generateCsrfToken();
-
-    // Cookie httpOnly para o token (#1)
-    res.cookie('braz_token', token, {
-      ...COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    // Cookie CSRF legível (#5)
-    res.cookie('braz_csrf', csrfToken, {
-      httpOnly: false,
-      secure: isProduction,
-      sameSite: 'strict' as const,
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      user: {
-        id: client.id,
-        name: client.name,
-        email: client.email,
-        role: 'client',
-        tier: client.tier,
-        points: client.points
-      },
-      expiresAt,
-    });
-
-    logger.info(`Cliente VIP online: ${client.email} | IP: ${clientIp}`);
-
-  } catch (error: any) {
-    logger.error(`Erro no Login VIP: ${error.message}`);
-    res.status(500).json({ message: 'Erro ao aceder ao Salão VIP.' });
-  }
+  return res.status(400).json({ message: 'Acesso VIP desativado nesta versão.' });
 };
 
 // --- 3. LOGOUT (Limpar cookies + blacklist) ---
@@ -223,7 +154,7 @@ export const generate2FA = async (req: Request, res: Response) => {
     }
 
     // Gera Segredo Master
-    const secret = generateSecret();
+    const secret = authenticator.generateSecret();
 
     // Salva o segredo (Ainda desativado até verificação)
     await prisma.user.update({
@@ -232,11 +163,7 @@ export const generate2FA = async (req: Request, res: Response) => {
     });
 
     // Gera Link para APP (Google Authenticator)
-    const otpauth = generateURI({
-      issuer: 'Studio Braz',
-      label: user.email,
-      secret
-    });
+    const otpauth = authenticator.keyuri(user.email, 'Studio Braz', secret);
 
     // Gera Imagem Base64 QR
     const qrCodeImage = await qrcode.toDataURL(otpauth);
@@ -262,16 +189,15 @@ export const verify2FA = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Pedido inválido ou 2FA já ativado.' });
     }
 
-    // Verificação inicial com tolerância temporal
-    const isValid = await verify({
+    // Verificação inicial
+    const isValid = authenticator.verify({
       token: code,
-      secret: user.twoFactorSecret,
-      epochTolerance: 2
+      secret: user.twoFactorSecret
     });
 
-    logger.info(`Ativação 2FA - UID: ${userId} | Result: ${JSON.stringify(isValid)}`);
+    logger.info(`Ativação 2FA - UID: ${userId} | Result: ${isValid}`);
 
-    if (!isValid || !isValid.valid) {
+    if (!isValid) {
       return res.status(400).json({ message: 'Código inválido. Tente novamente.' });
     }
 

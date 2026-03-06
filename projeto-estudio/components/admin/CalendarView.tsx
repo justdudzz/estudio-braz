@@ -96,7 +96,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
                         {calendarDays.map((day, idx) => {
                             if (!day) return <div key={`empty-${idx}`} className="min-h-[80px] md:min-h-[100px] opacity-0" />;
 
-                            const dayBookings = bookings.filter(b => b.date === day.dateStr);
+                            const dayBookings = bookings.filter(b => b.date === day.dateStr && b.status !== 'cancelled' && b.status !== 'rejected');
                             const isToday = new Date().toISOString().split('T')[0] === day.dateStr;
                             const isBlockedDay = dayBookings.filter(b => b.status === 'blocked').length >= 15;
 

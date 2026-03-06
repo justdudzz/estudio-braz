@@ -69,16 +69,12 @@ export const createBooking = async (req: Request, res: Response) => {
           data: { clientId: leadClient.id }
         });
 
-        // B) Transferimos os Pontos de Fidelidade
-        const combinedPoints = leadClient.points + slaveClient.points;
-
-        // C) Atualizamos o Master com o telefone, nome novo e pontos combinados
+        // C) Atualizamos o Master com o telefone, nome novo
         const updatedMaster = await tx.client.update({
           where: { id: leadClient.id },
           data: {
             phone: cleanPhone,
-            name: formattedName,
-            points: combinedPoints
+            name: formattedName
           }
         });
 
@@ -133,8 +129,6 @@ export const createBooking = async (req: Request, res: Response) => {
           status: 'pending',
           clientId: masterClient.id,
           deletedAt: null,        // Reativar se estava soft-deleted
-          notes: null,
-          extraServices: null,
           totalPrice: null,
         },
         include: { client: true }
@@ -204,7 +198,7 @@ export const getBusySlots = async (req: Request, res: Response) => {
     const bookings = await prisma.booking.findMany({
       where: {
         date: String(date),
-        status: { in: ['pending', 'confirmed', 'blocked'] },
+        status: { in: ['pending', 'confirmed', 'paid', 'completed', 'blocked'] },
         deletedAt: null,  // Excluir bookings soft-deleted
       }
     });
@@ -337,10 +331,24 @@ export const blockSchedule = async (req: Request, res: Response) => {
         });
 
         if (existing) {
-          await prisma.booking.update({
-            where: { id: existing.id },
-            data: { status: 'blocked', service: 'BLOQUEIO_ADMIN' }
-          });
+          if (existing.status !== 'blocked') {
+            // Cancel the existing appointment
+            await prisma.booking.update({
+              where: { id: existing.id },
+              data: { status: 'cancelled' }
+            });
+
+            // And create a new blocked slot so the schedule is completely closed
+            await prisma.booking.create({
+              data: {
+                date: dateStr,
+                time: t,
+                service: 'BLOQUEIO_ADMIN',
+                status: 'blocked',
+                client: { connect: { id: adminClientId } }
+              }
+            });
+          }
         } else {
           await prisma.booking.create({
             data: {
@@ -451,10 +459,6 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     });
 
     if (status === 'confirmed') {
-      await prisma.client.update({
-        where: { id: booking.clientId },
-        data: { points: { increment: 1 } }
-      });
 
       if (booking.client.email) {
         // Envio assíncrono para os emails de aceitação
@@ -493,8 +497,8 @@ export const getTopClients = async (req: Request, res: Response) => {
   try {
     const top = await prisma.client.findMany({
       take: 5,
-      orderBy: { points: 'desc' },
-      select: { name: true, points: true, tier: true }
+      orderBy: { bookings: { _count: 'desc' } },
+      select: { name: true, _count: { select: { bookings: true } } }
     });
     res.json(top);
   } catch (error) {
@@ -545,7 +549,6 @@ export const updateBooking = async (req: Request, res: Response) => {
     time: z.string().max(5).optional(),
     notes: z.string().max(1000, 'Notas demasiado longas').optional(),
     status: z.string().optional(),
-    extraServices: z.array(z.string()).optional(),
     totalPrice: z.number().optional(),
   });
 
@@ -555,7 +558,7 @@ export const updateBooking = async (req: Request, res: Response) => {
   }
 
   const { id } = req.params;
-  const { service, date, time, notes, status, extraServices, totalPrice } = result.data;
+  const { service, date, time, notes, status, totalPrice } = result.data;
 
   try {
     // Verificar conflitos de horário
@@ -583,7 +586,6 @@ export const updateBooking = async (req: Request, res: Response) => {
         ...(time && { time }),
         ...(notes !== undefined && { notes }),
         ...(status && { status }),
-        ...(extraServices !== undefined && { extraServices: JSON.stringify(extraServices) }),
         ...(totalPrice !== undefined && { totalPrice }),
       },
       include: { client: true }
@@ -618,7 +620,7 @@ export const getAllClients = async (req: Request, res: Response) => {
       include: {
         _count: { select: { bookings: true } }
       },
-      orderBy: { points: 'desc' },
+      orderBy: { name: 'asc' },
       take: limit,
       skip: skip,
     });
@@ -641,9 +643,6 @@ export const updateClient = async (req: Request, res: Response) => {
     name: z.string().max(100).optional(),
     email: z.string().email().max(100).optional().nullable(),
     phone: z.string().max(20).optional().nullable(),
-    tier: z.string().max(20).optional(),
-    points: z.number().optional(),
-    notes: z.string().max(1000).optional().nullable(),
   });
 
   const result = clientUpdateSchema.safeParse(req.body);
@@ -652,7 +651,7 @@ export const updateClient = async (req: Request, res: Response) => {
   }
 
   const { id } = req.params;
-  const { name, email, phone, tier, points, notes } = result.data;
+  const { name, email, phone } = result.data;
 
   try {
     const updated = await prisma.client.update({
@@ -661,9 +660,6 @@ export const updateClient = async (req: Request, res: Response) => {
         ...(name && { name }),
         ...(email && { email }),
         ...(phone !== undefined && { phone }),
-        ...(tier && { tier }),
-        ...(points !== undefined && { points }),
-        ...(notes !== undefined && { notes }),
       }
     });
 

@@ -8,6 +8,7 @@ import { StatusBadge } from './ui/Badges';
 import { TableSkeleton } from './ui/Skeletons';
 import { SERVICES_CONFIG } from '../../utils/constants';
 import BookingFormModal from './BookingFormModal';
+import { useConfirm } from '../common/ConfirmContext';
 
 const STATUS_OPTIONS = [
     { value: 'all', label: 'Todos', color: 'text-white/60' },
@@ -27,6 +28,7 @@ const BookingsTable: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [editingBooking, setEditingBooking] = useState<any>(null);
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
 
     // Filters
     const filtered = bookings
@@ -55,35 +57,48 @@ const BookingsTable: React.FC = () => {
         } catch { showToast('Erro.', 'error'); }
     };
 
-    const handleMarkAsPaid = async (id: string, currentStatus: string) => {
+    const handleMarkAsPaid = (id: string, currentStatus: string) => {
         if (currentStatus === 'paid') return;
-        if (!window.confirm('Marcar como pago?')) return;
-        try {
-            await updateBookingStatus(id, 'paid');
-            showToast('Marcado como Pago!', 'success');
-            await refreshData(true);
-        } catch { showToast('Erro.', 'error'); }
+        confirm({
+            title: 'Registar Pagamento',
+            message: 'Tem a certainty que de deseja marcar este serviço como pago?',
+            type: 'success',
+            confirmText: 'Marcar como Pago',
+            onConfirm: async () => {
+                try {
+                    await updateBookingStatus(id, 'paid');
+                    showToast('Marcado como Pago!', 'success');
+                    await refreshData(true);
+                } catch { showToast('Erro.', 'error'); }
+            }
+        });
     };
 
-    const handleDelete = async (id: string) => {
-        const confirmed = window.confirm('Tem certeza que quer eliminar este booking?');
-        if (!confirmed) return;
-        try {
-            await deleteBooking(id);
-            showToast('Eliminado com sucesso.', 'warning', {
-                label: 'Desfazer',
-                onClick: async () => {
-                    try {
-                        await restoreBooking(id);
-                        showToast('Booking restaurado.', 'success');
-                        await refreshData(true);
-                    } catch {
-                        showToast('Erro ao restaurar.', 'error');
-                    }
-                }
-            });
-            await refreshData(true);
-        } catch { showToast('Erro.', 'error'); }
+    const handleDelete = (id: string) => {
+        confirm({
+            title: 'Eliminar Registo',
+            message: 'Tem certeza que quer eliminar este agendamento?',
+            type: 'danger',
+            confirmText: 'Eliminar',
+            onConfirm: async () => {
+                try {
+                    await deleteBooking(id);
+                    showToast('Eliminado com sucesso.', 'warning', {
+                        label: 'Desfazer',
+                        onClick: async () => {
+                            try {
+                                await restoreBooking(id);
+                                showToast('Booking restaurado.', 'success');
+                                await refreshData(true);
+                            } catch {
+                                showToast('Erro ao restaurar.', 'error');
+                            }
+                        }
+                    });
+                    await refreshData(true);
+                } catch { showToast('Erro.', 'error'); }
+            }
+        });
     };
 
     const openWhatsApp = (client: any, booking: any) => {

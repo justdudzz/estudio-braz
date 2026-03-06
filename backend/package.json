@@ -13,6 +13,7 @@
         "seed": "tsx src/scripts/seedAdmin.ts"
     },
     "dependencies": {
+        "@otplib/preset-default": "^12.0.1",
         "@prisma/adapter-pg": "^7.4.2",
         "bcryptjs": "^2.4.3",
         "compression": "^1.8.1",
