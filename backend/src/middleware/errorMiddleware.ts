@@ -9,13 +9,17 @@ export const notFound = (req: Request, res: Response, next: NextFunction) => {
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  const message = err?.message || 'Erro desconhecido';
 
-  // Logamos o erro internamente para o Diretor ver
-  logger.error(`${err.message} - ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
+  console.error(`[BACKEND ERROR] ${req.method} ${req.originalUrl}:`, err);
+
+  logger.error(`${message} - ${req.method} ${req.originalUrl} - IP: ${req.ip}`, {
+    stack: err?.stack,
+    body: req.body
+  });
 
   res.status(statusCode).json({
-    message: err.message,
-    // Em produção ocultamos o stack trace para não dar pistas a hackers
-    stack: process.env.NODE_ENV === 'production' ? '🔒' : err.stack,
+    message,
+    stack: process.env.NODE_ENV === 'production' ? '🔒' : err?.stack,
   });
 };

@@ -27,8 +27,8 @@ export const getAllBookings = async () => {
     throw error.response?.data?.message || 'Lamentamos, mas não foi possível preparar o seu menu de reservas de elite neste momento.';
   }
 };
-export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'paid' | 'pending' | 'blocked') => {
-  const response = await api.patch(`/bookings/${id}/status`, { status });
+export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'paid' | 'pending' | 'blocked', totalPrice?: number) => {
+  const response = await api.patch(`/bookings/${id}/status`, { status, totalPrice });
   return response.data;
 };
 export const deleteBooking = async (id: string) => {

@@ -80,7 +80,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(cookieParser()); // Parser de cookies para httpOnly auth
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(compression());
 
 // Rate Limiting Global (#6) — 100 req/15min por IP

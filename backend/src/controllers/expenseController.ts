@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma.js';
+import logger from '../utils/logger.js';
 
 /**
  * GET /expenses?month=2026-03
@@ -19,6 +20,11 @@ export const getExpenses = async (req: Request, res: Response) => {
 
         res.json(expenses);
     } catch (error: any) {
+        logger.error("Erro ao carregar despesas:", {
+            message: error.message,
+            stack: error.stack,
+            query: req.query
+        });
         res.status(500).json({ message: 'Erro ao carregar despesas.' });
     }
 };

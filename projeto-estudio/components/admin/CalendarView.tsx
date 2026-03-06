@@ -1,11 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SERVICES_CONFIG } from '../../utils/constants';
 import { getBookingColorClasses } from '../../utils/themeHelpers';
 import { useToast } from '../common/Toast';
-import DailyAgenda from './DailyAgenda';
-
 interface CalendarViewProps {
     bookings: any[];
     isLoading?: boolean;
@@ -19,7 +18,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
     const { showToast } = useToast();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
-
+    const navigate = useNavigate();
     const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
     const changeMonth = (offset: number) => {
@@ -99,12 +98,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
 
                             const dayBookings = bookings.filter(b => b.date === day.dateStr);
                             const isToday = new Date().toISOString().split('T')[0] === day.dateStr;
+                            const isBlockedDay = dayBookings.filter(b => b.status === 'blocked').length >= 15;
 
                             return (
                                 <div
                                     key={day.dateStr}
-                                    onClick={() => setSelectedDay(day.dateStr)}
-                                    className={`min-h-[80px] md:min-h-[100px] bg-white/[0.02] rounded-xl p-2 md:p-3 border transition-all cursor-pointer hover:bg-white/[0.06] hover:scale-[1.02] ${isToday ? 'border-braz-gold/50 bg-braz-gold/5' : 'border-white/5'
+                                    onClick={() => navigate(`/dashboard/dia/${day.dateStr}`)}
+                                    className={`min-h-[80px] md:min-h-[100px] bg-white/[0.02] rounded-xl p-2 md:p-3 border transition-all cursor-pointer hover:bg-white/[0.06] hover:scale-[1.02] ${isToday ? 'border-braz-gold/50 bg-braz-gold/5' : isBlockedDay ? 'border-red-500/30 bg-red-500/5' : 'border-white/5'
                                         }`}
                                 >
                                     <span className={`text-[10px] font-semibold ${isToday ? 'text-braz-gold' : 'text-white/20'}`}>
@@ -112,16 +112,24 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
                                     </span>
 
                                     <div className="mt-2 space-y-1">
-                                        {dayBookings.slice(0, 3).map(b => (
-                                            <div
-                                                key={b.id}
-                                                className={`p-1 rounded text-[7px] md:text-[8px] font-bold uppercase truncate border ${getBookingColorClasses(b.status, 'calendar')}`}
-                                            >
-                                                {b.time} {b.client?.name?.split(' ')[0] || 'ADMIN'}
+                                        {isBlockedDay ? (
+                                            <div className="p-1 rounded text-[7px] md:text-[8px] font-black uppercase text-center border border-red-500/20 text-red-400 bg-red-500/10 py-2">
+                                                Bloqueado
                                             </div>
-                                        ))}
-                                        {dayBookings.length > 3 && (
-                                            <p className="text-[8px] text-center text-white/20 font-bold">+{dayBookings.length - 3}</p>
+                                        ) : (
+                                            <>
+                                                {dayBookings.slice(0, 3).map(b => (
+                                                    <div
+                                                        key={b.id}
+                                                        className={`p-1 rounded text-[7px] md:text-[8px] font-bold uppercase truncate border ${getBookingColorClasses(b.status, 'calendar')}`}
+                                                    >
+                                                        {b.time} {b.client?.name?.split(' ')[0] || 'ADMIN'}
+                                                    </div>
+                                                ))}
+                                                {dayBookings.length > 3 && (
+                                                    <p className="text-[8px] text-center text-white/20 font-bold">+{dayBookings.length - 3}</p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>
@@ -129,33 +137,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
                         })}
                     </div>
                 </div>
-
-                {/* Daily Agenda Modal */}
-                <AnimatePresence>
-                    {selectedDay && (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
-                            onClick={() => setSelectedDay(null)}
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-full max-w-3xl"
-                            >
-                                <DailyAgenda
-                                    date={selectedDay}
-                                    bookings={bookings.filter(b => b.date === selectedDay)}
-                                    onClose={() => setSelectedDay(null)}
-                                    onConfirm={onConfirm}
-                                    onDelete={onDelete}
-                                    onWhatsApp={onWhatsApp}
-                                    onMarkPaid={onMarkPaid}
-                                />
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </motion.div>
         </AnimatePresence>
     );

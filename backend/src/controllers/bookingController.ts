@@ -112,8 +112,8 @@ export const createBooking = async (req: Request, res: Response) => {
     }
 
     // 📅 4. Verificar conflito REAL e reutilizar slot cancelado/eliminado
-    const existingBooking = await prisma.booking.findUnique({
-      where: { date_time: { date, time } }
+    const existingBooking = await prisma.booking.findFirst({
+      where: { date, time }
     });
 
     let booking;
@@ -179,13 +179,18 @@ export const createBooking = async (req: Request, res: Response) => {
     return res.status(201).json(booking);
 
   } catch (error: any) {
-    console.error("❌ ERRO NO SERVIDOR:", error);
+    logger.error("❌ ERRO CRÍTICO NO AGENDAMENTO:", {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      body: req.body
+    });
 
     if (error.code === 'P2002') {
       return res.status(409).json({ message: "Conflito de horários. Este slot já foi conquistado." });
     }
 
-    return res.status(500).json({ message: "Erro interno ao processar identidade." });
+    return res.status(500).json({ message: "Erro interno ao processar agendamento." });
   }
 };
 
@@ -222,7 +227,11 @@ export const getBusySlots = async (req: Request, res: Response) => {
 
     res.json(Array.from(occupiedSlots));
   } catch (error: any) {
-    logger.error(`Erro no servidor: ${error.message} `);
+    logger.error(`Erro no servidor ao buscar slots ocupados:`, {
+      message: error.message,
+      stack: error.stack,
+      date: req.query.date
+    });
     res.status(500).json([]);
   }
 };
@@ -254,8 +263,8 @@ export const blockSchedule = async (req: Request, res: Response) => {
 
     // 1. Calcular todas as datas a bloquear
     const datesToBlock: string[] = [];
-    const startDate = new Date(`${date} T12:00:00Z`);
-    const endDate = dateEnd ? new Date(`${dateEnd} T12:00:00Z`) : startDate;
+    const startDate = new Date(`${date}T12:00:00Z`);
+    const endDate = dateEnd ? new Date(`${dateEnd}T12:00:00Z`) : startDate;
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
@@ -323,23 +332,32 @@ export const blockSchedule = async (req: Request, res: Response) => {
       }
 
       for (const t of timesToBlock) {
-        await prisma.booking.upsert({
-          where: { date_time: { date: dateStr, time: t } },
-          update: { status: 'blocked', service: 'BLOQUEIO_ADMIN' },
-          create: {
-            date: dateStr,
-            time: t,
-            service: 'BLOQUEIO_ADMIN',
-            status: 'blocked',
-            clientId: adminClientId,
-          }
+        const existing = await prisma.booking.findFirst({
+          where: { date: dateStr, time: t }
         });
+
+        if (existing) {
+          await prisma.booking.update({
+            where: { id: existing.id },
+            data: { status: 'blocked', service: 'BLOQUEIO_ADMIN' }
+          });
+        } else {
+          await prisma.booking.create({
+            data: {
+              date: dateStr,
+              time: t,
+              service: 'BLOQUEIO_ADMIN',
+              status: 'blocked',
+              clientId: adminClientId,
+            }
+          });
+        }
         totalBlocked++;
       }
     }
 
     res.json({
-      message: `${totalBlocked} slots bloqueados em ${datesToBlock.length} dia(s).${totalClientsNotified} clientes notificados.`,
+      message: `${totalBlocked} slots bloqueados em ${datesToBlock.length} dia(s). ${totalClientsNotified} clientes notificados.`,
       totalBlocked,
       totalDays: datesToBlock.length,
       totalClientsNotified
@@ -396,10 +414,15 @@ export const getAllBookings = async (req: Request, res: Response) => {
       where: whereClause,
       include: { client: true },
       orderBy: [{ date: 'desc' }, { time: 'desc' }],
-      take: 500, // Safety limit — previne respostas com milhares de registos
+      take: 2000, // Safety limit — prevene respostas com milhares de registos
     });
     res.json(bookings);
   } catch (error: any) {
+    logger.error("❌ Erro ao carregar a agenda:", {
+      message: error.message,
+      stack: error.stack,
+      query: req.query
+    });
     res.status(500).json({ message: 'Erro ao carregar a agenda.' });
   }
 };
@@ -415,12 +438,15 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Status inválido.', errors: result.error.format() });
   }
   const { id } = req.params;
-  const { status } = result.data.body;
+  const { status, totalPrice } = result.data.body;
 
   try {
+    const dataToUpdate: any = { status };
+    if (totalPrice !== undefined) dataToUpdate.totalPrice = totalPrice;
+
     const booking = await prisma.booking.update({
       where: { id },
-      data: { status },
+      data: dataToUpdate,
       include: { client: true }
     });
 
@@ -599,7 +625,10 @@ export const getAllClients = async (req: Request, res: Response) => {
 
     res.json(clients);
   } catch (error: any) {
-    logger.error(`Erro ao listar clientes: ${error.message} `);
+    logger.error(`Erro ao listar clientes:`, {
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ message: 'Erro ao carregar clientes.' });
   }
 };

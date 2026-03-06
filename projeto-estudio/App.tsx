@@ -35,6 +35,7 @@ const TermsAndConditions = React.lazy(() => import('./components/pages/TermsAndC
 
 // 🏛️ Admin (lazy — só carrega quando o admin faz login)
 const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'));
+const DayViewPage = React.lazy(() => import('./components/admin/DayViewPage'));
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
 const BookingsTable = React.lazy(() => import('./components/admin/BookingsTable'));
 const AdminVipArea = React.lazy(() => import('./components/admin/VipArea'));
@@ -112,6 +113,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="dia/:date" element={<DayViewPage />} />
             <Route path="agenda" element={<BookingsTable />} />
             <Route path="clientes" element={<AdminVipArea />} />
             <Route path="bloqueios" element={<BlockManagement />} />

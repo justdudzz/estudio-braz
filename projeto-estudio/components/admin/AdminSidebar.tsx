@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Calendar, Users, Lock, Settings,
-    LogOut, X, Crown, ChevronLeft, BarChart3
+    LogOut, X, Crown, ChevronLeft, BarChart3, CheckSquare
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BUSINESS_INFO } from '../../utils/constants';

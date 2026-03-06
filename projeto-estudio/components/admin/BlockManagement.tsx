@@ -167,7 +167,21 @@ const BlockManagement: React.FC = () => {
                     </h1>
                     <p className="text-white/30 text-xs mt-1">{blocks.length} bloqueio{blocks.length !== 1 ? 's' : ''} ativo{blocks.length !== 1 ? 's' : ''}</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
+                    {/* Botão Selecionar Tudo */}
+                    {blocks.length > 0 && (
+                        <button
+                            onClick={selectAll}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${selectedIds.size === blocks.length
+                                ? 'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                                : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                                }`}
+                        >
+                            {selectedIds.size === blocks.length ? <CheckSquare size={14} /> : <Square size={14} />}
+                            {selectedIds.size === blocks.length ? 'Desselecionar' : 'Selecionar Tudo'}
+                        </button>
+                    )}
+
                     {/* Batch Undo Button */}
                     {selectedIds.size > 0 && (
                         <motion.button
@@ -177,8 +191,8 @@ const BlockManagement: React.FC = () => {
                             disabled={batchDeleting}
                             className="flex items-center gap-2 bg-red-500/10 text-red-400 border border-red-500/20 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {batchDeleting ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} />}
-                            Remover {selectedIds.size} Selecionado{selectedIds.size !== 1 ? 's' : ''}
+                            {batchDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                            Remover {selectedIds.size}
                         </motion.button>
                     )}
                     <button
@@ -190,16 +204,12 @@ const BlockManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Quick Select All */}
-            {blocks.length > 0 && (
-                <div className="mb-4 flex items-center gap-3">
-                    <button onClick={selectAll} className="flex items-center gap-2 text-xs text-white/40 hover:text-white transition-colors">
-                        {selectedIds.size === blocks.length ? <CheckSquare size={14} className="text-orange-400" /> : <Square size={14} />}
-                        {selectedIds.size === blocks.length ? 'Desselecionar Tudo' : 'Selecionar Tudo'}
-                    </button>
-                    {selectedIds.size > 0 && (
-                        <span className="text-[10px] text-orange-400/60 font-bold">{selectedIds.size} de {blocks.length}</span>
-                    )}
+            {/* Contador de seleção flutuante se houver muitos bloques */}
+            {selectedIds.size > 0 && (
+                <div className="mb-6 flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/10 rounded-lg w-fit">
+                    <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">
+                        {selectedIds.size} selecionados para remoção
+                    </span>
                 </div>
             )}
 

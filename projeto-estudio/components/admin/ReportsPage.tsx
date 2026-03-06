@@ -5,7 +5,6 @@ import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { MetricCard, GrowthCard, StatusCard } from './ui/StatCards';
 import { SERVICES_CONFIG } from '../../utils/constants';
-import StatisticsView from './StatisticsView';
 
 const ReportsPage: React.FC = () => {
     const { showToast } = useToast();
@@ -261,9 +260,6 @@ const ReportsPage: React.FC = () => {
                     {exporting ? 'A Exportar...' : 'Baixar Fecho Mensal'}
                 </button>
             </div>
-
-            {/* ===== GRÁFICOS DE LINHAS ===== */}
-            <StatisticsView />
 
             {/* ===== ROW 1: Key Metrics ===== */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
