@@ -214,8 +214,10 @@ export const blockSchedule = async (req: Request, res: Response) => {
 
   const { date, dateEnd, time, timeStart, timeEnd, reason, fullDay } = result.data;
 
-  try {
+    try {
     const adminClientId = await getOrCreateAdminClient();
+    const adminStaff = await prisma.user.findFirst({ where: { role: 'SUPER_ADMIN' } });
+    if (!adminStaff) return res.status(500).json({ message: 'Erro interno: SUPER_ADMIN não configurado' });
 
     // 1. Calcular todas as datas a bloquear
     const datesToBlock: string[] = [];
@@ -267,7 +269,7 @@ export const blockSchedule = async (req: Request, res: Response) => {
 
       for (const booking of affectedBookings) {
         if (booking.client && booking.clientId !== adminClientId) {
-          const msg = `Lamentamos informar, mas tivemos de cancelar o seu horário de ${booking.service} no dia ${booking.date} às ${booking.time}.Motivo: ${reason || 'Imprevisto no estúdio'}.`;
+          const msg = `Lamentamos informar, mas tivemos de cancelar o seu horário de um serviço agendado no dia ${booking.date} às ${booking.time}.Motivo: ${reason || 'Imprevisto no estúdio'}.`;
 
           if (booking.client.phone) {
             await sendNotification(booking.client.phone, booking.client.name, msg, 'sms');
@@ -278,7 +280,7 @@ export const blockSchedule = async (req: Request, res: Response) => {
               booking.client.email,
               'Aviso de Cancelamento • Studio Braz',
               booking.client.name,
-              `Cancelado: ${booking.service} `,
+              `Cancelado: serviço agendado `,
               booking.date,
               booking.time
             ).catch((e: any) => console.error("⚠️ Erro ao enviar email de cancelamento:", e));
@@ -305,9 +307,10 @@ export const blockSchedule = async (req: Request, res: Response) => {
               data: {
                 date: dateStr,
                 time: t,
-                service: 'BLOQUEIO_ADMIN',
+                notes: 'BLOQUEIO_ADMIN',
                 status: 'blocked',
-                client: { connect: { id: adminClientId } }
+                client: { connect: { id: adminClientId } },
+                staff: { connect: { id: adminStaff.id } }
               }
             });
           }
@@ -316,9 +319,10 @@ export const blockSchedule = async (req: Request, res: Response) => {
             data: {
               date: dateStr,
               time: t,
-              service: 'BLOQUEIO_ADMIN',
+              notes: 'BLOQUEIO_ADMIN',
               status: 'blocked',
               clientId: adminClientId,
+              staffId: adminStaff.id,
             }
           });
         }
@@ -450,7 +454,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
           booking.client.email,
           'MARCAÇÃO NÃO APROVADA • Studio Braz',
           booking.client.name,
-          booking.service,
+          'Serviço Agendado',
           booking.date,
           booking.time
         ).catch((e: any) => console.error("⚠️ Falha ao notificar cliente da rejeição:", e));

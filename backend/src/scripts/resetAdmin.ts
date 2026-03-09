@@ -24,11 +24,11 @@ async function resetAdmin() {
 
   await prisma.user.upsert({
     where: { email: email },
-    update: { password: hashedPassword, role: 'admin', isTwoFactorEnabled: false, twoFactorSecret: null },
+    update: { password: hashedPassword, role: 'SUPER_ADMIN', isTwoFactorEnabled: false, twoFactorSecret: null },
     create: {
       email: email,
       password: hashedPassword,
-      role: 'admin',
+      role: 'SUPER_ADMIN',
       isTwoFactorEnabled: false,
       twoFactorSecret: null,
     }

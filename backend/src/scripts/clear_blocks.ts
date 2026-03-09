@@ -4,7 +4,7 @@ async function main() {
     const result = await prisma.booking.deleteMany({
         where: {
             status: 'blocked',
-            service: 'BLOQUEIO_ADMIN'
+            notes: 'BLOQUEIO_ADMIN'
         }
     });
     console.log(`Successfully deleted ${result.count} blocked slots.`);

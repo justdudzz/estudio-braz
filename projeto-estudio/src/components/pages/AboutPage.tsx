@@ -5,12 +5,13 @@ import { CheckCircle2, ArrowRight, Award, Heart, Sparkles } from 'lucide-react';
 import OptimizedImage from '../common/OptimizedImage';
 import { BUSINESS_INFO } from '../../utils/constants';
 
+// Certificações reais da Mariana (a confirmar nomes exatos)
 const certifications = [
-    'Micropigmentação Estética — Certificação Internacional',
-    'Design de Sobrancelhas — Phibrows Academy',
-    'Estética Facial Avançada — Formação Contínua',
-    'Nail Design Profissional — Certificação Nacional',
-    'Massagem Terapêutica e Relaxante',
+    'Esteticista — Formação Profissional Certificada',
+    'Cosmetologista — Formação Especializada',
+    'Auxiliar de Fisioterapia — Certificação Profissional',
+    '12 Cursos na Área de Beleza e Estética',
+    '8 Anos de Experiência Profissional',
 ];
 
 const values = [
@@ -54,19 +55,19 @@ const AboutPage: React.FC = () => {
                         <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="w-full lg:w-1/2 space-y-8">
                             <div>
                                 <p className="text-braz-gold text-[10px] font-black uppercase tracking-[0.4em] mb-4">A Especialista</p>
-                                <h2 className="text-4xl md:text-5xl font-montserrat font-black text-white uppercase tracking-tighter mb-6">{BUSINESS_INFO.owner}</h2>
+                                <h2 className="text-4xl md:text-5xl font-montserrat font-black text-white uppercase tracking-tighter mb-6">Mariana Braz</h2>
                                 <div className="w-16 h-1 bg-gradient-to-r from-braz-gold to-transparent" />
                             </div>
 
                             <div className="space-y-6 text-white/60 text-sm md:text-base leading-loose font-medium">
                                 <p>
-                                    Com anos de experiência dedicados à estética avançada, a Mariana transformou o Studio Braz num dos espaços de referência mais exclusivos em Águeda.
+                                    Sou a Mariana, tenho 27 anos e já trabalho no mundo da beleza há 8 anos. Com 12 cursos realizados em estética, cosmetologia e auxiliar de fisioterapia, o meu compromisso é elevar a sua confiança com excelência.
                                 </p>
                                 <p>
-                                    A sua paixão inabalável pelo detalhe e o compromisso estrito com resultados incrivelmente naturais fazem do Studio Braz uma experiência que vai muito além de um simples tratamento estético. É um momento de reencontro pessoal.
+                                    No Studio Braz, cada tratamento é pensado para cuidar da sua autoestima — por dentro e por fora. Gosto de fazer com que cada cliente saia daqui a sentir-se a melhor versão de si.
                                 </p>
                                 <p className="text-white/40 italic">
-                                    "Cada sessão é pensada individualmente, respeitando as características únicas de cada ser. A nossa filosofia é clara: beleza autêntica, conforto absoluto e excelência em cada gesto."
+                                    "A beleza começa no momento em que decides ser tu mesma. Eu estou aqui para realçar o que já és."
                                 </p>
                             </div>
 

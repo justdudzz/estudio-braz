@@ -16,11 +16,21 @@ const Footer: React.FC = () => {
           <div className="space-y-8">
             <img src="/iconelogo.png" alt="Logo" className="h-16 w-auto opacity-80" />
             <p className="text-white/40 text-sm leading-loose max-w-xs font-light">
-              Estética Avançada & Beleza de Luxo. O seu refúgio de bem-estar no coração de Águeda.
+              A cuidar da sua autoestima, por dentro e por fora. Estética, Cosmetologia e Bem-estar em Águeda.
             </p>
             <div className="text-white/30 text-xs space-y-2 uppercase tracking-[0.2em] mt-6">
-              <p className="font-bold text-white/50">{BUSINESS_INFO.owner}</p>
+              <p className="font-bold text-white/50">Mariana Braz</p>
               <p>NIF: {BUSINESS_INFO.nif}</p>
+              <p className="text-[9px] text-white/20 mt-1">{BUSINESS_INFO.vatInfo}</p>
+            </div>
+            <div className="text-white/20 text-[10px] space-y-1 mt-6 border-t border-white/5 pt-4">
+              <p>Terça - Sexta: 09h – 19h</p>
+              <p>Sábado: 08h – 14h</p>
+              <p>Segunda / Domingo: Encerrado</p>
+            </div>
+            <div className="text-white/20 text-[10px] space-y-1 mt-4 border-t border-white/5 pt-4">
+              <p className="font-bold text-white/30">Pagamentos Aceites</p>
+              <p>MB Way • Dinheiro</p>
             </div>
           </div>
 
@@ -102,7 +112,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left mt-8">
           <p className="text-white/30 text-[10px] font-montserrat uppercase tracking-[0.2em]">
-            © {new Date().getFullYear()} {BUSINESS_INFO.name}. Todos os direitos reservados.
+            © {new Date().getFullYear()} {BUSINESS_INFO.name}. Todos os direitos reservados. • {BUSINESS_INFO.vatInfo}
           </p>
 
           <div className="flex items-center space-x-8">

@@ -29,7 +29,7 @@ const BoutiquePage: React.FC = () => {
                         The Boutique
                     </motion.h1>
                     <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-white/40 text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed uppercase tracking-widest mb-10">
-                        Uma curadoria de produtos de luxo acessível, selecionados pessoalmente pela Mariana para prolongar a sua experiência de beleza em casa.
+                        Uma curadoria de produtos de qualidade, selecionados pessoalmente pela Mariana para prolongar a sua experiência de beleza em casa.
                     </motion.p>
 
                     {isAdmin && (
@@ -90,9 +90,9 @@ const BoutiquePage: React.FC = () => {
                 <div className="mt-20 p-12 bg-braz-gold/5 rounded-[3rem] border border-braz-gold/10 text-center max-w-4xl mx-auto">
                     <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-4">Interessada nos produtos Chogan?</h2>
                     <p className="text-white/50 text-sm mb-8">Todos os produtos estão disponíveis para compra direta no Studio ou via encomenda personalizada.</p>
-                    <button className="bg-braz-gold text-black px-10 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:scale-105 transition-transform shadow-xl shadow-braz-gold/20">
+                    <a href={`https://wa.me/${BUSINESS_INFO.whatsapp}?text=${encodeURIComponent('Olá Mariana! Gostaria de saber mais sobre os produtos Chogan disponíveis no Studio Braz.')}`} target="_blank" rel="noopener noreferrer" className="bg-braz-gold text-black px-10 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:scale-105 transition-transform shadow-xl shadow-braz-gold/20 inline-block">
                         Falar com a Mariana no WhatsApp
-                    </button>
+                    </a>
                 </div>
             </section>
         </div>

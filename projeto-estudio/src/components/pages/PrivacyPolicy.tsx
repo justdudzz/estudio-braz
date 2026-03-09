@@ -39,7 +39,7 @@ const PrivacyPolicy: React.FC = () => {
               1. Responsável pelo Tratamento
             </h2>
             <p>
-              O **{BUSINESS_INFO.name}**, representado por **{BUSINESS_INFO.owner}**, com sede em {BUSINESS_INFO.address}, é a entidade responsável pela recolha e tratamento dos seus dados pessoais.
+              O <strong className="text-white">{BUSINESS_INFO.name}</strong>, representado por <strong className="text-white">Mariana Isabel Braz Teixeira</strong>, NIF {BUSINESS_INFO.nif}, com sede em {BUSINESS_INFO.address}, é a entidade responsável pela recolha e tratamento dos seus dados pessoais.
             </p>
           </section>
 

@@ -16,7 +16,7 @@ const GiftCardsPage: React.FC = () => {
                         <Gift className="text-braz-gold mx-auto mb-4" size={28} strokeWidth={1.5} />
                         <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4">Cartões Presente</h1>
                         <p className="text-white/40 text-sm max-w-lg mx-auto">
-                            Ofereça uma experiência de luxo a quem mais gosta. O presente perfeito para qualquer ocasião.
+                            Ofereça um momento de autoestima e bem-estar a quem mais gosta. O presente perfeito para qualquer ocasião.
                         </p>
                     </motion.div>
                 </div>

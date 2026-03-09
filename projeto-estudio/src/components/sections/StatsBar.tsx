@@ -4,24 +4,24 @@ import { Users, Sparkles, Award, Clock } from 'lucide-react';
 
 const stats = [
     {
-        icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
-        value: "2000+",
-        label: "Clientes Satisfeitas",
-    },
-    {
         icon: <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
-        value: "5000+",
-        label: "Tratamentos Realizados",
+        value: "12",
+        label: "Cursos Especializados",
     },
     {
         icon: <Award className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
-        value: "5",
-        label: "Estrelas no Google",
+        value: "8+",
+        label: "Anos de Experiência",
+    },
+    {
+        icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
+        value: "3",
+        label: "Áreas de Formação",
     },
     {
         icon: <Clock className="w-8 h-8 md:w-10 md:h-10 text-braz-gold mb-4" strokeWidth={1.5} />,
-        value: "4+",
-        label: "Anos de Experiência",
+        value: "100%",
+        label: "Dedicação e Cuidado",
     },
 ];
 

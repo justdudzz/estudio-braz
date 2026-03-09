@@ -58,7 +58,8 @@ const ContactPage: React.FC = () => {
                                 <Clock size={16} strokeWidth={1.5} className="text-braz-gold" /> Horário de Funcionamento
                             </h3>
                             <div className="space-y-4 text-sm font-medium">
-                                <div className="flex justify-between items-center text-white/60 border-b border-white/5 pb-4"><span>Segunda a Sexta</span><span className="text-white text-xs font-bold tracking-widest">{OPENING_HOURS.start}:00 — {OPENING_HOURS.end}:00</span></div>
+                                <div className="flex justify-between items-center text-white/40 border-b border-white/5 pb-4"><span>Segunda-feira</span><span className="text-red-400/80 text-[10px] uppercase tracking-widest font-black">Encerrado</span></div>
+                                <div className="flex justify-between items-center text-white/60 border-b border-white/5 pb-4"><span>Terça a Sexta</span><span className="text-white text-xs font-bold tracking-widest">{OPENING_HOURS.start}:00 — {OPENING_HOURS.end}:00</span></div>
                                 <div className="flex justify-between items-center text-white/60 border-b border-white/5 pb-4"><span>Sábado</span><span className="text-white text-xs font-bold tracking-widest">{OPENING_HOURS.weekendStart}:00 — {OPENING_HOURS.weekendEnd}:00</span></div>
                                 <div className="flex justify-between items-center text-white/40 pt-2"><span>Domingo</span><span className="text-red-400/80 text-[10px] uppercase tracking-widest font-black">Encerrado</span></div>
                             </div>

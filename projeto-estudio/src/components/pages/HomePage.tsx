@@ -5,10 +5,10 @@ import { ArrowRight, Clock, Euro, Star, Quote, Sparkles, Palette, HeartPulse } f
 import type { LucideIcon } from 'lucide-react';
 import LocationMap from '../sections/LocationMap';
 import ImmersiveHero from '../sections/ImmersiveHero';
-import SuperAppMenu from '../common/SuperAppMenu';
-import FullScreenMenu from '../common/FullScreenMenu';
 import StatsBar from '../sections/StatsBar';
 import TestimonialCarousel from '../sections/TestimonialCarousel';
+import SuperAppMenu from '../common/SuperAppMenu';
+import FullScreenMenu from '../common/FullScreenMenu';
 import { SERVICES_CONFIG, BUSINESS_INFO } from '../../utils/constants';
 
 const serviceHighlights: { key: string; icon: LucideIcon; desc: string }[] = [
@@ -18,7 +18,7 @@ const serviceHighlights: { key: string; icon: LucideIcon; desc: string }[] = [
 ];
 
 const HomePage: React.FC = () => {
-    useEffect(() => { document.title = `${BUSINESS_INFO.name} | Estética Avançada em Águeda`; }, []);
+    useEffect(() => { document.title = `${BUSINESS_INFO.name} | Estética e Autoestima em Águeda`; }, []);
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -99,11 +99,11 @@ const HomePage: React.FC = () => {
                             className="flex items-center gap-3"
                         >
                             <span className="text-[9px] text-white/20 uppercase tracking-widest flex items-center gap-1.5 h-full">
-                                <span className="w-1 h-1 rounded-full bg-[#C5A059] animate-pulse" /> Certificada
+                                <span className="w-1 h-1 rounded-full bg-[#C5A059] animate-pulse" /> 12 Cursos
                             </span>
                             <span className="text-white/10 flex items-center h-full">·</span>
                             <span className="text-[9px] text-white/20 uppercase tracking-widest flex items-center gap-1.5 h-full">
-                                <span className="text-[#C5A059]">★</span> 4.8 estrelas GOOGLE
+                                <span className="text-[#C5A059]">★</span> 8 Anos Experiência
                             </span>
                             <span className="text-white/10 flex items-center h-full">·</span>
                             <span className="text-[9px] text-white/20 uppercase tracking-widest flex items-center h-full">Águeda</span>
@@ -174,9 +174,9 @@ const HomePage: React.FC = () => {
                         </motion.div>
                         <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="w-full md:w-2/3 text-center md:text-left">
                             <p className="text-[#C5A059] text-xs font-bold uppercase tracking-[0.3em] mb-3">A Especialista</p>
-                            <h2 className="text-2xl font-black text-white uppercase mb-4">{BUSINESS_INFO.owner}</h2>
+                            <h2 className="text-2xl font-black text-white uppercase mb-4">Mariana Braz</h2>
                             <p className="text-white/40 text-sm leading-relaxed mb-6">
-                                Com anos de dedicação à estética avançada, a Mariana criou no Studio Braz um espaço onde cada tratamento é uma experiência personalizada, com produtos premium e atenção a cada detalhe.
+                                Com 27 anos e 8 de experiência no mundo da beleza, a Mariana realizou 12 cursos especializados em estética e cosmetologia. No Studio Braz, o foco é cuidar da sua autoestima — por dentro e por fora.
                             </p>
                             <Link to="/sobre" className="inline-flex items-center gap-2 text-[#C5A059] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors">
                                 Conhecer o Estúdio <ArrowRight size={16} />
@@ -186,7 +186,7 @@ const HomePage: React.FC = () => {
                 </div>
             </section>
 
-            {/* ===== TESTIMONIALS CAROUSEL ===== */}
+            {/* ===== TESTIMONIALS ===== */}
             <TestimonialCarousel />
 
             {/* ===== GOOGLE MAPS ===== */}

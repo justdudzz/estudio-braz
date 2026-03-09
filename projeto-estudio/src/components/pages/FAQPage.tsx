@@ -29,16 +29,16 @@ const faqData: FAQCategory[] = [
     {
         name: '💳 Pagamento & Preços',
         items: [
-            { q: 'Que métodos de pagamento aceitam?', a: 'Aceitamos pagamento em dinheiro, MB Way, e transferência bancária. O pagamento é efetuado no dia do tratamento.' },
-            { q: 'Os preços incluem IVA?', a: 'Sim, todos os preços apresentados no website já incluem IVA.' },
-            { q: 'Oferecem cartões presente?', a: 'Sim! Temos cartões presente de vários valores. Pode encomendar diretamente no nosso website ou contactar-nos.' },
+            { q: 'Que métodos de pagamento aceitam?', a: 'Aceitamos pagamento em dinheiro e MB Way. O pagamento é efetuado no dia do tratamento, presencialmente no estúdio.' },
+            { q: 'Os preços incluem IVA?', a: 'O Studio Braz está isento de IVA ao abrigo do Artigo 53.º do CIVA. Os preços apresentados são os valores finais.' },
+            { q: 'Oferecem cartões presente?', a: 'Sim! Temos cartões presente físicos até 200€, com validade de 6 meses. Pode encomendar no nosso website e levantar na loja.' },
         ]
     },
     {
         name: '🏠 O Estúdio',
         items: [
             { q: 'Onde fica o Studio Braz?', a: `Estamos localizados em ${BUSINESS_INFO.address}. Temos estacionamento gratuito nas proximidades.` },
-            { q: 'Qual é o horário de funcionamento?', a: 'Segunda a Sexta das 9:00 às 20:00, Sábado das 9:00 às 13:00. Domingo encerrado.' },
+            { q: 'Qual é o horário de funcionamento?', a: 'Terça a Sexta das 9:00 às 19:00, Sábado das 8:00 às 14:00 (acesso reservado). Segunda-feira e Domingo estamos encerrados.' },
             { q: 'Grávidas podem fazer tratamentos?', a: 'Alguns tratamentos como massagens relaxantes são seguros. No entanto, tratamentos como Microblading e certos procedimentos faciais não são recomendados durante a gravidez. Consulte-nos para mais informação.' },
         ]
     },

@@ -51,7 +51,7 @@ const TermsAndConditions: React.FC = () => {
               <Scale className="mr-3" size={20} /> 3. Preços e IVA
             </h2>
             <p>
-              Todos os preços apresentados no site incluem <strong>IVA à taxa legal em vigor</strong> em Portugal. As faturas são emitidas após a prestação do serviço ou aquisição do produto.
+              O {BUSINESS_INFO.name} está <strong>isento de IVA ao abrigo do Artigo 53.º do CIVA</strong>. Os preços apresentados no site são os valores finais. As faturas/recibos são emitidos após a prestação do serviço.
             </p>
           </section>
 
@@ -61,8 +61,9 @@ const TermsAndConditions: React.FC = () => {
               <Clock className="mr-3" size={20} /> 4. Validade e Utilização de Vouchers
             </h2>
             <p>
-              Os Vouchers de Oferta adquiridos através do site têm uma <strong>validade de 6 meses</strong> a contar da data de emissão. 
+              Os Vouchers de Oferta adquiridos através do site têm uma <strong>validade de 6 meses</strong> a contar da data de emissão, com um valor máximo de <strong>200€</strong>. 
               Findo este prazo, o voucher expira automaticamente sem direito a reembolso. 
+              O cartão é <strong>físico</strong> e deve ser levantado presencialmente no Studio Braz em Águeda.
               A utilização do voucher está sujeita a marcação prévia e disponibilidade de agenda.
             </p>
           </section>

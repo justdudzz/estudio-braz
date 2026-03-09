@@ -43,10 +43,15 @@ export const SERVICES_CONFIG = {
 } as const;
 
 export const OPENING_HOURS = {
-    start: 9,        // 09:00
-    end: 20,         // 20:00
-    weekendStart: 9,
-    weekendEnd: 13,  // Sábados até às 13:00
+    start: 9,           // Terça-Sexta: 09:00
+    end: 19,            // Terça-Sexta: 19:00
+    weekendStart: 8,    // Sábado: 08:00
+    weekendEnd: 14,     // Sábado: 14:00
+    // Labels para display
+    weekdaysLabel: "Terça - Sexta: 09h – 19h",
+    saturdayLabel: "Sábado: 08h – 14h (Acesso Reservado)",
+    mondayLabel: "Segunda-feira: Encerrado",
+    sundayLabel: "Domingo: Encerrado",
 } as const;
 
 // Tipagem utilitária derivada das constantes para uso em Props e States

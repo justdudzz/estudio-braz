@@ -42,8 +42,8 @@ const BookingForm: React.FC = () => {
     const dateToCompare = new Date(year, month, day);
     dateToCompare.setHours(0, 0, 0, 0);
     const dayOfWeek = dateToCompare.getDay();
-    // Permitir Sábados (6) para verificação VIP no backend
-    return dateToCompare <= today || dayOfWeek === 0;
+    // Segunda-feira (1) = Folga da Mariana, Domingo (0) = Encerrado
+    return dateToCompare <= today || dayOfWeek === 0 || dayOfWeek === 1;
   };
 
   useEffect(() => {
@@ -265,7 +265,7 @@ const BookingForm: React.FC = () => {
               <div className="flex space-x-4">
                 <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Voltar</button>
                 <button type="submit" disabled={status === 'submitting'} className="flex-[3] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center">
-                  {status === 'submitting' ? <Loader2 className="animate-spin text-black" /> : 'Confirmar Reserva de Luxo'}
+                  {status === 'submitting' ? <Loader2 className="animate-spin text-black" /> : 'Confirmar Marcação'}
                 </button>
               </div>
             </motion.div>
