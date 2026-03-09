@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { RefreshCw, Search, Plus, Filter } from 'lucide-react';
+import { RefreshCw, Search, Plus, Filter, FileText } from 'lucide-react';
 import { updateBookingStatus, deleteBooking, restoreBooking } from '../../services/bookingService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { SERVICES_CONFIG } from '../../utils/constants';
 import { openWhatsApp } from '../../utils/whatsapp';
+import api from '../../services/api';
 
 // Sub-components
 import DashboardMetrics from './DashboardMetrics';
@@ -117,6 +118,19 @@ const AdminDashboard: React.FC = () => {
           >
             <Plus size={16} /> Nova Marcação
           </button>
+          
+          {user?.role === 'SUPER_ADMIN' && (
+            <button
+              onClick={async () => {
+                const month = new Date().getMonth() + 1;
+                const year = new Date().getFullYear();
+                window.open(`${api.defaults.baseURL}/billing/report?month=${month}&year=${year}`, '_blank');
+              }}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white/10 transition-all"
+            >
+              <FileText size={16} /> Baixar Fecho Mensal
+            </button>
+          )}
         </div>
       </div>
 

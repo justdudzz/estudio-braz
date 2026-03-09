@@ -59,10 +59,10 @@ const LoginPage: React.FC = () => {
             <Lock className="text-braz-gold" size={32} />
           </div>
           <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">
-            Acesso do Diretor
+            Área Reservada
           </h2>
           <p className="text-white/40 text-[10px] mt-2 uppercase tracking-[0.3em]">
-            Autenticação Segura
+            Equipa Studio Braz
           </p>
         </div>
 

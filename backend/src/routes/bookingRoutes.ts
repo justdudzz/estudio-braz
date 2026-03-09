@@ -11,6 +11,7 @@ import {
   batchDeleteBlocks,
   getTopClients,
   getAllClients,
+  exportClientsCSV,
   updateClient,
   getClientProfile
 } from '../controllers/bookingController.js';
@@ -32,6 +33,7 @@ router.post('/', bookingLimiter, validate(createBookingSchema), createBooking);
 // 🔒 ROTAS ADMIN — Clientes (BEFORE /:id routes!)
 // ==========================================
 router.get('/clients', protect, adminOnly, getAllClients);
+router.get('/clients/export-csv', protect, adminOnly, exportClientsCSV);
 router.get('/clients/:id', protect, adminOnly, getClientProfile);
 router.put('/clients/:id', protect, adminOnly, updateClient);
 

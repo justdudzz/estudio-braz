@@ -3,7 +3,8 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Calendar, Users, Lock, Settings,
-    LogOut, X, Crown, ChevronLeft, BarChart3, CheckSquare
+    LogOut, X, Crown, ChevronLeft, BarChart3, CheckSquare,
+    UserPlus, Euro, FileText
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BUSINESS_INFO } from '../../utils/constants';
@@ -17,12 +18,14 @@ interface AdminSidebarProps {
 }
 
 const NAV_ITEMS = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Visão Central' },
-    { path: '/dashboard/agenda', icon: Calendar, label: 'Histórico & Pesquisa' },
-    { path: '/dashboard/clientes', icon: Users, label: 'Base VIP' },
-    { path: '/dashboard/bloqueios', icon: Lock, label: 'Bloqueios' },
-    { path: '/dashboard/configuracoes', icon: Settings, label: 'Configurações' },
-    { path: '/dashboard/relatorios', icon: BarChart3, label: 'Estatísticas' },
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Visão Central', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
+    { path: '/dashboard/agenda', icon: Calendar, label: 'Histórico & Pesquisa', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
+    { path: '/dashboard/clientes', icon: Users, label: 'Base VIP', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
+    { path: '/dashboard/bloqueios', icon: Lock, label: 'Bloqueios', roles: ['SUPER_ADMIN'] },
+    { path: '/dashboard/equipa', icon: UserPlus, label: 'Equipa', roles: ['SUPER_ADMIN'] },
+    { path: '/dashboard/configuracoes', icon: Settings, label: 'Configurações', roles: ['SUPER_ADMIN'] },
+    { path: '/dashboard/relatorios', icon: BarChart3, label: 'Estatísticas', roles: ['SUPER_ADMIN'] },
+    { path: '/dashboard/contabilidade', icon: CheckSquare, label: 'Contabilidade', roles: ['SUPER_ADMIN', 'ACCOUNTANT'] },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -30,7 +33,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
     const { logout, user } = useAuth();
     const location = useLocation();
-    const diretorNome = user?.email ? user.email.split('@')[0] : 'Diretor';
+    const diretorNome = user?.email ? user.email.split('@')[0] : 'Staff';
+
+    const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user?.role || ''));
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/5">
@@ -52,7 +57,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
             {/* Navigation */}
             <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-                {NAV_ITEMS.map(item => {
+                {visibleItems.map(item => {
                     const isActive = location.pathname === item.path ||
                         (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
                     const isExactDashboard = item.path === '/dashboard' && location.pathname === '/dashboard';
@@ -72,7 +77,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             {!isCollapsed && (
                                 <>
                                     <span className="flex-1">{item.label}</span>
-                                    {item.label === 'Dashboard' && pendingCount > 0 && (
+                                    {item.label === 'Visão Central' && pendingCount > 0 && (
                                         <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center">
                                             {pendingCount}
                                         </span>

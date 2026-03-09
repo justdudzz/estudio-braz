@@ -7,9 +7,7 @@
     "dev": "npx concurrently -k -c \"bgBlue.bold,bgMagenta.bold\" -n \"CÉREBRO,FACE\" \"npm run dev --prefix backend\" \"npm run dev --prefix projeto-estudio\""
   },
   "devDependencies": {
-    "prisma": "^7.4.2"
   },
   "dependencies": {
-    "@prisma/client": "^7.4.2"
   }
 }

@@ -19,6 +19,10 @@ import FloatingWhatsApp from './components/common/FloatingWhatsApp';
 
 // 🏠 Homepage (carregamento imediato — primeira impressão)
 import HomePage from './components/pages/HomePage';
+import Maintenance from './components/sections/Maintenance';
+
+// 🛠️ MODO DE MANUTENÇÃO (Ativar para o lançamento no novo domínio)
+const MAINTENANCE_MODE = true;
 
 // ⚡ Code-Splitting: Páginas carregadas sob demanda (React.lazy)
 const ServicesPage = React.lazy(() => import('./components/pages/ServicesPage'));
@@ -28,6 +32,7 @@ const BookingPage = React.lazy(() => import('./components/pages/BookingPage'));
 const ContactPage = React.lazy(() => import('./components/pages/ContactPage'));
 const FAQPage = React.lazy(() => import('./components/pages/FAQPage'));
 const GiftCardsPage = React.lazy(() => import('./components/pages/GiftCardsPage'));
+const BoutiquePage = React.lazy(() => import('./components/pages/BoutiquePage'));
 const LoginPage = React.lazy(() => import('./components/pages/LoginPage'));
 const ClientLoginPage = React.lazy(() => import('./components/pages/ClientLoginPage'));
 const VipArea = React.lazy(() => import('./components/vip/VipArea'));
@@ -43,6 +48,8 @@ const AdminVipArea = React.lazy(() => import('./components/admin/VipArea'));
 const BlockManagement = React.lazy(() => import('./components/admin/BlockManagement'));
 const SettingsPage = React.lazy(() => import('./components/admin/SettingsPage'));
 const ReportsPage = React.lazy(() => import('./components/admin/ReportsPage'));
+const AccountantDashboard = React.lazy(() => import('./components/admin/AccountantDashboard'));
+const UserManagement = React.lazy(() => import('./components/admin/UserManagement'));
 import { AdminDataProvider } from './contexts/AdminDataContext';
 const NotFoundPage = React.lazy(() => import('./components/common/NotFoundPage'));
 
@@ -54,10 +61,10 @@ const LazyFallback = () => (
 );
 
 // Proteção de Rota
-const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: 'admin' | 'client' }) => {
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
   const { isAuthenticated, user } = useAuth();
-  if (!isAuthenticated) return <Navigate to={role === 'admin' ? '/login' : '/vip/login'} />;
-  if (user?.role !== role) return <Navigate to="/" />;
+  if (!isAuthenticated) return <Navigate to={allowedRoles.some(r => r !== 'CLIENT') ? '/login' : '/vip/login'} />;
+  if (!user || !allowedRoles.includes(user.role)) return <Navigate to="/" />;
   return <>{children}</>;
 };
 
@@ -85,17 +92,32 @@ const AppContent = () => {
 
       <Suspense fallback={<LazyFallback />}>
         <Routes>
-          {/* 🏠 Home */}
-          <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
-
-          {/* 📄 Páginas Públicas */}
-          <Route path="/servicos" element={<PublicLayout><ServicesPage /></PublicLayout>} />
-          <Route path="/portfolio" element={<PublicLayout><PortfolioPage /></PublicLayout>} />
-          <Route path="/sobre" element={<PublicLayout><AboutPage /></PublicLayout>} />
-          <Route path="/agendar" element={<PublicLayout><BookingPage /></PublicLayout>} />
-          <Route path="/contacto" element={<PublicLayout><ContactPage /></PublicLayout>} />
-          <Route path="/faq" element={<PublicLayout><FAQPage /></PublicLayout>} />
-          <Route path="/cartoes-presente" element={<PublicLayout><GiftCardsPage /></PublicLayout>} />
+          {/* 🏠 Home & Públicas (Condicionado a Manutenção) */}
+          {MAINTENANCE_MODE ? (
+            <>
+              <Route path="/" element={<Maintenance />} />
+              <Route path="/servicos" element={<Maintenance />} />
+              <Route path="/portfolio" element={<Maintenance />} />
+              <Route path="/sobre" element={<Maintenance />} />
+              <Route path="/agendar" element={<Maintenance />} />
+              <Route path="/contacto" element={<Maintenance />} />
+              <Route path="/faq" element={<Maintenance />} />
+              <Route path="/cartoes-presente" element={<Maintenance />} />
+              <Route path="/boutique" element={<Maintenance />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+              <Route path="/servicos" element={<PublicLayout><ServicesPage /></PublicLayout>} />
+              <Route path="/portfolio" element={<PublicLayout><PortfolioPage /></PublicLayout>} />
+              <Route path="/sobre" element={<PublicLayout><AboutPage /></PublicLayout>} />
+              <Route path="/agendar" element={<PublicLayout><BookingPage /></PublicLayout>} />
+              <Route path="/contacto" element={<PublicLayout><ContactPage /></PublicLayout>} />
+              <Route path="/faq" element={<PublicLayout><FAQPage /></PublicLayout>} />
+              <Route path="/cartoes-presente" element={<PublicLayout><GiftCardsPage /></PublicLayout>} />
+              <Route path="/boutique" element={<PublicLayout><BoutiquePage /></PublicLayout>} />
+            </>
+          )}
 
           {/* ⚖️ Legais */}
           <Route path="/politica-privacidade" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
@@ -107,7 +129,7 @@ const AppContent = () => {
 
           {/* 🏛️ Admin — Sidebar Layout com Sub-rotas */}
           <Route path="/dashboard" element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_STAFF', 'ACCOUNTANT']}>
               <AdminDataProvider>
                 <AdminLayout />
               </AdminDataProvider>
@@ -118,13 +140,15 @@ const AppContent = () => {
             <Route path="agenda" element={<BookingsTable />} />
             <Route path="clientes" element={<AdminVipArea />} />
             <Route path="bloqueios" element={<BlockManagement />} />
+            <Route path="equipa" element={<UserManagement />} />
             <Route path="configuracoes" element={<SettingsPage />} />
             <Route path="relatorios" element={<ReportsPage />} />
+            <Route path="contabilidade" element={<AccountantDashboard />} />
           </Route>
 
           {/* 💎 Área VIP */}
           <Route path="/vip" element={
-            <ProtectedRoute role="client">
+            <ProtectedRoute allowedRoles={['CLIENT']}>
               <VipArea />
             </ProtectedRoute>
           } />

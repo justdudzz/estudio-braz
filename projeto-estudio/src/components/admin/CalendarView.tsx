@@ -121,9 +121,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, isLoading, onConf
                                                 {dayBookings.slice(0, 3).map(b => (
                                                     <div
                                                         key={b.id}
+                                                        title={`${b.client?.name} com ${b.staff?.displayName || 'Equipa'}`}
                                                         className={`p-1 rounded text-[7px] md:text-[8px] font-bold uppercase truncate border ${getBookingColorClasses(b.status, 'calendar')}`}
                                                     >
                                                         {b.time} {b.client?.name?.split(' ')[0] || 'ADMIN'}
+                                                        <span className="opacity-40 ml-1">[{b.staff?.displayName?.split(' ')[0] || '?'}]</span>
                                                     </div>
                                                 ))}
                                                 {dayBookings.length > 3 && (

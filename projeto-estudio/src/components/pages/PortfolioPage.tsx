@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Filter } from 'lucide-react';
+import { X, Filter, Trash2 } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PortfolioItem {
     src: string;
@@ -10,20 +11,19 @@ interface PortfolioItem {
 }
 
 const portfolioItems: PortfolioItem[] = [
-    { src: '/assets/resultados/microb1.jpeg', label: 'Microblading Fio a Fio', category: 'Sobrancelhas' },
-    { src: '/assets/resultados/microb2.jpeg', label: 'Design Natural', category: 'Sobrancelhas' },
-    { src: '/assets/resultados/unhas7.jpeg', label: 'Nail Art Exclusiva', category: 'Unhas' },
-    { src: '/assets/resultados/unhas10.jpeg', label: 'Gel Premium', category: 'Unhas' },
-    { src: '/assets/resultados/unhas11.jpeg', label: 'Verniz Gel Clássico', category: 'Unhas' },
-    { src: '/assets/resultados/rosto.jpeg', label: 'Limpeza Profunda', category: 'Rosto' },
-    { src: '/assets/resultados/laser_depilacao.png', label: 'Laser: 1ª Sessão', category: 'Depilação' },
-    { src: '/assets/resultados/smooth_legs.png', label: 'Pele Suave', category: 'Depilação' },
+    { src: '/assets/resultados/microb1.jpeg', label: 'Microblading Fio a Fio', category: 'Mariana Braz' },
+    { src: '/assets/resultados/microb2.jpeg', label: 'Design Natural', category: 'Mariana Braz' },
+    { src: '/assets/resultados/unhas7.jpeg', label: 'Nail Art Exclusiva', category: 'Equipa Braz' },
+    { src: '/assets/resultados/unhas10.jpeg', label: 'Gel Premium', category: 'Equipa Braz' },
+    { src: '/assets/resultados/unhas11.jpeg', label: 'Verniz Gel Clássico', category: 'Equipa Braz' },
+    { src: '/assets/resultados/rosto.jpeg', label: 'Limpeza Profunda', category: 'Equipa Braz' },
 ];
 
 const categories = ['Todos', ...Array.from(new Set(portfolioItems.map(i => i.category)))];
 
 const PortfolioPage: React.FC = () => {
     useEffect(() => { document.title = `Portfólio | ${BUSINESS_INFO.name}`; }, []);
+    const { isAdmin } = useAuth();
     const [filter, setFilter] = useState('Todos');
     const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
 
@@ -88,9 +88,30 @@ const PortfolioPage: React.FC = () => {
                                     {/* Content */}
                                     <div className="absolute inset-0 p-8 flex flex-col justify-end transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 z-30">
                                         <div className="overflow-hidden mb-2">
-                                            <p className="text-braz-gold text-[9px] font-black uppercase tracking-[0.2em] transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">{item.category}</p>
+                                            <p className="text-braz-gold text-[9px] font-black uppercase tracking-[0.2em] transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                                                Obra por: {item.category}
+                                            </p>
                                         </div>
-                                        <p className="text-white text-lg font-bold font-montserrat tracking-tight opacity-90 group-hover:opacity-100">{item.label}</p>
+                                        <div className="flex justify-between items-end">
+                                            <p className="text-white text-lg font-bold font-montserrat tracking-tight opacity-90 group-hover:opacity-100">{item.label}</p>
+                                            
+                                            {isAdmin && (
+                                                <motion.button 
+                                                  whileHover={{ scale: 1.1 }}
+                                                  whileTap={{ scale: 0.9 }}
+                                                  onClick={(e) => { 
+                                                    e.stopPropagation(); 
+                                                    if(window.confirm('Eliminar esta obra do portfólio permanentemente?')) {
+                                                        alert('Obra eliminada com sucesso (Mock)');
+                                                    }
+                                                  }}
+                                                  className="p-3 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all backdrop-blur-md border border-red-500/20 shadow-lg"
+                                                  title="One-Click Delete (Super Admin)"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </motion.button>
+                                            )}
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -124,12 +145,21 @@ const PortfolioPage: React.FC = () => {
                             <div className="relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] border border-white/10">
                                 <img src={lightbox.src} alt={lightbox.label} className="w-full max-h-[80vh] object-contain bg-[#050505]" />
 
-                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-8 md:p-12 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 to-transparent p-8 md:p-12">
                                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                                         <div>
-                                            <p className="text-braz-gold text-[10px] uppercase font-black tracking-[0.3em] mb-2">{lightbox.category}</p>
+                                            <p className="text-braz-gold text-[10px] uppercase font-black tracking-[0.3em] mb-2">Artista: {lightbox.category}</p>
                                             <p className="text-white text-2xl md:text-3xl font-montserrat font-black uppercase tracking-tight">{lightbox.label}</p>
                                         </div>
+                                        
+                                        {isAdmin && (
+                                            <button 
+                                              onClick={() => { if(window.confirm('Eliminar esta obra?')) setLightbox(null); }}
+                                              className="bg-red-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:bg-red-600 transition-all"
+                                            >
+                                                <Trash2 size={14} /> Eliminar Obra
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

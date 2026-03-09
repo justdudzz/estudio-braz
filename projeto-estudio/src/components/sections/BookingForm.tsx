@@ -1,22 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { User, Calendar as CalendarIcon, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BUSINESS_INFO, SERVICES_CONFIG, OPENING_HOURS } from '../../utils/constants';
-import { validateEmail } from '../../utils/security';
-import { createNewBooking } from '../../services/bookingService';
+import React, { useState, useEffect } from 'react';
+import { Loader2, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { createNewBooking, getBusySlots } from '../../services/bookingService';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const BookingForm: React.FC = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', date: '', time: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', serviceIds: [] as string[], staffId: '', date: '', time: '' });
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [bookingStep, setBookingStep] = useState(0); // 0: Staff, 1: Services, 2: Date/Time, 3: Contact
+  const { user } = useAuth();
 
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const response = await api.get('/staff/services');
+        setStaffList(response.data);
+      } catch (error) {
+        console.error("Erro ao carregar staff:", error);
+      }
+    };
+    fetchStaff();
+  }, []);
 
   const changeMonth = (offset: number) => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
@@ -25,116 +39,60 @@ const BookingForm: React.FC = () => {
   const isDateDisabled = (year: number, month: number, day: number) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const dateToCompare = new Date(year, month, day);
     dateToCompare.setHours(0, 0, 0, 0);
-
-    return dateToCompare <= today || dateToCompare.getDay() === 0;
+    const dayOfWeek = dateToCompare.getDay();
+    // Permitir Sábados (6) para verificação VIP no backend
+    return dateToCompare <= today || dayOfWeek === 0;
   };
-
-  const calculateFreeSlots = useCallback((dateStr: string, serviceKey: string, busyTimes: string[]) => {
-    const service = SERVICES_CONFIG[serviceKey as keyof typeof SERVICES_CONFIG] ?? { duration: 60, buffer: 10 };
-    const totalDuration = service.duration + (service.buffer || 0);
-
-    const stableDate = new Date(`${dateStr}T12:00:00Z`);
-    const weekDay = stableDate.getDay();
-
-    if (weekDay === 0) return [];
-
-    const isWeekend = weekDay === 6;
-    const startHour = isWeekend ? OPENING_HOURS.weekendStart : OPENING_HOURS.start;
-    const endHour = isWeekend ? OPENING_HOURS.weekendEnd : OPENING_HOURS.end;
-    const slots: string[] = [];
-
-    for (let time = startHour * 60; time + totalDuration <= endHour * 60; time += 30) {
-      let canBook = true;
-
-      for (let checkTime = time; checkTime < time + totalDuration; checkTime += 30) {
-        const checkH = Math.floor(checkTime / 60).toString().padStart(2, '0');
-        const checkM = (checkTime % 60).toString().padStart(2, '0');
-        const checkTimeStr = `${checkH}:${checkM}`;
-
-        if (busyTimes.includes(checkTimeStr)) {
-          canBook = false;
-          break;
-        }
-      }
-
-      if (canBook) {
-        const h = Math.floor(time / 60).toString().padStart(2, '0');
-        const m = (time % 60).toString().padStart(2, '0');
-        slots.push(`${h}:${m}`);
-      }
-    }
-    return slots;
-  }, []);
 
   useEffect(() => {
     const fetchAvailability = async () => {
-      if (!formData.date || !formData.service) return;
-      setIsLoadingSlots(true);
+      if (!formData.date || formData.serviceIds.length === 0 || !formData.staffId) return;
+      setIsLoading(true);
       try {
-        const response = await api.get(`/bookings/check?date=${formData.date}`);
-        const busyBookings = response.data;
-        const free = calculateFreeSlots(formData.date, formData.service, busyBookings);
-        setAvailableSlots(free);
+        const slots = await getBusySlots(formData.date, formData.staffId, (user as any)?.clientId);
+        setAvailableSlots(slots);
       } catch (error) {
-        setAvailableSlots(calculateFreeSlots(formData.date, formData.service, []));
+        setAvailableSlots([]);
       } finally {
-        setIsLoadingSlots(false);
+        setIsLoading(false);
       }
     };
     fetchAvailability();
-  }, [formData.date, formData.service, calculateFreeSlots]);
+  }, [formData.date, formData.serviceIds, formData.staffId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  const toggleService = (id: string) => {
+    setFormData(prev => {
+      const alreadySelected = prev.serviceIds.includes(id);
+      if (alreadySelected) {
+        return { ...prev, serviceIds: prev.serviceIds.filter(sid => sid !== id) };
+      } else {
+        return { ...prev, serviceIds: [...prev.serviceIds, id] };
+      }
+    });
   };
 
-  // Validação do Formulário
-  const validateForm = () => {
+  const validateStep = (step: number) => {
     const newErrors: Record<string, string> = {};
-
-    // 1. Nome continua a ser a única exigência absoluta inicial
-    if (!formData.name.trim() || formData.name.trim().length < 3) {
-      newErrors.name = "Nome muito curto";
-    }
-
-    // 2. A REGRA DE OURO: Se a cliente não forneceu nem email, nem telemóvel
-    if (!formData.email.trim() && !formData.phone.trim()) {
-      newErrors.phone = "Introduza pelo menos um contacto (E-mail ou Telemóvel).";
-      newErrors.email = "Introduza pelo menos um contacto (E-mail ou Telemóvel).";
-    }
-
-    // 3. Validação de Formato (Só é ativada se a cliente tiver escrito algo no campo)
-    if (formData.email.trim() && !validateEmail(formData.email)) {
-      newErrors.email = "Formato de e-mail inválido.";
-    }
-
-    if (formData.phone.trim()) {
-      const cleanPhone = formData.phone.replace(/\D/g, '');
-      if (cleanPhone.length < 9) {
-        newErrors.phone = "Telemóvel inválido (mínimo 9 dígitos).";
-      }
-    }
-
-    // 4. Validação da Agenda
-    if (!formData.service) newErrors.service = "Selecione um serviço.";
-    if (!formData.date) newErrors.date = "Escolha uma data.";
-    if (!formData.time) newErrors.time = "Escolha um horário.";
-
+    if (step === 0 && !formData.staffId) newErrors.staffId = "Escolha um profissional.";
+    if (step === 1 && formData.serviceIds.length === 0) newErrors.serviceIds = "Escolha pelo menos um serviço.";
+    if (step === 2 && (!formData.date || !formData.time)) newErrors.dateTime = "Escolha data e hora.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const nextStep = () => {
+    if (validateStep(bookingStep)) setBookingStep(prev => prev + 1);
+  }
+
+  const prevStep = () => setBookingStep(prev => prev - 1);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
     setStatus('submitting');
     try {
-      await createNewBooking(formData);
+      await createNewBooking(formData as any);
       setStatus('success');
     } catch (error: any) {
       alert(error || "Erro ao processar.");
@@ -147,14 +105,12 @@ const BookingForm: React.FC = () => {
     const month = currentMonth.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDay = new Date(year, month, 1).getDay();
-
     const startingEmptyCells = firstDay === 0 ? 6 : firstDay - 1;
     const days = [];
-
-    const weekDays = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
+    const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
     weekDays.forEach((day, idx) => days.push(
-      <div key={`h-${idx}`} className="text-center text-[10px] font-bold font-montserrat text-white/30 uppercase py-2">{day}</div>
+      <div key={`h-${idx}`} className="text-center text-[10px] font-bold text-white/30 uppercase py-2">{day}</div>
     ));
 
     for (let i = 0; i < startingEmptyCells; i++) days.push(<div key={`empty-${i}`} className="p-2"></div>);
@@ -165,14 +121,13 @@ const BookingForm: React.FC = () => {
       const isSelected = formData.date === dateStr;
 
       days.push(
-        <motion.button
-          whileTap={{ scale: 0.95 }}
+        <button
           key={d} type="button" disabled={isDisabled}
           onClick={() => setFormData(prev => ({ ...prev, date: dateStr, time: '' }))}
-          className={`h-10 w-full flex items-center justify-center rounded-xl text-sm font-montserrat transition-all duration-300 ${isDisabled ? 'opacity-10 cursor-not-allowed' : isSelected ? 'bg-gradient-to-br from-braz-gold to-[#e3c178] text-black font-black shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-[1.05]' : 'text-white/60 hover:bg-white/5 border border-white/5 hover:border-braz-gold/30 hover:text-white'}`}
+          className={`h-10 w-full flex items-center justify-center rounded-xl text-sm transition-all ${isDisabled ? 'opacity-10' : isSelected ? 'bg-braz-gold text-black font-bold' : 'text-white/60 hover:bg-white/5'}`}
         >
           {d}
-        </motion.button>
+        </button>
       );
     }
     return days;
@@ -180,204 +135,142 @@ const BookingForm: React.FC = () => {
 
   if (status === 'success') {
     return (
-      <section className="py-32 bg-gradient-to-b from-braz-black to-[#050505] flex items-center justify-center min-h-screen">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#121212]/90 backdrop-blur-xl p-12 md:p-16 rounded-[2rem] border border-white/10 text-center max-w-lg shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-braz-gold to-transparent opacity-50" />
-          <CheckCircle2 className="w-20 h-20 text-braz-gold mx-auto mb-8 drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]" strokeWidth={1.5} />
-          <h2 className="text-3xl font-montserrat font-black text-white mb-4 uppercase tracking-tighter">Reserva Confirmada</h2>
-          <p className="text-white/50 mb-10 text-sm leading-relaxed font-medium">A sua marcação no Studio Braz foi registada com sucesso.<br />A nossa equipa entrará em contacto muito brevemente.</p>
-          <button onClick={() => window.location.reload()} className="w-full bg-gradient-to-r from-braz-gold to-[#e3c178] text-black px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+      <section className="py-32 bg-[#080808] flex items-center justify-center min-h-screen">
+        <div className="bg-[#121212] p-16 rounded-[2rem] border border-white/10 text-center max-w-lg shadow-2xl">
+          <CheckCircle2 className="w-20 h-20 text-braz-gold mx-auto mb-8" />
+          <h2 className="text-3xl font-black text-white mb-4 uppercase">Reserva Recebida</h2>
+          <p className="text-white/50 mb-10 text-sm">A sua marcação no Studio Braz foi registada com sucesso.</p>
+          <button onClick={() => window.location.reload()} className="w-full bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest">
             Novo Agendamento
           </button>
-        </motion.div>
+        </div>
       </section>
     );
   }
 
+  const selectedStaff = staffList.find(s => s.id === formData.staffId);
+
   return (
-    <section id="agendamento" className="py-32 bg-gradient-to-b from-[#080808] to-braz-black relative flex items-center justify-center p-4 min-h-screen">
-      {/* Decoração de Fundo */}
-      <div className="absolute top-0 left-0 w-full h-[600px] bg-braz-gold/5 blur-[150px] pointer-events-none z-0"></div>
-
-      <div className="container mx-auto max-w-[1200px] relative z-10">
-
-        {/* Cabeçalho Luxuoso do Agendamento */}
-        <div className="text-center mb-20 pt-10">
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-braz-gold text-[10px] font-black uppercase tracking-[0.4em] mb-4">
-            Concierge
-          </motion.p>
-          <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} className="text-5xl md:text-7xl font-montserrat font-black text-white uppercase tracking-tighter mb-8 relative z-20">
-            Reserva <span className="text-transparent bg-clip-text bg-gradient-to-r from-braz-gold to-[#e3c178] drop-shadow-sm">Exclusiva</span>
-          </motion.h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-white/50 font-medium text-sm md:text-base max-w-2xl mx-auto leading-relaxed relative z-20">
-            Garanta o seu momento de cuidado no Studio Braz. Preencha os detalhes abaixo para aceder à nossa agenda oficial e confirmar o seu horário.
-          </motion.p>
+    <section className="py-20 bg-[#080808] min-h-screen text-white flex items-center justify-center p-6">
+      <div className="container max-w-4xl bg-[#101010]/80 backdrop-blur-2xl p-10 rounded-[3rem] border border-white/5 shadow-2xl">
+        
+        {/* Step Indicator */}
+        <div className="flex gap-4 mb-14">
+          {[0, 1, 2, 3].map(s => (
+            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${bookingStep >= s ? 'bg-braz-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]' : 'bg-white/10'}`}></div>
+          ))}
         </div>
 
-        <div className="bg-[#101010]/80 backdrop-blur-2xl p-8 lg:p-14 rounded-[2.5rem] border border-white/5 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden group">
-
-          {/* Brilho hover subconsciente */}
-          <div className="absolute inset-0 bg-gradient-to-br from-braz-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
-
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 relative z-10">
-
-            <div className="space-y-12">
-              {/* Passo 1 - Progresso */}
-              <div className="flex gap-2 mb-10 hidden">
-                <div className="h-1 flex-1 bg-braz-gold rounded-full shadow-[0_0_10px_rgba(197,160,89,0.5)]"></div>
-                <div className="h-1 w-8 bg-white/10 rounded-full"></div>
-                <div className="h-1 w-8 bg-white/10 rounded-full"></div>
-              </div>
-
-              {/* Passo 1 */}
-              <div>
-                <div className="flex items-center space-x-5 border-b border-white/5 pb-6 mb-10">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-braz-gold/20 to-transparent flex items-center justify-center text-braz-gold font-black text-sm border border-braz-gold/30 shadow-[0_0_15px_rgba(197,160,89,0.1)]">1</div>
-                  <h3 className="text-2xl font-montserrat font-black text-white uppercase tracking-tighter">Sua Identidade</h3>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="relative group/input">
-                    <label className="text-[10px] font-black font-montserrat text-white/50 uppercase tracking-[0.2em] mb-4 block group-focus-within/input:text-braz-gold transition-colors">Nome Completo *</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium" placeholder="Como prefere ser chamada?" />
-                    {errors.name && <p className="text-red-500 text-xs mt-2 font-medium">{errors.name}</p>}
-                  </div>
-
-                  <div className="relative group/input">
-                    <label className="text-[10px] font-black font-montserrat text-white/50 uppercase tracking-[0.2em] mb-4 block group-focus-within/input:text-braz-gold transition-colors">
-                      E-mail {formData.phone.length > 8 ? '(Opcional)' : '*'}
-                    </label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium" placeholder="geral@exemplo.pt" />
-                    {errors.email && <p className="text-red-500 text-xs mt-2 font-medium">{errors.email}</p>}
-                  </div>
-
-                  <div className="relative group/input">
-                    <label className="text-[10px] font-black font-montserrat text-white/50 uppercase tracking-[0.2em] mb-4 block group-focus-within/input:text-braz-gold transition-colors">
-                      Telemóvel {formData.email.includes('@') ? '(Opcional)' : '*'}
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
-                      className="w-full p-5 bg-[#0A0A0A] rounded-2xl text-white outline-none border border-white/5 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all text-[16px] placeholder:text-white/20 font-medium"
-                      placeholder="+351 900 000 000"
-                    />
-                    {errors.phone && <p className="text-red-500 text-xs mt-2 font-medium">{errors.phone}</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="hidden lg:block pt-12">
-                <button type="submit" disabled={status === 'submitting'} className="w-full bg-gradient-to-r from-braz-gold to-[#e3c178] text-black py-6 rounded-2xl font-black font-montserrat uppercase tracking-[0.2em] text-[11px] hover:shadow-[0_0_40px_rgba(197,160,89,0.4)] active:scale-95 transition-all duration-300 flex items-center justify-center">
-                  {status === 'submitting' ? <Loader2 className="animate-spin w-5 h-5" /> : 'Solicitar Horário'}
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-b from-[#0A0A0A] to-[#050505] p-8 lg:p-12 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col h-full min-h-[600px] relative">
-              {/* Subtle top glow */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-              {/* Passo 2 */}
-              <div className="mb-10 border-b border-white/5 pb-10">
-                <div className="flex items-center space-x-5 mb-8">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-braz-gold/20 to-transparent flex items-center justify-center text-braz-gold font-black text-sm border border-braz-gold/30 shadow-[0_0_15px_rgba(197,160,89,0.1)]">2</div>
-                  <h3 className="text-2xl font-montserrat font-black text-white uppercase tracking-tighter">A Experiência</h3>
-                </div>
-
-                <div className="relative group/select">
-                  <select name="service" value={formData.service} onChange={handleChange} className={`w-full p-5 bg-[#121212] rounded-2xl text-white border outline-none cursor-pointer transition-all text-[16px] font-medium appearance-none group-hover/select:border-braz-gold/50 ${errors.service ? 'border-red-500/50' : 'border-white/10 focus:border-braz-gold focus:shadow-[0_0_20px_rgba(197,160,89,0.15)]'}`}>
-                    <option value="" className="text-white/20">Selecione o Tratamento Desejado...</option>
-                    {Object.entries(SERVICES_CONFIG).map(([key, s]: any) => (
-                      <option key={key} value={key} className="bg-[#121212] py-2">{s.label}</option>
-                    ))}
-                  </select>
-                  <ChevronRight size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 rotate-90 pointer-events-none group-hover/select:text-braz-gold transition-colors" />
-                </div>
-                {errors.service && <p className="text-red-500 text-xs mt-2 font-medium">{errors.service}</p>}
-              </div>
-
-              {/* Passo 3 */}
-              <AnimatePresence mode="wait">
-                {formData.service ? (
-                  <motion.div key="calendar-active" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8 flex-grow">
-
-                    <div className="flex items-center space-x-5 mb-4">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-braz-gold/20 to-transparent flex items-center justify-center text-braz-gold font-black text-sm border border-braz-gold/30 shadow-[0_0_15px_rgba(197,160,89,0.1)]">3</div>
-                      <h3 className="text-2xl font-montserrat font-black text-white uppercase tracking-tighter">O Horário</h3>
-                    </div>
-
-                    <div className="bg-[#121212] p-8 rounded-3xl border border-white/5 shadow-xl">
-                      <div className="flex justify-between items-center mb-8">
-                        <button type="button" onClick={() => changeMonth(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all outline-none"><ChevronLeft size={16} strokeWidth={1.5} /></button>
-                        <span className="text-white text-[11px] font-black font-montserrat tracking-[0.2em] uppercase">{currentMonth.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
-                        <button type="button" onClick={() => changeMonth(1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-braz-gold hover:border-braz-gold/30 hover:bg-braz-gold/5 transition-all outline-none"><ChevronRight size={16} strokeWidth={1.5} /></button>
+        <form onSubmit={handleSubmit}>
+          {bookingStep === 0 && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+              <h3 className="text-4xl font-black uppercase tracking-tighter">Quem a irá atender?</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {staffList.map((s: any) => (
+                  <button key={s.id} type="button" onClick={() => { setFormData(prev => ({ ...prev, staffId: s.id, serviceIds: [] })); nextStep(); }} className={`p-8 rounded-3xl border transition-all text-left flex items-center space-x-6 ${formData.staffId === s.id ? 'border-braz-gold bg-braz-gold/5' : 'border-white/5 bg-white/5 hover:border-white/20'}`}>
+                    {s.photoUrl ? (
+                      <img src={s.photoUrl} alt={s.displayName || s.email} className="w-20 h-20 rounded-2xl object-cover border border-braz-gold/20" />
+                    ) : (
+                      <div className="w-20 h-20 bg-gradient-to-br from-braz-gold/20 to-transparent rounded-2xl flex items-center justify-center text-braz-gold font-black text-2xl uppercase border border-braz-gold/20">
+                        {(s.displayName || s.email).charAt(0)}
                       </div>
-                      <div className="grid grid-cols-7 gap-y-3 gap-x-1">
-                        {renderCalendar()}
-                      </div>
-                      {errors.date && <p className="text-red-500 text-center text-xs mt-4 font-medium">{errors.date}</p>}
+                    )}
+                    <div>
+                      <p className="text-xl font-bold">{s.displayName || s.email.split('@')[0]}</p>
+                      <p className="text-white/40 text-xs uppercase tracking-widest">{s.role === 'SUPER_ADMIN' ? 'Diretora' : 'Especialista'}</p>
                     </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-                    <div className="min-h-[150px]">
-                      {isLoadingSlots ? (
-                        <div className="flex items-center justify-center pt-10"><Loader2 className="animate-spin w-8 h-8 text-braz-gold" /></div>
-                      ) : formData.date ? (
-                        availableSlots.length > 0 ? (
-                          <>
-                            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-3">
-                              {availableSlots.map((t) => (
-                                <motion.button
-                                  whileTap={{ scale: 0.95 }}
-                                  key={t}
-                                  type="button"
-                                  onClick={() => setFormData(p => ({ ...p, time: t }))}
-                                  className={`py-4 rounded-xl text-[12px] font-black font-montserrat transition-all border ${formData.time === t ? 'bg-gradient-to-br from-braz-gold to-[#e3c178] text-black border-braz-gold shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-[1.05]' : 'bg-[#121212] text-white/60 border-white/5 hover:border-braz-gold/40 hover:text-white'}`}
-                                >
-                                  {t}
-                                </motion.button>
-                              ))}
-                            </div>
-                            {errors.time && <p className="text-red-500 text-center text-xs mt-4 font-medium">{errors.time}</p>}
-                          </>
-                        ) : (
-                          <div className="text-center py-12 border border-white/5 rounded-3xl bg-[#121212]">
-                            <p className="text-braz-gold text-[10px] font-black uppercase tracking-[0.2em]">Agenda Esgotada</p>
-                            <p className="text-white/40 text-xs mt-3 font-medium">Os nossos especialistas não têm vagas neste dia.<br />Tente selecionar outra data.</p>
-                          </div>
-                        )
-                      ) : (
-                        <div className="text-center py-16 opacity-40 flex flex-col items-center border border-dashed border-white/10 rounded-3xl bg-[#121212]/30">
-                          <p className="text-[10px] uppercase font-black tracking-[0.3em] mb-3 text-braz-gold">Horários em Tempo Real</p>
-                          <p className="text-sm font-medium">Selecione o dia no calendário acima</p>
-                        </div>
+          {bookingStep === 1 && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+              <div className="flex justify-between items-end">
+                <h3 className="text-4xl font-black uppercase tracking-tighter">Escolha os Serviços</h3>
+                <p className="text-braz-gold text-[10px] font-black uppercase tracking-widest bg-braz-gold/10 px-4 py-2 rounded-full border border-braz-gold/20">Profissional: {selectedStaff?.displayName || selectedStaff?.email.split('@')[0]}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedStaff?.providedServices.map((s: any) => (
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`p-6 rounded-2xl border transition-all text-left flex justify-between items-center ${formData.serviceIds.includes(s.id) ? 'border-braz-gold bg-braz-gold/5' : 'border-white/5 bg-white/5 hover:border-white/20'}`}>
+                    <div>
+                      <p className="font-bold">{s.label}</p>
+                      <p className="text-white/40 text-xs">{s.duration} min • {s.price}€</p>
+                    </div>
+                    {formData.serviceIds.includes(s.id) && <CheckCircle2 className="text-braz-gold" size={20} />}
+                  </button>
+                ))}
+              </div>
+              <div className="flex space-x-4">
+                <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Voltar</button>
+                <button type="button" onClick={nextStep} className="flex-[2] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Continuar</button>
+              </div>
+            </motion.div>
+          )}
+
+          {bookingStep === 2 && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+              <h3 className="text-4xl font-black uppercase tracking-tighter">O Momento</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="bg-white/5 p-8 rounded-3xl border border-white/5 shadow-inner">
+                  <div className="flex justify-between items-center mb-8">
+                    <button type="button" onClick={() => changeMonth(-1)} className="p-2 hover:text-braz-gold transition-colors"><ChevronLeft size={20} /></button>
+                    <span className="uppercase font-black text-xs tracking-widest font-montserrat">{currentMonth.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
+                    <button type="button" onClick={() => changeMonth(1)} className="p-2 hover:text-braz-gold transition-colors"><ChevronRight size={20} /></button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {renderCalendar()}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4">Horários Disponíveis</p>
+                  {isLoading ? <div className="flex items-center justify-center h-40"><Loader2 className="animate-spin text-braz-gold" /></div> : (
+                    <div className="grid grid-cols-3 gap-3">
+                      {availableSlots.length > 0 ? availableSlots.map(t => (
+                        <button key={t} type="button" onClick={() => setFormData(p => ({ ...p, time: t }))} className={`py-4 rounded-xl text-[11px] font-bold border transition-all ${formData.time === t ? 'bg-braz-gold text-black border-braz-gold shadow-[0_0_15px_rgba(197,160,89,0.3)]' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}>{t}</button>
+                      )) : (
+                        <div className="col-span-3 text-center py-10 text-white/20 text-xs italic">Sem vagas para esta data.</div>
                       )}
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div key="calendar-locked" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow flex flex-col items-center justify-center text-white/30 text-center p-12 border border-dashed border-white/10 rounded-3xl bg-[#121212]/30">
-                    <div className="relative mb-8">
-                      <div className="absolute inset-0 bg-braz-gold/20 blur-2xl rounded-full" />
-                      <CalendarIcon size={50} className="relative z-10 opacity-30 text-braz-gold" strokeWidth={1.5} />
-                      <Sparkles size={20} className="absolute -top-2 -right-2 text-braz-gold animate-pulse z-20" />
-                    </div>
-                    <p className="text-[11px] font-black font-montserrat uppercase tracking-[0.2em] leading-loose text-white/50">
-                      Selecione uma experiência<br />para revelar os horários exclusivos
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  )}
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Voltar</button>
+                <button type="button" onClick={nextStep} className="flex-[2] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Confirmar Horário</button>
+              </div>
+            </motion.div>
+          )}
 
-              <div className="lg:hidden mt-8">
-                <button type="submit" disabled={status === 'submitting'} className="w-full bg-gradient-to-r from-braz-gold to-[#e3c178] text-black py-6 rounded-2xl font-black font-montserrat uppercase tracking-[0.2em] text-[11px] shadow-[0_0_30px_rgba(197,160,89,0.3)] active:scale-95 transition-all flex justify-center items-center">
-                  {status === 'submitting' ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Confirmar Reserva'}
+          {bookingStep === 3 && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+              <h3 className="text-4xl font-black uppercase tracking-tighter">Seus Contactos</h3>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2 block">Nome Completo</label>
+                  <input type="text" placeholder="Nome" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className="w-full bg-[#0A0A0A] border border-white/5 p-5 rounded-2xl outline-none focus:border-braz-gold transition-all text-white shadow-inner" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2 block">E-mail</label>
+                    <input type="email" placeholder="email@exemplo.pt" value={formData.email || ''} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} className="w-full bg-[#0A0A0A] border border-white/5 p-5 rounded-2xl outline-none focus:border-braz-gold transition-all text-white shadow-inner" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2 block">Telemóvel</label>
+                    <input type="tel" placeholder="9xxxxxxxx" value={formData.phone || ''} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className="w-full bg-[#0A0A0A] border border-white/5 p-5 rounded-2xl outline-none focus:border-braz-gold transition-all text-white shadow-inner" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Voltar</button>
+                <button type="submit" disabled={status === 'submitting'} className="flex-[3] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center">
+                  {status === 'submitting' ? <Loader2 className="animate-spin text-black" /> : 'Confirmar Reserva de Luxo'}
                 </button>
               </div>
-
-            </div>
-          </form>
-        </div>
+            </motion.div>
+          )}
+        </form>
       </div>
     </section>
   );

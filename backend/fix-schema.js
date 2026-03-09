@@ -1,10 +1,13 @@
-generator client {
+import fs from 'fs';
+import path from 'path';
+
+const schemaContent = `generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:braz_master_2026@127.0.0.1:5432/studio_braz?schema=public"
+  url      = "postgresql://postgres:braz_master_2026@localhost:5432/studio_braz?schema=public"
 }
 
 enum UserRole {
@@ -120,3 +123,12 @@ model TokenBlacklist {
 
   @@index([expiresAt])
 }
+`;
+
+const prismaDir = 'c:/Users/Edu/MyProject/backend/prisma';
+if (!fs.existsSync(prismaDir)) {
+  fs.mkdirSync(prismaDir, { recursive: true });
+}
+
+fs.writeFileSync(path.join(prismaDir, 'schema.prisma'), schemaContent, { encoding: 'utf8' });
+console.log('Successfully wrote schema.prisma with UTF-8 encoding');

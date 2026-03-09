@@ -32,7 +32,10 @@ async function seed() {
       create: {
         email,
         password: hashedPassword,
-        role: 'admin'
+        role: 'SUPER_ADMIN',
+        displayName: 'Mariana Braz',
+        photoUrl: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&q=80&w=200',
+        legalName: 'Mariana Braz - Estética Avançada'
       }
     });
 

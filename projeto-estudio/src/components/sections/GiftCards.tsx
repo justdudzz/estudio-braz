@@ -82,7 +82,7 @@ const GiftCards: React.FC = () => {
             Cartões Presente
           </h2>
           <div className="w-20 h-1 bg-braz-gold mx-auto mb-6" />
-          <p className="text-lg text-white/60 font-montserrat">Ofereça um momento de puro luxo e bem-estar.</p>
+          <p className="text-lg text-white/60 font-montserrat">Ofereça um momento de autoestima e bem-estar.</p>
         </motion.div>
 
         <div className="bg-[#171717] p-8 md:p-12 rounded-xl shadow-2xl border border-white/5 grid lg:grid-cols-2 gap-12">
@@ -96,10 +96,10 @@ const GiftCards: React.FC = () => {
             <div className="text-center p-6 bg-[#171717] rounded-xl w-full max-w-xs border border-white/5 shadow-2xl">
               <p className="text-xs uppercase text-white/40 tracking-[0.2em] mb-2">Valor do Mimo</p>
               <p className="text-5xl font-extrabold text-braz-gold">€{amount}</p>
-              <p className="text-xs text-white/60 mt-1.5 font-medium">IVA incluído à taxa legal</p>
+              <p className="text-[10px] text-white/60 mt-2 font-medium">Isento de IVA (Art. 53º)</p>
             </div>
 
-            <div className="mt-8 text-[10px] text-white/20 uppercase tracking-widest">Cartão Presente Digital • Válido por 6 Meses</div>
+            <div className="mt-8 text-[10px] text-white/20 uppercase tracking-widest text-center">Cartão Físico • Levantamento na Loja<br/>Válido por 6 Meses</div>
           </div>
 
           {/* Formulário */}
@@ -108,12 +108,6 @@ const GiftCards: React.FC = () => {
               <span className="w-2 h-2 bg-braz-gold rounded-full mr-3" />
               Personalizar Voucher
             </h3>
-
-            {status === 'error' && (
-              <div className="bg-red-500/10 border border-red-500/50 p-4 rounded-xl text-red-400 text-sm text-center font-bold">
-                Ocorreu um erro ao processar o seu pedido. Por favor, tente novamente.
-              </div>
-            )}
 
             <div className="space-y-4">
               <div>
@@ -129,49 +123,44 @@ const GiftCards: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label htmlFor="gc-email" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Email de Envio</label>
-                <input
-                  id="gc-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
-                  placeholder="exemplo@email.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="gc-phone" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Telemóvel</label>
-                <input
-                  id="gc-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 9))}
-                  required
-                  maxLength={9}
-                  className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
-                  placeholder="912 345 678"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="gc-amount" className="block text-xs font-bold text-white/50 uppercase tracking-wider">Valor do Voucher</label>
-                  <span className="text-braz-gold font-bold">€{amount}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="gc-phone" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Telemóvel</label>
+                  <input
+                    id="gc-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 9))}
+                    required
+                    maxLength={9}
+                    className="w-full p-3.5 bg-braz-black border border-white/10 rounded-lg text-white focus:border-braz-gold transition-all outline-none text-[16px]"
+                    placeholder="912 345 678"
+                  />
                 </div>
-                <input
-                  id="gc-amount"
-                  type="range"
-                  min="25"
-                  max="500"
-                  step="25"
-                  value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-braz-gold"
-                />
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor="gc-amount" className="block text-xs font-bold text-white/50 uppercase tracking-wider">Valor (€)</label>
+                    <span className="text-braz-gold font-bold">€{amount}</span>
+                  </div>
+                  <input
+                    id="gc-amount"
+                    type="range"
+                    min="25"
+                    max="200"
+                    step="25"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-braz-gold"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div className="p-4 bg-white/5 border border-white/5 rounded-xl">
+              <p className="text-[10px] text-white/40 uppercase font-black mb-1">Nota Importante:</p>
+              <p className="text-[11px] text-white/60 leading-relaxed">
+                Após o pagamento, o cartão físico ficará disponível para levantamento no Studio Braz em Águeda.
+              </p>
             </div>
 
             <motion.button
@@ -183,7 +172,7 @@ const GiftCards: React.FC = () => {
               {status === 'loading' ? (
                 <><Loader2 className="animate-spin" size={20} strokeWidth={1.5} /><span>A preparar...</span></>
               ) : (
-                <><Gift className="w-5 h-5" strokeWidth={1.5} /><span>Finalizar via WhatsApp</span></>
+                <><Gift className="w-5 h-5" strokeWidth={1.5} /><span>Pedir e Levantar na Loja</span></>
               )}
             </motion.button>
           </form>

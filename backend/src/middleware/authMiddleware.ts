@@ -61,9 +61,29 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
 
-  if (user && user.role === 'admin') {
+  if (user && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_STAFF' || user.role === 'admin')) {
     return next();
   }
 
-  return res.status(403).json({ message: 'Acesso negado. Apenas o Diretor pode entrar aqui.' });
+  return res.status(403).json({ message: 'Acesso negado. Apenas o Diretor ou Staff pode entrar aqui.' });
+};
+
+export const superAdminOnly = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+
+  if (user && (user.role === 'SUPER_ADMIN' || user.role === 'admin')) {
+    return next();
+  }
+
+  return res.status(403).json({ message: 'Acesso negado. Ação exclusiva da Mariana (Super Admin).' });
+};
+
+export const authorize = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({ message: 'Permissões insuficientes para esta operação.' });
+    }
+    next();
+  };
 };

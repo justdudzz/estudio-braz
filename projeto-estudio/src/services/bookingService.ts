@@ -3,11 +3,13 @@ import api from './api';
 // Interface rígida para garantir que os dados estão sempre corretos
 export interface BookingData {
   name: string;
-  email: string;
-  phone: string;
-  service: string;
+  email?: string | null;
+  phone?: string | null;
+  serviceIds: string[];
+  staffId: string;
   date: string;
   time: string;
+  clientId?: string;
 }
 
 export const createNewBooking = async (bookingData: BookingData) => {
@@ -16,6 +18,17 @@ export const createNewBooking = async (bookingData: BookingData) => {
     return response.data;
   } catch (error: any) {
     throw error.response?.data?.message || 'Lamentamos, mas ocorreu um imprevisto na nossa ligação de elite. Por favor, tente novamente.';
+  }
+};
+
+export const getBusySlots = async (date: string, staffId: string, clientId?: string) => {
+  try {
+    const response = await api.get('/bookings/busy-slots', {
+      params: { date, staffId, clientId }
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data?.message || 'Não foi possível carregar os horários disponíveis.';
   }
 };
 
@@ -33,6 +46,15 @@ export const updateBookingStatus = async (id: string, status: 'confirmed' | 'can
 };
 export const deleteBooking = async (id: string) => {
   await api.delete(`/bookings/${id}`);
+};
+
+export const getStaffWithServices = async () => {
+  try {
+    const response = await api.get('/staff/services');
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data?.message || 'Não foi possível carregar a equipa de elite.';
+  }
 };
 
 export const restoreBooking = async (id: string) => {

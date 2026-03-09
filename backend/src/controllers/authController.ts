@@ -115,22 +115,25 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        isTwoFactorEnabled: user.isTwoFactorEnabled
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+        legalName: (user as any).legalName,
+        nif: (user as any).nif
       },
       expiresAt, // Para o frontend saber quando expira (#2)
     });
 
-    logger.info(`Diretor autenticado: ${user.email} | IP: ${clientIp}`);
+    logger.info(`Utilizador autenticado (${user.role}): ${user.email} | IP: ${clientIp}`);
 
   } catch (error: any) {
-    logger.error(`Erro no Login Admin: ${error.message}`);
+    logger.error(`Erro no Login: ${error.message}`);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
 
-// --- 2. LOGIN PARA CLIENTES VIP ---
+// --- 2. LOGIN PARA CLIENTES COM CONTA ---
 export const clientLogin = async (req: Request, res: Response) => {
-  return res.status(400).json({ message: 'Acesso VIP desativado nesta versão.' });
+  // Chamamos a mesma lógica de login, pois agora o User é unificado.
+  return login(req, res);
 };
 
 // --- 3. LOGOUT (Limpar cookies + blacklist) ---
@@ -245,5 +248,106 @@ export const disable2FA = async (req: Request, res: Response) => {
   } catch (err: any) {
     logger.error(`Erro ao desativar 2FA: ${err.message}`);
     res.status(500).json({ message: 'Erro interno ao desativar o 2FA.' });
+  }
+};
+
+// --- 7. LISTAR UTILIZADORES (SUPER ADMIN ONLY) ---
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, role: true, createdAt: true }
+    });
+    res.json(users);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erro ao listar utilizadores.' });
+  }
+};
+
+// --- 8. REGISTAR STAFF/ADMIN (SUPER ADMIN ONLY) ---
+export const registerStaff = async (req: Request, res: Response) => {
+  const { email, password, role, legalName, nif } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = await (prisma.user as any).create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: role || 'ADMIN_STAFF',
+        legalName,
+        nif
+      }
+    });
+    res.status(201).json({ message: 'Utilizador criado com sucesso.', id: user.id });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erro ao criar utilizador.' });
+  }
+};
+
+// --- 9. ATUALIZAR UTILIZADOR (SUPER ADMIN ONLY ou Próprio Utilizador) ---
+export const updateUser = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { displayName, photoUrl, bio, role, legalName, nif, phone, address, services } = req.body;
+  const requester = (req as any).user;
+
+  try {
+    // Apenas Super Admin pode mudar Role ou editar outros utilizadores
+    if (requester.role !== 'SUPER_ADMIN' && requester.id !== id) {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+
+    const data: any = {
+      displayName,
+      photoUrl,
+      bio,
+      legalName,
+      nif,
+      phone,
+      address
+    };
+
+    if (requester.role === 'SUPER_ADMIN' && role) {
+      data.role = role;
+    }
+
+    // Gestão de Serviços (Muitos-para-Muitos)
+    if (services && Array.isArray(services)) {
+      data.providedServices = {
+        set: services.map((sId: string) => ({ id: sId }))
+      };
+    }
+
+    const updatedUser = await (prisma.user as any).update({
+      where: { id },
+      data,
+      include: { providedServices: true }
+    });
+
+    res.json({ message: 'Utilizador atualizado com sucesso.', user: updatedUser });
+  } catch (error: any) {
+    logger.error(`Erro ao atualizar utilizador: ${error.message}`);
+    res.status(500).json({ message: 'Erro ao atualizar dados do utilizador.' });
+  }
+};
+
+// --- 10. OBTER PERFIL (Público ou Privado) ---
+export const getUserProfile = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const user = await (prisma.user as any).findUnique({
+      where: { id },
+      select: {
+        id: true,
+        displayName: true,
+        photoUrl: true,
+        bio: true,
+        role: true,
+        providedServices: true
+      }
+    });
+
+    if (!user) return res.status(404).json({ message: 'Utilizador não encontrado.' });
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erro ao obter perfil.' });
   }
 };

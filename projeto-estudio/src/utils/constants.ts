@@ -6,26 +6,26 @@
 
 export const BUSINESS_INFO = {
     name: "Studio Braz",
-    owner: "Mariana Braz",
-    nif: "123456789",
+    owner: "Mariana Isabel Braz Teixeira",
+    nif: "231377959",
     whatsapp: "351914843087",
-    whatsappMsg: encodeURIComponent("Olá Mariana, gostaria de agendar um momento de luxo no Studio Braz."),
+    whatsappMsg: encodeURIComponent("Olá Mariana, gostaria de agendar um momento de autoestima no Studio Braz."),
     instagram: "studiobraz.estetica",
     instagramUrl: "https://instagram.com/studiobraz.estetica/",
     instagramPersonal: "mariianabraz.estetica",
     instagramPersonalUrl: "https://instagram.com/mariianabraz.estetica/",
-    email: "suporte@estudiobraz.pt",
-    address: "Studio Braz, R. Chão de Frade 3, 3750-303 Águeda",
+    email: "estetica.studiobraz@gmail.com",
+    address: "R. Chão de Frade 3, 3750-303 Águeda (Ameal)",
     addressUrl: "https://maps.google.com/?q=Studio+Braz,+R.+Chão+de+Frade+3,+3750-303+Águeda",
     ralName: "CNIACC - Centro Nacional de Informação e Arbitragem de Conflitos de Consumo",
     ralUrl: "https://www.cniacc.pt/pt/",
+    vatInfo: "Isento de IVA ao abrigo do Artigo 53.º do CIVA",
 } as const;
 
 export const UI_COLORS = {
     gold: "#C5A059",
     black: "#0A0A0A",
     cream: "#F5F5F5",
-    phi: 1.618, // Injeção da Proporção Áurea (Golden Ratio)
 } as const;
 
 /**

@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, clientLogin, logout, generate2FA, verify2FA, disable2FA } from '../controllers/authController.js';
+import { login, clientLogin, logout, generate2FA, verify2FA, disable2FA, getAllUsers, registerStaff, updateUser, getUserProfile } from '../controllers/authController.js';
 import { loginLimiter } from '../middleware/rateLimiter.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -18,5 +18,10 @@ router.post('/logout', protect, logout);
 router.post('/2fa/generate', protect, adminOnly, generate2FA);
 router.post('/2fa/verify', protect, adminOnly, loginLimiter, verify2FA);
 router.post('/2fa/disable', protect, adminOnly, disable2FA);
+
+router.get('/users', protect, adminOnly, getAllUsers);
+router.post('/register-staff', protect, adminOnly, registerStaff);
+router.patch('/users/:id', protect, updateUser);
+router.get('/profile/:id', getUserProfile);
 
 export default router;

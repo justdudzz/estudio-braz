@@ -7,6 +7,9 @@ import compression from 'compression';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import { getStaffWithServices } from './controllers/bookingController.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import logger from './utils/logger.js';
@@ -90,6 +93,9 @@ app.use(generalLimiter);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/staff', staffRoutes);
+app.get('/api/v1/staff/services', getStaffWithServices);
 
 // Health Check
 app.get('/api/v1/health', (req, res) => {

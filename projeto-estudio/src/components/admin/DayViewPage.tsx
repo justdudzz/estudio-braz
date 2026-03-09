@@ -39,7 +39,7 @@ const BookingCard = React.memo(({
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shadow-inner ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shadow-inner overflow-hidden ${
                         type === 'pendente' ? 'bg-yellow-500/10 text-yellow-500' :
                         type === 'confirmado' ? 'bg-braz-gold/10 text-braz-gold' :
                         type === 'pago' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -52,6 +52,17 @@ const BookingCard = React.memo(({
                             {booking.client?.name || 'Sem Nome'}
                         </h3>
                         <p className="text-[10px] text-white/40 font-mono mt-0.5">{booking.time} • {booking.client?.phone || 'Sem Nmr'}</p>
+                    </div>
+                </div>
+                {/* Atribuição de Equipa */}
+                <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                        {booking.staff?.photoUrl ? (
+                            <img src={booking.staff.photoUrl} alt={booking.staff.displayName} className="w-4 h-4 rounded-full object-cover border border-braz-gold/30" />
+                        ) : (
+                            <div className="w-4 h-4 rounded-full bg-braz-gold/20 flex items-center justify-center text-[8px] font-black">{booking.staff?.displayName?.charAt(0) || '?'}</div>
+                        )}
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/60">{booking.staff?.displayName?.split(' ')[0] || 'Studio'}</span>
                     </div>
                 </div>
                 {/* Ações Topo Direito */}

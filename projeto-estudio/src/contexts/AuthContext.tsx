@@ -4,10 +4,11 @@ import api from '../services/api';
 interface User {
   id: string;
   email: string;
-  role: 'admin' | 'client';
+  role: 'SUPER_ADMIN' | 'ADMIN_STAFF' | 'ACCOUNTANT' | 'CLIENT';
   name?: string;
   tier?: string;
   points?: number;
+  clientId?: string;
   isTwoFactorEnabled?: boolean;
 }
 
@@ -18,6 +19,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isStaff: boolean;
+  isAccountant: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: userData.name,
       tier: userData.tier,
       points: userData.points,
+      clientId: userData.clientId,
       isTwoFactorEnabled: userData.isTwoFactorEnabled,
     };
 
@@ -91,7 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateUser,
       logout,
       isAuthenticated: !!user,
-      isAdmin: user?.role === 'admin'
+      isAdmin: user?.role === 'SUPER_ADMIN',
+      isStaff: user?.role === 'ADMIN_STAFF' || user?.role === 'SUPER_ADMIN',
+      isAccountant: user?.role === 'ACCOUNTANT' || user?.role === 'SUPER_ADMIN'
     }}>
       {children}
     </AuthContext.Provider>

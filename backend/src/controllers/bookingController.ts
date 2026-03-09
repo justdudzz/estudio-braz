@@ -34,179 +34,145 @@ const getOrCreateAdminClient = async (): Promise<string> => {
 
 /**
  * 1. CRIAR AGENDAMENTO
- * Resolve conflitos de identidade transferindo históricos e apagando duplicados.
+ * Suporta múltiplos serviços e atribuição de staff.
  */
 export const createBooking = async (req: Request, res: Response) => {
-  const result = createBookingSchema.safeParse(req);
-  if (!result.success) {
-    return res.status(400).json({ message: 'Dados de marcação inválidos.', errors: result.error.format() });
-  }
-  const { name, email, phone, service, date, time } = result.data.body;
+  const bodySchema = z.object({
+    name: z.string().min(3),
+    email: z.string().email().optional().nullable(),
+    phone: z.string().optional().nullable(),
+    serviceIds: z.array(z.string()).min(1).optional(),
+    staffId: z.string().optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: z.string().regex(/^\d{2}:\d{2}$/),
+    // Suporte para múltiplos segmentos (interligados)
+    segments: z.array(z.object({
+      staffId: z.string(),
+      serviceIds: z.array(z.string()).min(1)
+    })).optional()
+  });
+
+  const result = bodySchema.safeParse(req.body);
+  if (!result.success) return res.status(400).json({ message: 'Dados inválidos.', errors: result.error.format() });
+
+  const { name, email, phone, date, time, segments, staffId, serviceIds } = result.data;
 
   try {
-    // 1. Higiene de Dados (Sanitização)
-    const cleanEmail = email && email.trim() !== "" ? email.trim().toLowerCase() : null;
-    const cleanPhone = phone && phone.trim() !== "" ? phone.replace(/\D/g, '') : null;
-    const formattedName = name.trim();
+    const cleanEmail = email?.trim().toLowerCase() || null;
+    const cleanPhone = phone?.replace(/\D/g, '') || null;
 
-    // 2. Pesquisa Detalhada (Busca Multidimencional)
-    const clientByEmail = cleanEmail ? await prisma.client.findUnique({ where: { email: cleanEmail } }) : null;
-    const clientByPhone = cleanPhone ? await prisma.client.findFirst({ where: { phone: cleanPhone } }) : null;
+    let client = await prisma.client.findFirst({
+      where: { OR: [ ...(cleanEmail ? [{ email: cleanEmail }] : []), ...(cleanPhone ? [{ phone: cleanPhone }] : []) ] }
+    });
+    if (!client) client = await prisma.client.create({ data: { name, email: cleanEmail, phone: cleanPhone } });
 
-    let masterClient;
+    // Lógica Sequencial (Point #8 do Plano)
+    if (segments && segments.length > 0) {
+      let firstBookingId: string | null = null;
+      const createdBookings = [];
 
-    // 🚀 3. LÓGICA DE FUSÃO DE ELITE (TRANSACIONAL)
-    if (clientByEmail && clientByPhone && clientByEmail.id !== clientByPhone.id) {
-      console.log("⚠️ [FUSÃO] Detetada identidade dividida. Unificando perfis via Transação...");
+      for (const segment of segments) {
+        const services = await (prisma as any).service.findMany({ where: { id: { in: segment.serviceIds } } });
+        const totalPrice = services.reduce((acc: number, s: any) => acc + s.price, 0);
 
-      masterClient = await prisma.$transaction(async (tx) => {
-        const slaveClient = clientByPhone!;
-        const leadClient = clientByEmail!;
-
-        // A) Movemos todos os agendamentos do 'Slave' para o 'Master'
-        await tx.booking.updateMany({
-          where: { clientId: slaveClient.id },
-          data: { clientId: leadClient.id }
-        });
-
-        // C) Atualizamos o Master com o telefone, nome novo
-        const updatedMaster = await tx.client.update({
-          where: { id: leadClient.id },
+        const b: any = await (prisma.booking as any).create({
           data: {
-            phone: cleanPhone,
-            name: formattedName
+            date,
+            time, // TODO: No futuro, calcular offset de tempo real para cada segmento
+            staffId: segment.staffId,
+            clientId: client.id,
+            totalPrice,
+            parentBookingId: firstBookingId,
+            services: { create: segment.serviceIds.map(id => ({ serviceId: id })) }
           }
         });
-
-        // D) Apagamos o registo duplicado (Slave)
-        await tx.client.delete({ where: { id: slaveClient.id } });
-
-        return updatedMaster;
-      });
-
-      console.log(`✅[FUSÃO] Perfil unificado com sucesso no ID: ${masterClient.id} `);
-    }
-    else if (clientByEmail) {
-      // Já existe por email? Atualiza dados.
-      masterClient = await prisma.client.update({
-        where: { id: clientByEmail.id },
-        data: { phone: cleanPhone || clientByEmail.phone, name: formattedName }
-      });
-    }
-    else if (clientByPhone) {
-      // Já existe por telefone? Atualiza dados (e adiciona email se houver).
-      masterClient = await prisma.client.update({
-        where: { id: clientByPhone.id },
-        data: { email: cleanEmail || clientByPhone.email, name: formattedName }
-      });
-    }
-    else {
-      // Ninguém encontrado? Cria do zero.
-      masterClient = await prisma.client.create({
-        data: { name: formattedName, email: cleanEmail, phone: cleanPhone }
-      });
-    }
-
-    // 📅 4. Verificar conflito REAL e reutilizar slot cancelado/eliminado
-    const existingBooking = await prisma.booking.findFirst({
-      where: { date, time }
-    });
-
-    let booking;
-
-    if (existingBooking) {
-      // Se o slot tem um booking ATIVO (não cancelado, não eliminado) → bloquear
-      const isActive = ['pending', 'confirmed', 'blocked'].includes(existingBooking.status) && !existingBooking.deletedAt;
-      if (isActive) {
-        return res.status(409).json({ message: 'Este horário já está reservado. Por favor escolha outro.' });
+        if (!firstBookingId) firstBookingId = b.id;
+        createdBookings.push(b);
       }
+      return res.status(201).json(createdBookings);
+    }
 
-      // Se o slot tem um booking CANCELADO/ELIMINADO → reutilizar o registo
-      booking = await prisma.booking.update({
-        where: { id: existingBooking.id },
+    // Fallback para agendamento simples
+    // 2. Obter serviços para info de duração/preço
+    if (staffId && serviceIds) {
+      const services = await (prisma as any).service.findMany({ where: { id: { in: serviceIds } } });
+      const totalPrice = services.reduce((acc: number, s: any) => acc + s.price, 0);
+      const booking = await (prisma.booking as any).create({
         data: {
-          service,
-          status: 'pending',
-          clientId: masterClient.id,
-          deletedAt: null,        // Reativar se estava soft-deleted
-          totalPrice: null,
+          date, time, staffId, clientId: client.id, totalPrice,
+          services: { create: serviceIds.map(id => ({ serviceId: id })) }
         },
-        include: { client: true }
+        include: { client: true, staff: true, services: { include: { service: true } } }
       });
-    } else {
-      // Slot completamente livre → criar novo
-      booking = await prisma.booking.create({
-        data: {
-          service,
-          date,
-          time,
-          clientId: masterClient.id
-        },
-        include: { client: true }
-      });
-    }
-    // 📧 5. Envio de Email ao CLIENTE (ASSÍNCRONO)
-    if (masterClient.email) {
-      sendLuxuryEmail(
-        masterClient.email,
-        'Agendamento Recebido • Studio Braz',
-        masterClient.name,
-        service,
-        date,
-        time
-      ).catch((e: any) => console.error("⚠️ Falha silenciosa no envio de email ao cliente:", e));
+      return res.status(201).json(booking);
     }
 
-    // 📧 6. Notificação ao ADMIN (ASSÍNCRONO)
-    const adminEmail = process.env.SMTP_USER;
-    if (adminEmail) {
-      sendLuxuryEmail(
-        adminEmail,
-        `🔔 Nova Reserva • ${masterClient.name} • ${service}`,
-        'Diretor',
-        `Nova reserva de ${masterClient.name}: ${service}`,
-        date,
-        time
-      ).catch((e: any) => console.error("⚠️ Falha ao notificar admin:", e));
-    }
-
-    return res.status(201).json(booking);
-
+    return res.status(400).json({ message: 'Especifique staff/serviços ou segmentos.' });
   } catch (error: any) {
-    logger.error("❌ ERRO CRÍTICO NO AGENDAMENTO:", {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      body: req.body
-    });
-
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: "Conflito de horários. Este slot já foi conquistado." });
-    }
-
-    return res.status(500).json({ message: "Erro interno ao processar agendamento." });
+    logger.error("❌ Erro no Agendamento Sequencial:", error);
+    return res.status(500).json({ message: "Erro interno." });
   }
 };
 
 /**
  * 2. VERIFICAR HORÁRIOS OCUPADOS (A Trituradora Inteligente)
+ * Agora filtrada por Staff e com lógica VIP para fins de semana.
  */
 export const getBusySlots = async (req: Request, res: Response) => {
-  const { date } = req.query;
+  const { date, staffId, clientId } = req.query as { date: string, staffId: string, clientId?: string };
+
+  if (!date || !staffId) {
+    return res.status(400).json({ message: 'Data e Profissional são obrigatórios.' });
+  }
 
   try {
-    const bookings = await prisma.booking.findMany({
+    // 1. Lógica de Bloqueio por Calendário (Fins de Semana e Feriados)
+    const dayOfWeek = new Date(date).getUTCDay(); // 0 = Domingo, 6 = Sábado
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    // Lista simples de feriados (Exemplo)
+    const holidays = ['2026-01-01', '2026-04-25', '2026-05-01', '2026-06-10', '2026-08-15', '2026-10-05', '2026-11-01', '2026-12-01', '2026-12-08', '2026-12-25'];
+    const isHoliday = holidays.includes(date);
+
+    if (isWeekend || isHoliday) {
+      let canBook = false;
+
+      // Regra de Ouro: Mariana + VIP = Desbloqueia
+      if (clientId) {
+        const client: any = await prisma.client.findUnique({ where: { id: clientId } });
+        const staff: any = await prisma.user.findUnique({ where: { id: staffId } });
+        
+        if (client?.isVIP && (staff?.role === 'SUPER_ADMIN' || staff?.email === 'mariana@studiobraz.com')) {
+          canBook = true;
+        }
+      }
+
+      if (!canBook) {
+        // Se não pode marcar, retornamos todos os slots como ocupados (bloqueio total)
+        return res.json(["ALL_DAY_LOCKED"]); 
+      }
+    }
+
+    // 2. Buscar agendamentos existentes para este staff
+    const bookings = await (prisma.booking as any).findMany({
       where: {
-        date: String(date),
+        date,
+        staffId,
         status: { in: ['pending', 'confirmed', 'paid', 'completed', 'blocked'] },
-        deletedAt: null,  // Excluir bookings soft-deleted
+        deletedAt: null,
+      },
+      include: {
+        services: {
+          include: { service: true }
+        }
       }
     });
 
     const occupiedSlots = new Set<string>();
 
     bookings.forEach((b: any) => {
-      const duration = SERVICE_DURATIONS[b.service] || 30;
+      // Somar duração de todos os serviços do agendamento
+      const duration = b.services.reduce((acc: number, s: any) => acc + s.service.duration, 0);
       const [startH, startM] = b.time.split(':').map(Number);
       let currentMinutes = startH * 60 + startM;
       const endMinutes = currentMinutes + duration;
@@ -215,17 +181,13 @@ export const getBusySlots = async (req: Request, res: Response) => {
         const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
         const m = (currentMinutes % 60).toString().padStart(2, '0');
         occupiedSlots.add(`${h}:${m}`);
-        currentMinutes += 30;
+        currentMinutes += 30; // Slots de 30 min por padrão
       }
     });
 
     res.json(Array.from(occupiedSlots));
   } catch (error: any) {
-    logger.error(`Erro no servidor ao buscar slots ocupados:`, {
-      message: error.message,
-      stack: error.stack,
-      date: req.query.date
-    });
+    logger.error(`Erro ao buscar slots ocupados:`, error);
     res.status(500).json([]);
   }
 };
@@ -420,9 +382,17 @@ export const getAllBookings = async (req: Request, res: Response) => {
 
     const bookings = await prisma.booking.findMany({
       where: whereClause,
-      include: { client: true },
+      include: { 
+        client: true,
+        staff: {
+          select: { id: true, displayName: true, photoUrl: true, role: true }
+        },
+        services: {
+          include: { service: true }
+        }
+      },
       orderBy: [{ date: 'desc' }, { time: 'desc' }],
-      take: 2000, // Safety limit — prevene respostas com milhares de registos
+      take: 2000, 
     });
     res.json(bookings);
   } catch (error: any) {
@@ -459,18 +429,21 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     });
 
     if (status === 'confirmed') {
-
       if (booking.client.email) {
-        // Envio assíncrono para os emails de aceitação
         sendLuxuryEmail(
           booking.client.email,
           'MARCAÇÃO APROVADA • Studio Braz',
           booking.client.name,
-          booking.service,
+          'Serviço Confirmado',
           booking.date,
           booking.time
         ).catch((e: any) => console.error("⚠️ Falha ao notificar cliente da aprovação:", e));
       }
+    } else if (status === 'paid') {
+      // 🚀 GATILHO DE FATURAÇÃO CERTIFICADA
+      import('../services/billingService.js').then(({ generateInvoice }) => {
+        generateInvoice(booking.id).catch(e => console.error("❌ Falha na Faturação Automática:", e));
+      });
     } else if (status === 'cancelled' || status === 'rejected') {
       if (booking.client.email) {
         sendLuxuryEmail(
@@ -761,7 +734,7 @@ export const deepCleanDatabase = async (req: Request, res: Response) => {
     let delClientsCount = 0;
     if (ghostClients.length > 0) {
        // Não apagar o cliente de admin
-       const toDelete = ghostClients.filter(c => c.email !== 'system@studiobraz.internal').map(c => c.id);
+       const toDelete = ghostClients.filter((c: any) => c.email !== 'system@studiobraz.internal').map((c: any) => c.id);
        if (toDelete.length > 0) {
          const delClients = await prisma.client.deleteMany({
            where: { id: { in: toDelete } }
@@ -794,5 +767,49 @@ export const deepCleanDatabase = async (req: Request, res: Response) => {
   } catch (error: any) {
     logger.error(`❌ Erro crítico na Limpeza Profunda:`, { message: error.message, stack: error.stack });
     res.status(500).json({ message: 'Erro ao executar a limpeza profunda.' });
+  }
+};
+
+// --- 13. EXPORTAR CLIENTES (CSV) ---
+export const exportClientsCSV = async (req: Request, res: Response) => {
+  try {
+    const clients = await prisma.client.findMany({
+      include: { _count: { select: { bookings: true } } }
+    });
+
+    let csv = 'Nome,Email,Telefone,Total de Reservas,VIP\n';
+    clients.forEach((c: any) => {
+      csv += `"${c.name}","${c.email || ''}","${c.phone || ''}",${c._count.bookings},${c.isVIP ? 'SIM' : 'NÃO'}\n`;
+    });
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('clientes.csv');
+    res.send(csv);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erro ao exportar CSV.' });
+  }
+};
+
+/**
+ * 14. LISTAR STAFF E SEUS SERVIÇOS (Gatilho de Agendamento)
+ */
+export const getStaffWithServices = async (req: Request, res: Response) => {
+  try {
+    const staff = await (prisma.user as any).findMany({
+      where: {
+        role: { in: ['SUPER_ADMIN', 'ADMIN_STAFF'] }
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        providedServices: true
+      }
+    });
+
+    res.json(staff);
+  } catch (error: any) {
+    logger.error("❌ Erro ao obter lista de staff para agendamento:", error);
+    res.status(500).json({ message: "Erro ao carregar equipa." });
   }
 };
