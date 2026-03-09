@@ -22,7 +22,7 @@ import HomePage from './components/pages/HomePage';
 import Maintenance from './components/sections/Maintenance';
 
 // 🛠️ MODO DE MANUTENÇÃO (Ativar para o lançamento no novo domínio)
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 // ⚡ Code-Splitting: Páginas carregadas sob demanda (React.lazy)
 const ServicesPage = React.lazy(() => import('./components/pages/ServicesPage'));
