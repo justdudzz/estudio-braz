@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter, Trash2 } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 interface PortfolioItem {
     src: string;
@@ -23,11 +24,53 @@ const categories = ['Todos', ...Array.from(new Set(portfolioItems.map(i => i.cat
 
 const PortfolioPage: React.FC = () => {
     useEffect(() => { document.title = `Portfólio | ${BUSINESS_INFO.name}`; }, []);
-    const { isAdmin } = useAuth();
+    const { isAdmin, user } = useAuth();
     const [filter, setFilter] = useState('Todos');
-    const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
+    const [lightbox, setLightbox] = useState<any>(null);
+    const [items, setItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [newItem, setNewItem] = useState({ src: '', label: '', category: user?.displayName || 'Mariana Braz' });
 
-    const filtered = filter === 'Todos' ? portfolioItems : portfolioItems.filter(i => i.category === filter);
+    const fetchPortfolio = async () => {
+        try {
+            const response = await api.get('/portfolio');
+            setItems(response.data);
+        } catch (err) {
+            console.error('Erro ao carregar portfólio:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPortfolio();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('Eliminar esta obra permanentemente?')) return;
+        try {
+            await api.delete(`/portfolio/${id}`);
+            setItems(items.filter(i => i.id !== id));
+        } catch (err) {
+            alert('Erro ao eliminar obra');
+        }
+    };
+
+    const handleAdd = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const response = await api.post('/portfolio', newItem);
+            setItems([response.data, ...items]);
+            setShowAddForm(false);
+            setNewItem({ src: '', label: '', category: user?.displayName || 'Mariana Braz' });
+        } catch (err) {
+            alert('Erro ao adicionar obra');
+        }
+    };
+
+    const filtered = filter === 'Todos' ? items : items.filter(i => i.category === filter);
+    const categories = ['Todos', ...Array.from(new Set(items.map(i => i.category)))];
 
     return (
         <>
@@ -46,29 +89,82 @@ const PortfolioPage: React.FC = () => {
             {/* Filter + Gallery */}
             <section className="pb-32 bg-[#050505] min-h-[50vh]">
                 <div className="container mx-auto px-6">
-                    {/* Filters */}
-                    <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
-                        <Filter size={16} strokeWidth={1.5} className="text-braz-gold mr-2 opacity-50 hidden sm:block" />
-                        {categories.map(cat => (
+                    {/* Filters & Add Button */}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                            <Filter size={16} strokeWidth={1.5} className="text-braz-gold mr-2 opacity-50 hidden sm:block" />
+                            {categories.map(cat => (
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
+                                    key={cat}
+                                    onClick={() => setFilter(cat)}
+                                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-500 overflow-hidden relative group`}
+                                >
+                                    <div className={`absolute inset-0 bg-gradient-to-r from-braz-gold/20 to-transparent transition-opacity duration-500 ${filter === cat ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                                    <span className={`relative z-10 ${filter === cat ? 'text-braz-gold drop-shadow-md' : 'text-white/40 group-hover:text-white'}`}>{cat}</span>
+                                    <div className={`absolute inset-0 border rounded-xl transition-colors duration-500 ${filter === cat ? 'border-braz-gold/50 shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/5 group-hover:border-white/20'}`} />
+                                </motion.button>
+                            ))}
+                        </div>
+
+                        {isAdmin && (
                             <motion.button
+                                whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                key={cat}
-                                onClick={() => setFilter(cat)}
-                                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-500 overflow-hidden relative group`}
+                                onClick={() => setShowAddForm(!showAddForm)}
+                                className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-3 shadow-xl hover:bg-braz-gold hover:text-white transition-all"
                             >
-                                <div className={`absolute inset-0 bg-gradient-to-r from-braz-gold/20 to-transparent transition-opacity duration-500 ${filter === cat ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-                                <span className={`relative z-10 ${filter === cat ? 'text-braz-gold drop-shadow-md' : 'text-white/40 group-hover:text-white'}`}>{cat}</span>
-                                <div className={`absolute inset-0 border rounded-xl transition-colors duration-500 ${filter === cat ? 'border-braz-gold/50 shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/5 group-hover:border-white/20'}`} />
+                                <span className="text-lg">+</span> Adicionar Obra
                             </motion.button>
-                        ))}
+                        )}
                     </div>
+
+                    {/* Add Form (In-line Edit) */}
+                    <AnimatePresence>
+                        {showAddForm && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden mb-12"
+                            >
+                                <form onSubmit={handleAdd} className="bg-white/5 border border-white/10 p-8 rounded-[2rem] grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-white/30 uppercase ml-2">URL da Imagem</label>
+                                        <input 
+                                            value={newItem.src}
+                                            onChange={e => setNewItem({...newItem, src: e.target.value})}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-white outline-none focus:border-braz-gold"
+                                            placeholder="https://exemplo.com/foto.jpg"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-white/30 uppercase ml-2">Título da Obra</label>
+                                        <input 
+                                            value={newItem.label}
+                                            onChange={e => setNewItem({...newItem, label: e.target.value})}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-white outline-none focus:border-braz-gold"
+                                            placeholder="Ex: Microblading Soft"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button type="submit" className="w-full bg-braz-gold text-white font-black uppercase p-4 rounded-xl tracking-widest hover:brightness-110 transition-all">
+                                            Guardar Obra
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Gallery Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         <AnimatePresence mode="popLayout">
                             {filtered.map((item, i) => (
                                 <motion.div
-                                    key={item.src}
+                                    key={item.id || item.src}
                                     layout
                                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -101,9 +197,7 @@ const PortfolioPage: React.FC = () => {
                                                   whileTap={{ scale: 0.9 }}
                                                   onClick={(e) => { 
                                                     e.stopPropagation(); 
-                                                    if(window.confirm('Eliminar esta obra do portfólio permanentemente?')) {
-                                                        alert('Obra eliminada com sucesso (Mock)');
-                                                    }
+                                                    handleDelete(item.id);
                                                   }}
                                                   className="p-3 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all backdrop-blur-md border border-red-500/20 shadow-lg"
                                                   title="One-Click Delete (Super Admin)"
@@ -154,7 +248,7 @@ const PortfolioPage: React.FC = () => {
                                         
                                         {isAdmin && (
                                             <button 
-                                              onClick={() => { if(window.confirm('Eliminar esta obra?')) setLightbox(null); }}
+                                              onClick={() => handleDelete(lightbox.id)}
                                               className="bg-red-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:bg-red-600 transition-all"
                                             >
                                                 <Trash2 size={14} /> Eliminar Obra

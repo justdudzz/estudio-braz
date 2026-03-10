@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const createBookingSchema = z.object({
   body: z.object({
     name: z.string()
-      .min(3, 'Nome demasiado curto')
+      .min(2, 'Nome demasiado curto (mínimo 2 caracteres)')
       .max(100, 'Nome demasiado longo (máximo 100 caracteres)'),
 
     // 🌟 A MAGIA: Aceita um email válido, string vazia, nulo ou nem sequer ser enviado

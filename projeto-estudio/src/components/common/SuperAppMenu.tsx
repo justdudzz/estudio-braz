@@ -33,48 +33,59 @@ const menuItems = [
 
 const SuperAppMenu: React.FC = () => {
     return (
-        <div className="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto px-4">
+        <div className="grid grid-cols-2 gap-4 w-full max-w-sm mx-auto px-4">
             {menuItems.map((item, i) => (
                 <motion.div
                     key={item.path}
-                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ delay: 2.0 + i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -5, transition: { duration: 0.3 } }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={{ 
+                        delay: 1.8 + i * 0.12, 
+                        duration: 0.8, 
+                        ease: [0.22, 1, 0.36, 1] 
+                    }}
+                    className="h-full"
                 >
                     <Link
                         to={item.path}
                         className={`
-              relative block p-5 rounded-2xl text-center overflow-hidden
-              backdrop-blur-xl border transition-all
-              ${item.accent
-                                ? 'bg-[#C5A059]/15 border-[#C5A059]/30 shadow-[0_0_20px_rgba(197,160,89,0.1)]'
-                                : 'bg-white/[0.03] border-white/[0.06] hover:border-white/10'
+                            relative h-full block p-6 rounded-[2rem] text-center overflow-hidden
+                            backdrop-blur-2xl border transition-all duration-500 group
+                            ${item.accent
+                                ? 'bg-[#C5A059]/10 border-[#C5A059]/30 shadow-[0_10px_30px_rgba(197,160,89,0.1)] hover:shadow-[0_15px_40px_rgba(197,160,89,0.2)]'
+                                : 'bg-white/[0.03] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.05]'
                             }
-            `}
+                        `}
                     >
-                        {/* Glassmorphism shine */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
-
+                        {/* Dynamic Gradient Shine */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+                        
                         <div className={`
-              w-13 h-13 rounded-2xl flex items-center justify-center mx-auto mb-3 border transition-all
-              ${item.accent
-                                ? 'bg-[#C5A059]/15 text-[#C5A059] border-[#C5A059]/20'
-                                : 'bg-[#1A1A1A] text-[#C5A059]/70 border-white/5'
+                            w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 border transition-all duration-500
+                            group-hover:scale-110 group-active:scale-95
+                            ${item.accent
+                                ? 'bg-gradient-to-br from-[#C5A059] to-[#e3c178] text-black border-transparent shadow-[0_5px_15px_rgba(197,160,89,0.4)]'
+                                : 'bg-white/5 text-[#C5A059] border-white/5 group-hover:border-[#C5A059]/30 group-hover:bg-[#C5A059]/5'
                             }
-            `}>
+                        `}>
                             {item.icon}
                         </div>
 
-                        <p className={`text-sm font-bold ${item.accent ? 'text-[#C5A059]' : 'text-white'}`}>
-                            {item.label}
-                        </p>
-                        <p className="text-[9px] text-white/30 mt-0.5 tracking-wide">{item.desc}</p>
+                        <div className="relative z-10">
+                            <p className={`text-sm font-black uppercase tracking-widest ${item.accent ? 'text-white' : 'text-white/90'}`}>
+                                {item.label}
+                            </p>
+                            <p className="text-[9px] text-white/30 mt-1 font-bold uppercase tracking-[0.1em] transition-colors group-hover:text-white/50">{item.desc}</p>
+                        </div>
+
+                        {/* Hover Border Glow */}
+                        <div className="absolute inset-0 border border-[#C5A059]/0 group-hover:border-[#C5A059]/20 rounded-[2rem] transition-colors duration-500 pointer-events-none" />
                     </Link>
                 </motion.div>
-            ))
-            }
-        </div >
+            ))}
+        </div>
     );
 };
 

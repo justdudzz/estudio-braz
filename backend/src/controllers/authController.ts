@@ -7,6 +7,7 @@ import { authenticator } from '@otplib/preset-default';
 import qrcode from 'qrcode';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
+import { isValidNIF } from '../utils/nifValidator.js';
 import { loginSchema, verify2FASchema, disable2FASchema } from '../schemas/authSchema.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -130,6 +131,37 @@ export const login = async (req: Request, res: Response) => {
   } catch (error: any) {
     logger.error(`Erro no Login: ${error.message}`);
     res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
+};
+
+// --- NOVA ROTA: OBTER DADOS DO UTILIZADOR ATUAL (VALIDAÇÃO DE SESSÃO) ---
+export const getMe = async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  try {
+    const user = await (prisma as any).user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        displayName: true,
+        photoUrl: true,
+        lastName: true,
+        isTwoFactorEnabled: true,
+        nif: true,
+        legalName: true,
+        clientId: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizador não encontrado.' });
+    }
+
+    res.json({ user });
+  } catch (error: any) {
+    logger.error(`Erro no GetMe: ${error.message}`);
+    res.status(500).json({ message: 'Erro interno ao validar sessão.' });
   }
 };
 
@@ -269,6 +301,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // --- 8. REGISTAR STAFF/ADMIN (SUPER ADMIN ONLY) ---
 export const registerStaff = async (req: Request, res: Response) => {
   const { email, password, role, legalName, nif } = req.body;
+  
+  if (nif && !isValidNIF(nif)) {
+    return res.status(400).json({ message: 'O NIF fornecido é matematicamente inválido.' });
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await (prisma.user as any).create({
@@ -291,6 +328,10 @@ export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { displayName, photoUrl, bio, role, legalName, nif, phone, address, services } = req.body;
   const requester = (req as any).user;
+
+  if (nif && !isValidNIF(nif)) {
+    return res.status(400).json({ message: 'O NIF fornecido é matematicamente inválido.' });
+  }
 
   try {
     // Apenas Super Admin pode mudar Role ou editar outros utilizadores

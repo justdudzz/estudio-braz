@@ -5,6 +5,8 @@ import { Menu, X, Instagram } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
 import MobileMenuDrawer from './MobileMenuDrawer';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 interface NavbarProps {
     onMenuToggle?: () => void;
     isMenuOpen?: boolean;
@@ -20,6 +22,7 @@ const navItems = [
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle, isMenuOpen: externalIsMenuOpen }) => {
     const location = useLocation();
+    const { isStaff } = useAuth();
 
     const [internalMenuOpen, setInternalMenuOpen] = useState(false);
     const isMenuOpen = externalIsMenuOpen ?? internalMenuOpen;
@@ -27,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle, isMenuOpen: externalIsMen
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-40 bg-braz-black/80 backdrop-blur-xl shadow-lg border-b border-white/5 transition-all duration-300">
+            <header className={`fixed ${isStaff ? 'top-14' : 'top-0'} left-0 right-0 z-40 bg-braz-black/80 backdrop-blur-xl shadow-lg border-b border-white/5 transition-all duration-300`}>
                 <div className="container mx-auto px-6 h-28 flex items-center justify-between">
 
                     {/* Logo acts as a clear Home Button */}

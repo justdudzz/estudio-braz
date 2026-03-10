@@ -1,16 +1,34 @@
 import React, { useState, useMemo } from 'react';
 import { Download, Users, Calendar, Loader2, TrendingUp, BarChart3, PieChart, Clock, CheckCircle, DollarSign, CalendarDays, Plus, Trash2, Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { MetricCard, GrowthCard, StatusCard } from './ui/StatCards';
 import { SERVICES_CONFIG } from '../../utils/constants';
 
 const ReportsPage: React.FC = () => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const targetStaffId = queryParams.get('targetStaffId');
+    const targetName = queryParams.get('targetName');
+
     const { showToast } = useToast();
-    const { bookings, clients, expenses, loading, addExpense, removeExpense, selectedMonth, setSelectedMonth } = useAdminData();
+    const { bookings: allBookings, clients, expenses: allExpenses, loading, addExpense, removeExpense, selectedMonth, setSelectedMonth } = useAdminData();
     const [exporting, setExporting] = useState(false);
     const [expenseLoading, setExpenseLoading] = useState(false);
+
+    // Filtragem Local
+    const bookings = useMemo(() => {
+        if (!targetStaffId) return allBookings;
+        return allBookings.filter(b => b.staffId === targetStaffId);
+    }, [allBookings, targetStaffId]);
+
+    const expenses = useMemo(() => {
+        if (!targetStaffId) return allExpenses;
+        // Atualmente despesas são globais, mas podemos ocultar ou filtrar se houver staffId
+        return allExpenses; 
+    }, [allExpenses, targetStaffId]);
 
     const [newExpenseDesc, setNewExpenseDesc] = useState('');
     const [newExpenseAmount, setNewExpenseAmount] = useState('');
@@ -254,9 +272,12 @@ const ReportsPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4 bg-[#1A1A1A] p-6 rounded-2xl border border-white/5">
                 <div>
                     <h1 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-                        <BarChart3 className="text-[#C5A059]" size={24} /> Painel de Contabilidade
+                        <BarChart3 className="text-[#C5A059]" size={24} /> 
+                        {targetName ? `Estatísticas: ${targetName}` : 'Estatísticas Gerais'}
                     </h1>
-                    <p className="text-white/40 text-sm mt-1">Navegue pelos meses para ver a faturação e despesas de forma isolada.</p>
+                    <p className="text-white/40 text-sm mt-1">
+                        {targetName ? `Análise profunda de performance e faturamento para ${targetName}.` : 'Navegue pelos meses para ver a faturação e despesas de forma isolada.'}
+                    </p>
                 </div>
 
                 {/* SELETOR DE MÊS */}

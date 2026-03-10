@@ -12,6 +12,7 @@ const LoginPage: React.FC = () => {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
 
   const navigate = useNavigate();
   const { login } = useAuth(); // Função que espalha o estado de "logado" pelo site
@@ -35,8 +36,12 @@ const LoginPage: React.FC = () => {
       // 3. AVISA O CONTEXTO (Importante!)
       login(data);
 
-      // 3. Redireciona via React Router (sem refresh de página)
-      navigate('/dashboard');
+      // 4. Redireciona conforme o Role
+      if (data.user.role === 'ACCOUNTANT') {
+        navigate('/dashboard/contabilidade');
+      } else {
+        navigate('/dashboard');
+      }
 
     } catch (err: any) {
       // Captura a mensagem de erro vinda do servidor ou erro de rede
@@ -96,6 +101,21 @@ const LoginPage: React.FC = () => {
                     className="w-full p-4 pl-12 bg-white/5 rounded-xl text-white outline-none border border-white/5 focus:border-braz-gold/50 transition-all placeholder:text-white/10 text-[16px]"
                     required
                   />
+                </div>
+                <div className="flex items-center gap-3 ml-1 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setRememberMe(!rememberMe)}
+                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${rememberMe ? 'bg-braz-gold border-braz-gold' : 'bg-white/5 border-white/5'}`}
+                  >
+                    {rememberMe && <div className="w-2 h-2 bg-black rounded-sm" />}
+                  </button>
+                  <label 
+                    onClick={() => setRememberMe(!rememberMe)}
+                    className="text-[10px] text-white/40 uppercase font-bold tracking-widest cursor-pointer select-none"
+                  >
+                    Manter-me com a sessão iniciada
+                  </label>
                 </div>
               </div>
             </>

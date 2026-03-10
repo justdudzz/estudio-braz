@@ -10,8 +10,16 @@ const validate = (schema: z.ZodType<any>) => (req: Request, res: Response, next:
     });
     next();
   } catch (e: any) {
-    // Retorna erro 400 com a mensagem específica do Zod
-    return res.status(400).send(e.errors[0].message);
+    // Log do erro completo para diagnóstico interno
+    console.error('❌ Erro de Validação:', e);
+
+    // Se for erro do Zod, enviamos a primeira mensagem
+    if (e.errors && Array.isArray(e.errors) && e.errors.length > 0) {
+      return res.status(400).send(e.errors[0].message);
+    }
+    
+    // Fallback amigável
+    return res.status(400).send(e.message || 'Erro de validação nos dados enviados.');
   }
 };
 

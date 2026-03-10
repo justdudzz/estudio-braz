@@ -16,6 +16,7 @@ import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
 
 import AnimatedCursor from './components/common/AnimatedCursor';
 import FloatingWhatsApp from './components/common/FloatingWhatsApp';
+import AdminToolbar from './components/admin/AdminToolbar';
 
 // 🏠 Homepage (carregamento imediato — primeira impressão)
 import HomePage from './components/pages/HomePage';
@@ -71,8 +72,10 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 // Layout Público (Com Navbar e Footer)
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isStaff } = useAuth();
+  
   return (
-    <div className="flex flex-col min-h-screen bg-braz-black overscroll-y-none gpu-accelerated">
+    <div className={`flex flex-col min-h-screen bg-braz-black overscroll-y-none gpu-accelerated ${isStaff ? 'pt-14' : ''}`}>
       <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} isMenuOpen={isMenuOpen} />
       <main className="flex-grow pt-[112px]">
         {children}
@@ -87,6 +90,7 @@ const AppContent = () => {
   return (
     <>
       <ScrollToTop />
+      <AdminToolbar />
       <PWAUpdatePrompt />
       <NetworkStatus />
 

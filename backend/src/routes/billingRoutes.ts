@@ -7,7 +7,7 @@ const router = express.Router();
 // Apenas Mariana ou Contabilistas podem baixar SAFT-T
 router.get('/saft', protect, authorize('SUPER_ADMIN', 'ACCOUNTANT'), downloadSaft);
 
-// Relatório mensal apenas para a Mariana (Super Admin)
-router.get('/report', protect, authorize('SUPER_ADMIN'), getMonthlyReport);
+// Relatório mensal para Mariana e Contabilistas
+router.get('/report', protect, authorize('SUPER_ADMIN', 'ACCOUNTANT'), getMonthlyReport);
 
 export default router;

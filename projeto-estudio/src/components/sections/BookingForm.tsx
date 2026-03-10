@@ -12,7 +12,8 @@ const BookingForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [bookingStep, setBookingStep] = useState(0); // 0: Staff, 1: Services, 2: Date/Time, 3: Contact
+  const [bookingStep, setBookingStep] = useState(0); // 0: Staff, 1: Services, 2: Date/Time, 3: Contact, 4: Summary
+  const [hpValue, setHpValue] = useState(''); // Honeypot trap
   const { user } = useAuth();
 
   // 🚀 CEO Smooth Scroll: Garantir que o utilizador vê sempre o topo do passo atual
@@ -56,7 +57,12 @@ const BookingForm: React.FC = () => {
       if (!formData.date || formData.serviceIds.length === 0 || !formData.staffId) return;
       setIsLoading(true);
       try {
-        const slots = await getBusySlots(formData.date, formData.staffId, (user as any)?.clientId);
+        const selectedStaff = staffList.find(s => s.id === formData.staffId);
+        const totalDuration = selectedStaff?.providedServices
+          .filter((s: any) => formData.serviceIds.includes(s.id))
+          .reduce((acc: number, s: any) => acc + s.duration, 0) || 30;
+
+        const slots = await getBusySlots(formData.date, formData.staffId, (user as any)?.clientId, totalDuration);
         setAvailableSlots(slots);
       } catch (error) {
         setAvailableSlots([]);
@@ -95,9 +101,10 @@ const BookingForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (hpValue) return; // Silent reject if honeypot is filled
     setStatus('submitting');
     try {
-      await createNewBooking(formData as any);
+      await createNewBooking({ ...formData, honeypot: hpValue } as any);
       setStatus('success');
     } catch (error: any) {
       alert(error || "Erro ao processar.");
@@ -161,8 +168,8 @@ const BookingForm: React.FC = () => {
         
         {/* Step Indicator */}
         <div className="flex gap-4 mb-14">
-          {[0, 1, 2, 3].map(s => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${bookingStep >= s ? 'bg-braz-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]' : 'bg-white/10'}`}></div>
+          {[0, 1, 2, 3, 4].map(s => (
+            <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-700 ${bookingStep >= s ? 'bg-braz-gold shadow-[0_0_15px_rgba(197,160,89,0.5)]' : 'bg-white/5'}`}></div>
           ))}
         </div>
 
@@ -263,14 +270,74 @@ const BookingForm: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2 block">Telemóvel</label>
-                    <input type="tel" placeholder="9xxxxxxxx" value={formData.phone || ''} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className="w-full bg-[#0A0A0A] border border-white/5 p-5 rounded-2xl outline-none focus:border-braz-gold transition-all text-white shadow-inner" />
+                    <input 
+                      type="tel" 
+                      placeholder="9XX XXX XXX" 
+                      value={formData.phone || ''} 
+                      onChange={e => {
+                        let val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                        if (val.length > 6) val = `${val.slice(0, 3)} ${val.slice(3, 6)} ${val.slice(6)}`;
+                        else if (val.length > 3) val = `${val.slice(0, 3)} ${val.slice(3)}`;
+                        setFormData(p => ({ ...p, phone: val }));
+                      }} 
+                      className="w-full bg-[#0A0A0A] border border-white/5 p-5 rounded-2xl outline-none focus:border-braz-gold transition-all text-white shadow-inner font-mono tracking-widest" 
+                    />
                   </div>
                 </div>
+                {/* Honeypot Trap */}
+                <input type="text" name="b_name" className="hp-field" value={hpValue} onChange={e => setHpValue(e.target.value)} tabIndex={-1} autoComplete="off" />
               </div>
               <div className="flex space-x-4">
                 <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Voltar</button>
-                <button type="submit" disabled={status === 'submitting'} className="flex-[3] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center">
-                  {status === 'submitting' ? <Loader2 className="animate-spin text-black" /> : 'Confirmar Marcação'}
+                <button type="button" onClick={nextStep} className="flex-[2] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Rever Marcação</button>
+              </div>
+            </motion.div>
+          )}
+
+          {bookingStep === 4 && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+              <h3 className="text-4xl font-black uppercase tracking-tighter">Resumo Final</h3>
+              
+              <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 space-y-6">
+                 <div className="flex justify-between items-start border-b border-white/5 pb-4">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Profissional</p>
+                        <p className="font-bold text-lg text-braz-gold">{selectedStaff?.displayName || selectedStaff?.email.split('@')[0]}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Data & Hora</p>
+                        <p className="font-bold text-lg text-white">{formData.date} às {formData.time}</p>
+                    </div>
+                 </div>
+
+                 <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Serviços Selecionados</p>
+                    {selectedStaff?.providedServices.filter((s:any) => formData.serviceIds.includes(s.id)).map((s:any) => (
+                      <div key={s.id} className="flex justify-between text-sm">
+                        <span className="text-white/60">{s.label}</span>
+                        <span className="font-bold">€{s.price}</span>
+                      </div>
+                    ))}
+                    <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                        <span className="text-xs font-black uppercase tracking-widest text-braz-gold">Valor Total</span>
+                        <span className="text-2xl font-black">
+                            €{selectedStaff?.providedServices
+                                .filter((s: any) => formData.serviceIds.includes(s.id))
+                                .reduce((acc: number, s: any) => acc + s.price, 0)}
+                        </span>
+                    </div>
+                 </div>
+
+                 <div className="bg-braz-gold/5 border border-braz-gold/10 p-4 rounded-xl">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-braz-gold/60 mb-1">Contacto de Confirmação</p>
+                    <p className="text-xs font-bold text-white/80">{formData.name} • {formData.phone}</p>
+                 </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <button type="button" onClick={prevStep} className="flex-1 border border-white/10 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white/20 hover:text-white transition-all">Editar</button>
+                <button type="submit" disabled={status === 'submitting'} className="flex-[3] bg-braz-gold text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-[0_10px_30px_rgba(197,160,89,0.3)] flex items-center justify-center gap-3">
+                  {status === 'submitting' ? <Loader2 className="animate-spin text-black" /> : <><CheckCircle2 size={16} /> Confirmar Marcação</>}
                 </button>
               </div>
             </motion.div>

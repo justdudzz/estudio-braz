@@ -21,9 +21,12 @@ model User {
   password          String
   role              UserRole  @default(ADMIN_STAFF)
   displayName       String?
+  lastName          String?   // Apelido
   photoUrl          String?
   bio               String?   @db.Text
+  birthDate         String?   // Data de Nascimento (YYYY-MM-DD)
   legalName         String?
+  businessName      String?   // Nome da Empresa / Recibos Verdes
   nif               String?   @unique
   address           String?
   phone             String?
@@ -119,4 +122,14 @@ model TokenBlacklist {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+model PortfolioItem {
+  id        String   @id @default(uuid())
+  src       String
+  label     String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
 }

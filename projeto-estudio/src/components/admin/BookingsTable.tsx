@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2, Euro, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Check, X, MessageCircle, ChevronLeft, ChevronRight, Edit2, Euro, FileText } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { updateBookingStatus, deleteBooking, restoreBooking } from '../../services/bookingService';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
@@ -30,7 +31,6 @@ const BookingsTable: React.FC = () => {
     const { showToast } = useToast();
     const { confirm } = useConfirm();
 
-    // Filters
     const filtered = bookings
         .filter(b => statusFilter === 'all' || b.status === statusFilter)
         .filter(b => {
@@ -45,7 +45,6 @@ const BookingsTable: React.FC = () => {
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Pagination
     const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
     const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -67,6 +66,12 @@ const BookingsTable: React.FC = () => {
             onConfirm: async () => {
                 try {
                     await updateBookingStatus(id, 'paid');
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#C5A059', '#ffffff', '#e3c178']
+                    });
                     showToast('Marcado como Pago!', 'success');
                     await refreshData(true);
                 } catch { showToast('Erro.', 'error'); }
@@ -116,7 +121,6 @@ const BookingsTable: React.FC = () => {
                 <span className="text-xs text-white/30 font-semibold">{filtered.length} bookings</span>
             </div>
 
-            {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
@@ -144,98 +148,85 @@ const BookingsTable: React.FC = () => {
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-[#121212] rounded-2xl border border-white/5 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead>
-                            <tr className="text-left text-[10px] uppercase tracking-widest text-white/30 bg-white/[0.03]">
-                                <th className="p-4 font-semibold">Cliente</th>
-                                <th className="p-4 font-semibold">Serviço</th>
-                                <th className="p-4 font-semibold">Data</th>
-                                <th className="p-4 font-semibold">Hora</th>
-                                <th className="p-4 font-semibold">Status</th>
-                                <th className="p-4 font-semibold text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={6} className="p-0">
-                                        <div className="animate-pulse space-y-4 p-4">
-                                            {[1, 2, 3, 4, 5].map(i => (
-                                                <div key={i} className="flex gap-4">
-                                                    <div className="w-48 h-4 bg-white/5 rounded-full" />
-                                                    <div className="w-32 h-4 bg-white/5 rounded-full" />
-                                                    <div className="w-24 h-4 bg-white/5 rounded-full" />
-                                                    <div className="w-12 h-4 bg-white/5 rounded-full" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </td>
+            {loading ? (
+                <TableSkeleton />
+            ) : (
+                <div className="bg-[#121212] rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead>
+                                <tr className="text-left text-[10px] uppercase tracking-widest text-white/30 bg-white/[0.03]">
+                                    <th className="p-4 font-semibold">Cliente</th>
+                                    <th className="p-4 font-semibold">Serviço</th>
+                                    <th className="p-4 font-semibold">Data</th>
+                                    <th className="p-4 font-semibold">Hora</th>
+                                    <th className="p-4 font-semibold">Status</th>
+                                    <th className="p-4 font-semibold text-right">Ações</th>
                                 </tr>
-                            ) : paginated.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="p-12 text-center text-white/20 text-sm">
-                                        Nenhum booking encontrado.
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginated.map(b => (
-                                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
-                                        <td className="p-4">
-                                            <div>
-                                                <p className="text-sm font-bold text-white">{b.client?.name || '—'}</p>
-                                                <p className="text-[10px] text-white/30">{b.client?.email || ''}</p>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-sm text-white/70">
-                                            <div className="flex items-center gap-1.5">
-                                                {SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service}
-                                                {b.notes && (
-                                                    <span title={b.notes} className="cursor-help">
-                                                        <FileText size={12} className="text-braz-gold/40" />
-                                                    </span>
-                                                )}
-                                                {b.totalPrice && (
-                                                    <span className="text-[10px] text-braz-gold font-bold ml-1">€{b.totalPrice}</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-sm text-white/50 font-mono">{b.date}</td>
-                                        <td className="p-4 text-sm text-white/50 font-mono">{b.time}</td>
-                                        <td className="p-4"><StatusBadge status={b.status as any} /></td>
-                                        <td className="p-4">
-                                            <div className="flex gap-1.5 justify-end">
-                                                {b.status === 'pending' && (
-                                                    <button onClick={() => handleConfirm(b.id)} className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Confirmar">
-                                                        <Check size={14} />
-                                                    </button>
-                                                )}
-                                                {b.status === 'confirmed' && (
-                                                    <button onClick={() => handleMarkAsPaid(b.id, b.status)} className="p-2 bg-braz-gold/10 text-braz-gold rounded-lg hover:bg-braz-gold hover:text-black transition-all shadow-[0_0_10px_rgba(197,160,89,0.2)]" title="Marcar como Pago">
-                                                        <Euro size={14} />
-                                                    </button>
-                                                )}
-                                                <button onClick={() => setEditingBooking(b)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Editar">
-                                                    <Edit2 size={14} />
-                                                </button>
-                                                {b.client?.phone && (
-                                                    <button onClick={() => openWhatsApp(b.client, b)} className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm" title="WhatsApp">
-                                                        <MessageCircle size={14} />
-                                                    </button>
-                                                )}
-                                                <button onClick={() => handleDelete(b.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Eliminar">
-                                                    <X size={14} />
-                                                </button>
-                                            </div>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {paginated.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="p-12 text-center text-white/20 text-sm italic uppercase tracking-widest">
+                                            Nenhum registo encontrado.
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : (
+                                    paginated.map(b => (
+                                        <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
+                                            <td className="p-4">
+                                                <div>
+                                                    <p className="text-sm font-bold text-white">{b.client?.name || '—'}</p>
+                                                    <p className="text-[10px] text-white/30">{b.client?.email || ''}</p>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-sm text-white/70">
+                                                <div className="flex items-center gap-1.5">
+                                                    {SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service}
+                                                    {b.notes && (
+                                                        <span title={b.notes} className="cursor-help">
+                                                            <FileText size={12} className="text-braz-gold/40" />
+                                                        </span>
+                                                    )}
+                                                    {b.totalPrice && (
+                                                        <span className="text-[10px] text-braz-gold font-bold ml-1">€{b.totalPrice}</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-sm text-white/50 font-mono">{b.date}</td>
+                                            <td className="p-4 text-sm text-white/50 font-mono">{b.time}</td>
+                                            <td className="p-4"><StatusBadge status={b.status as any} /></td>
+                                            <td className="p-4">
+                                                <div className="flex gap-1.5 justify-end">
+                                                    {b.status === 'pending' && (
+                                                        <button onClick={() => handleConfirm(b.id)} className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Confirmar">
+                                                            <Check size={14} />
+                                                        </button>
+                                                    )}
+                                                    {b.status === 'confirmed' && (
+                                                        <button onClick={() => handleMarkAsPaid(b.id, b.status)} className="p-2 bg-braz-gold/10 text-braz-gold rounded-lg hover:bg-braz-gold hover:text-black transition-all shadow-[0_0_10px_rgba(197,160,89,0.2)]" title="Marcar como Pago">
+                                                            <Euro size={14} />
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => setEditingBooking(b)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Editar">
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    {b.client?.phone && (
+                                                        <button onClick={() => openWhatsApp(b.client, b)} className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm" title="WhatsApp">
+                                                            <MessageCircle size={14} />
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => handleDelete(b.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Eliminar">
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -262,6 +253,7 @@ const BookingsTable: React.FC = () => {
                     </div>
                 )}
             </div>
+            )}
 
             {/* Edit Modal */}
             <AnimatePresence>

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
+import { syncHub } from '../utils/syncHub.js';
 
 /**
  * GET /expenses?month=2026-03
@@ -48,7 +49,8 @@ export const createExpense = async (req: Request, res: Response) => {
                 date: String(date), // "YYYY-MM"
             },
         });
-
+        
+        syncHub.notifyChange(`Nova despesa: ${expense.id}`);
         res.status(201).json(expense);
     } catch (error: any) {
         res.status(500).json({ message: 'Erro ao criar despesa.' });
@@ -64,6 +66,7 @@ export const deleteExpense = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         await prisma.expense.delete({ where: { id } });
+        syncHub.notifyChange(`Despesa removida: ${id}`);
         res.json({ message: 'Despesa removida.' });
     } catch (error: any) {
         res.status(500).json({ message: 'Erro ao remover despesa.' });

@@ -25,6 +25,7 @@ export interface Booking {
     notes?: string;
     extraServices?: string;
     totalPrice?: number;
+    staffId?: string;
     deletedAt?: string;
     createdAt?: string;
     updatedAt?: string;

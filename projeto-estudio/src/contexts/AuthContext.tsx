@@ -30,22 +30,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Carregar utilizador do localStorage (apenas dados, NÃO o token) (#1)
+  // Carregar utilizador e validar sessão (#1, #2)
   useEffect(() => {
-    const savedUser = localStorage.getItem('braz_user');
-    const expiresAt = localStorage.getItem('braz_expires_at');
+    const validateSession = async () => {
+      const savedUser = localStorage.getItem('braz_user');
+      const expiresAt = localStorage.getItem('braz_expires_at');
 
-    if (savedUser && expiresAt) {
-      // Verificar se a sessão ainda não expirou (#2)
-      if (Date.now() < parseInt(expiresAt, 10)) {
-        setUser(JSON.parse(savedUser));
-      } else {
-        // Token expirado — limpar dados
-        localStorage.removeItem('braz_user');
-        localStorage.removeItem('braz_expires_at');
+      if (savedUser && expiresAt) {
+        if (Date.now() < parseInt(expiresAt, 10)) {
+          // Temporariamente definimos o que temos no localStorage
+          const localUser = JSON.parse(savedUser);
+          setUser(localUser);
+
+          try {
+            // Validamos com o servidor para garantir que o cookie ainda é válido
+            const response = await api.get('/auth/me');
+            setUser(response.data.user);
+            localStorage.setItem('braz_user', JSON.stringify(response.data.user));
+          } catch (err: any) {
+            console.warn('Sessão expirada ou inválida no servidor.');
+            if (err.response?.status === 401) {
+              logoutLocal();
+            }
+          }
+        } else {
+          logoutLocal();
+        }
       }
-    }
+    };
+
+    validateSession();
   }, []);
+
+  const logoutLocal = () => {
+    setUser(null);
+    localStorage.removeItem('braz_user');
+    localStorage.removeItem('braz_expires_at');
+  };
 
   const login = (data: any) => {
     // O backend envia { user: {...}, expiresAt } — SEM token no body (#1)
@@ -86,9 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Erro ao fazer logout no servidor:', err);
     }
 
-    setUser(null);
-    localStorage.removeItem('braz_user');
-    localStorage.removeItem('braz_expires_at');
+    logoutLocal();
     window.location.href = '/';
   };
 

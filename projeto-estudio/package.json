@@ -11,7 +11,9 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "axios": "^1.13.6",
+    "canvas-confetti": "^1.9.4",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.344.0",

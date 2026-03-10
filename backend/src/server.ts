@@ -12,11 +12,13 @@ import bookingRoutes from './routes/bookingRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
 import { getStaffWithServices } from './controllers/bookingController.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import logger from './utils/logger.js';
 import { env } from './config/env.js';
+import { syncHub } from './utils/syncHub.js';
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -63,6 +65,7 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/staff', staffRoutes);
+app.use('/api/v1/portfolio', portfolioRoutes);
 
 // Health Check
 app.get('/api/v1/health', (req, res) => {
@@ -73,6 +76,11 @@ app.get('/api/v1/health', (req, res) => {
     environment: isProduction ? 'production' : 'development',
     cors: isProduction ? 'Domínio real apenas' : 'Localhost sincronizado'
   });
+});
+
+// 🛰️ Endpoint de Sincronização em Tempo Real
+app.get('/api/v1/sync-check', (req, res) => {
+  res.json({ v: syncHub.getVersion() });
 });
 
 // Tratamento de Rotas Inexistentes

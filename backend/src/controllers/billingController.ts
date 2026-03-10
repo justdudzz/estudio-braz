@@ -16,9 +16,9 @@ export const downloadSaft = async (req: Request, res: Response) => {
 };
 
 export const getMonthlyReport = async (req: Request, res: Response) => {
-  const { month, year } = req.query as any;
+  const { month, year, staffId } = req.query as any;
   try {
-    const report = await billingService.generateMonthlyClosure(Number(month), Number(year));
+    const report = await billingService.generateMonthlyClosure(Number(month), Number(year), staffId);
     res.json(report);
   } catch (error: any) {
     res.status(500).json({ message: 'Erro ao gerar relatório' });

@@ -113,13 +113,19 @@ export const getSaftData = async (month: number, year: number, nif: string) => {
 /**
  * FECHO MENSAL (Relatório de Gestão para Mariana)
  */
-export const generateMonthlyClosure = async (month: number, year: number) => {
+export const generateMonthlyClosure = async (month: number, year: number, staffId?: string) => {
+  const where: any = {
+    date: { startsWith: `${year}-${month.toString().padStart(2, '0')}` },
+    status: { in: ['paid', 'completed'] },
+    deletedAt: null
+  };
+
+  if (staffId) {
+    where.staffId = staffId;
+  }
+
   const bookings: any[] = await (prisma.booking as any).findMany({
-    where: {
-      date: { startsWith: `${year}-${month.toString().padStart(2, '0')}` },
-      status: { in: ['paid', 'completed'] },
-      deletedAt: null
-    },
+    where,
     include: { staff: true, services: { include: { service: true } } }
   });
 
@@ -130,10 +136,11 @@ export const generateMonthlyClosure = async (month: number, year: number) => {
     return acc;
   }, {});
 
+  // Despesas (apenas do estúdio geral ou vinculadas a staff no futuro)
   const expenses = await (prisma.expense as any).findMany({
     where: { date: `${year}-${month.toString().padStart(2, '0')}` }
   });
-  const totalExpenses = expenses.reduce((acc: number, e: any) => acc + e.amount, 0);
+  const totalExpenses = staffId ? 0 : expenses.reduce((acc: number, e: any) => acc + e.amount, 0);
 
   return {
     month,

@@ -7,6 +7,7 @@ interface AdminDataContextProps {
     bookings: Booking[];
     clients: Client[];
     expenses: Expense[];
+    staff: any[];
     loading: boolean;
     lastUpdate: number;
     selectedMonth: string; // "YYYY-MM"
@@ -28,6 +29,7 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [clients, setClients] = useState<Client[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [staff, setStaff] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
     const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -35,6 +37,7 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
     // Rastreia os IDs conhecidos para detetar novos agendamentos no background
     const prevBookingsRef = useRef<Set<string>>(new Set());
     const isFirstLoad = useRef(true);
+    const serverVersionRef = useRef<number>(0); 
     const { showToast } = useToast();
 
     const refreshData = useCallback(async (background = false) => {
@@ -46,10 +49,11 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
             const startStr = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
             const endStr = new Date(hoje.getFullYear(), hoje.getMonth() + 2, 0).toISOString().split('T')[0];
 
-            const [bookingsRes, clientsRes, expensesRes] = await Promise.all([
+            const [bookingsRes, clientsRes, expensesRes, staffRes] = await Promise.all([
                 api.get(`/bookings?startDate=${startStr}&endDate=${endStr}`),
                 api.get('/bookings/clients?page=1&limit=50'),
                 api.get(`/expenses?month=${selectedMonth}`),
+                api.get('/staff'),
             ]);
 
             const bk: Booking[] = Array.isArray(bookingsRes) ? bookingsRes : bookingsRes?.data || [];
@@ -78,6 +82,9 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
 
             const exp: Expense[] = expensesRes?.data || [];
             setExpenses(exp);
+
+            const st: any[] = staffRes?.data || [];
+            setStaff(st);
         } catch (error) {
             console.error("Error fetching admin data:", error);
         } finally {
@@ -87,10 +94,39 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
     }, [selectedMonth, showToast]);
 
     useEffect(() => {
+        // Carga inicial
         refreshData(false);
-        // Auto-refresh a cada 15 segundos em modo silencioso (background)
-        const interval = setInterval(() => refreshData(true), 15000);
-        return () => clearInterval(interval);
+
+        // 🛰️ CEO PULSE: Polling ultra-leve para detetar mudanças no servidor
+        const checkSync = async () => {
+            try {
+                const res = await api.get('/sync-check');
+                const newVersion = res.data.v;
+                
+                if (serverVersionRef.current !== 0 && newVersion !== serverVersionRef.current) {
+                    // Algo mudou no servidor! Atualizar dados em background
+                    refreshData(true);
+                }
+                serverVersionRef.current = newVersion;
+            } catch (err) {
+                // Silencioso se falhar
+            }
+        };
+
+        const syncInterval = setInterval(checkSync, 4000);
+
+        // Atualizar quando a página volta a estar visível (Mariana muda de aba)
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                checkSync();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            clearInterval(syncInterval);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
     }, [refreshData]);
 
     const addExpense = useCallback(async (expense: Omit<Expense, 'id'>) => {
@@ -117,7 +153,7 @@ export const AdminDataProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AdminDataContext.Provider value={{
-            bookings, clients, expenses, loading,
+            bookings, clients, expenses, staff, loading,
             lastUpdate, selectedMonth, setSelectedMonth,
             refreshData, addExpense, removeExpense
         }}>

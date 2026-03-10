@@ -11,6 +11,12 @@ router.post('/login', loginLimiter, login);
 // Rota de Login VIP para Clientes (protegida por limite de tentativas)
 router.post('/client-login', loginLimiter, clientLogin);
 
+// Rota de Validação de Sessão
+router.get('/me', protect, (req, res, next) => {
+  // Já importamos o getMe no topo, então usamos diretamente
+  import('../controllers/authController.js').then(m => m.getMe(req, res)).catch(next);
+});
+
 // Rota de Logout — limpa cookies e invalida sessão (#13)
 router.post('/logout', protect, logout);
 

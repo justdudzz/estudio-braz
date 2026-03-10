@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import AdminSidebar from './AdminSidebar';
 import Breadcrumbs from './Breadcrumbs';
 import NotificationBell from './NotificationBell';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AdminLayoutProps {
     pendingCount?: number;
@@ -13,9 +14,10 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ pendingCount = 0 }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const { isStaff } = useAuth();
 
     return (
-        <div className="min-h-screen bg-braz-black text-white font-montserrat">
+        <div className={`min-h-screen bg-braz-black text-white font-montserrat ${isStaff ? 'pt-14' : ''}`}>
             {/* Sidebar */}
             <AdminSidebar
                 isOpen={sidebarOpen}
@@ -29,7 +31,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ pendingCount = 0 }) => {
             <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'
                 }`}>
                 {/* Top bar (mobile) */}
-                <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0a0a0a] border-b border-white/5 sticky top-0 z-30">
+                <header className={`lg:hidden flex items-center justify-between px-4 py-3 bg-[#0a0a0a] border-b border-white/5 sticky ${isStaff ? 'top-14' : 'top-0'} z-30`}>
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setSidebarOpen(true)}

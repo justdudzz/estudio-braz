@@ -7,6 +7,7 @@ import {
     UserPlus, Euro, FileText
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAdminData } from '../../contexts/AdminDataContext';
 import { BUSINESS_INFO } from '../../utils/constants';
 
 interface AdminSidebarProps {
@@ -19,10 +20,10 @@ interface AdminSidebarProps {
 
 const NAV_ITEMS = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Visão Central', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
-    { path: '/dashboard/agenda', icon: Calendar, label: 'Histórico & Pesquisa', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
+    { path: '/dashboard/agenda', icon: Calendar, label: 'Agenda & Pesquisa', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
     { path: '/dashboard/clientes', icon: Users, label: 'Base VIP', roles: ['SUPER_ADMIN', 'ADMIN_STAFF'] },
     { path: '/dashboard/bloqueios', icon: Lock, label: 'Bloqueios', roles: ['SUPER_ADMIN'] },
-    { path: '/dashboard/equipa', icon: UserPlus, label: 'Equipa', roles: ['SUPER_ADMIN'] },
+    { path: '/dashboard/equipa', icon: UserPlus, label: 'Gerir Equipa', roles: ['SUPER_ADMIN'] },
     { path: '/dashboard/configuracoes', icon: Settings, label: 'Configurações', roles: ['SUPER_ADMIN'] },
     { path: '/dashboard/relatorios', icon: BarChart3, label: 'Estatísticas', roles: ['SUPER_ADMIN'] },
     { path: '/dashboard/contabilidade', icon: CheckSquare, label: 'Contabilidade', roles: ['SUPER_ADMIN', 'ACCOUNTANT'] },
@@ -31,9 +32,13 @@ const NAV_ITEMS = [
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
     isOpen, onClose, isCollapsed, onToggleCollapse, pendingCount = 0
 }) => {
-    const { logout, user } = useAuth();
+    const { logout, user, isStaff } = useAuth();
+    const { staff } = useAdminData();
     const location = useLocation();
     const diretorNome = user?.displayName || user?.email?.split('@')[0] || 'Diretor';
+
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+    const isAccountant = user?.role === 'ACCOUNTANT';
 
     const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user?.role || ''));
 
@@ -87,6 +92,90 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         </NavLink>
                     );
                 })}
+
+                {/* Secção de Contabilidade Individual (Apenas para Contabilistas e Super Admin) */}
+                {!isCollapsed && (isAccountant || isSuperAdmin) && staff.length > 0 && (
+                    <div className="mt-8 mb-2 px-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-braz-gold">Contabilidade Equipa</p>
+                    </div>
+                )}
+
+                {(isAccountant || isSuperAdmin) && staff.map(member => {
+                    const isSelected = location.pathname === '/dashboard/contabilidade' && 
+                                     new URLSearchParams(location.search).get('targetStaffId') === member.id;
+                    
+                    return (
+                        <NavLink
+                            key={`acc-${member.id}`}
+                            to={`/dashboard/contabilidade?targetStaffId=${member.id}&targetName=${encodeURIComponent(member.displayName || member.email)}&targetNif=${member.nif || ''}`}
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-medium transition-all group ${
+                                isSelected ? 'bg-braz-gold/10 text-braz-gold' : 'text-white/40 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <Euro size={14} className={isSelected ? 'text-braz-gold' : 'text-white/20'} />
+                            {!isCollapsed && (
+                                <span className="truncate">Contabil. {member.displayName || member.email.split('@')[0]}</span>
+                            )}
+                        </NavLink>
+                    );
+                })}
+
+                {/* Secção de Estatísticas Individuais (Apenas para Mariana) */}
+                {!isCollapsed && isSuperAdmin && staff.length > 0 && (
+                    <div className="mt-8 mb-2 px-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Estatísticas Equipa</p>
+                    </div>
+                )}
+
+                {isSuperAdmin && staff.map(member => {
+                    const isSelected = location.pathname === '/dashboard/relatorios' && 
+                                     new URLSearchParams(location.search).get('targetStaffId') === member.id;
+                    
+                    return (
+                        <NavLink
+                            key={`stats-${member.id}`}
+                            to={`/dashboard/relatorios?targetStaffId=${member.id}&targetName=${encodeURIComponent(member.displayName || member.email)}`}
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-medium transition-all group ${
+                                isSelected ? 'bg-emerald-400/10 text-emerald-400' : 'text-white/40 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <BarChart3 size={14} className={isSelected ? 'text-emerald-400' : 'text-white/20'} />
+                            {!isCollapsed && (
+                                <span className="truncate">Stats. {member.displayName || member.email.split('@')[0]}</span>
+                            )}
+                        </NavLink>
+                    );
+                })}
+
+                {/* Secção de Equipa (Atalhos rápidos para Agenda - APENAS SUPER ADMIN) */}
+                {!isCollapsed && isSuperAdmin && staff.length > 0 && (
+                    <div className="mt-8 mb-2 px-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Agenda Equipa</p>
+                    </div>
+                )}
+                
+                {isSuperAdmin && staff.map(member => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const path = `/dashboard/dia/${today}`; 
+                    
+                    return (
+                        <NavLink
+                            key={member.id}
+                            to={path}
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-medium transition-all group text-white/40 hover:text-white hover:bg-white/5`}
+                        >
+                            <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[9px] font-bold border border-white/10 group-hover:border-braz-gold/30">
+                                {member.displayName?.charAt(0) || member.email.charAt(0)}
+                            </div>
+                            {!isCollapsed && (
+                                <span className="truncate">{member.displayName || member.email.split('@')[0]}</span>
+                            )}
+                        </NavLink>
+                    );
+                })}
             </nav>
 
             {/* User / Logout */}
@@ -124,7 +213,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className={`hidden lg:block fixed top-0 left-0 h-screen z-40 transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-64'
+            <aside className={`hidden lg:block fixed ${isStaff ? 'top-14' : 'top-0'} left-0 ${isStaff ? 'h-[calc(100vh-56px)]' : 'h-screen'} z-40 transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-64'
                 }`}>
                 {sidebarContent}
             </aside>
@@ -145,7 +234,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="lg:hidden fixed top-0 left-0 w-64 h-screen z-50"
+                            className={`lg:hidden fixed ${isStaff ? 'top-14' : 'top-0'} left-0 w-64 ${isStaff ? 'h-[calc(100vh-56px)]' : 'h-screen'} z-50`}
                         >
                             <button
                                 onClick={onClose}

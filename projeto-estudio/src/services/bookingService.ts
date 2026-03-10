@@ -21,10 +21,10 @@ export const createNewBooking = async (bookingData: BookingData) => {
   }
 };
 
-export const getBusySlots = async (date: string, staffId: string, clientId?: string) => {
+export const getBusySlots = async (date: string, staffId: string, clientId?: string, duration?: number) => {
   try {
     const response = await api.get('/bookings/check', {
-      params: { date, staffId, clientId }
+      params: { date, staffId, clientId, duration }
     });
     return response.data;
   } catch (error: any) {

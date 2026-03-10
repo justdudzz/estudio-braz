@@ -7,6 +7,7 @@ import { sendLuxuryEmail } from '../services/emailService.js';
 import { sendNotification } from '../services/notificationService.js';
 import { createBookingSchema } from '../schemas/bookingSchema.js';
 import { BUSINESS_HOURS, SERVICES_CONFIG } from '../config/businessRules.js';
+import { syncHub } from '../utils/syncHub.js';
 
 // 🛠️ DICIONÁRIO DE DURAÇÕES (em minutos) — Obtido da Versão de Elite Centralizada
 const SERVICE_DURATIONS: Record<string, number> = Object.fromEntries(
@@ -95,6 +96,7 @@ export const createBooking = async (req: Request, res: Response) => {
         time
       ).catch(err => logger.error("📧 Erro em background ao enviar email:", err));
 
+      syncHub.notifyChange(`Novo agendamento: ${booking.id}`);
       return res.status(201).json(booking);
     }
 
@@ -110,7 +112,8 @@ export const createBooking = async (req: Request, res: Response) => {
  * Agora filtrada por Staff e com lógica VIP para fins de semana.
  */
 export const getBusySlots = async (req: Request, res: Response) => {
-  const { date, staffId, clientId } = req.query as { date: string, staffId: string, clientId?: string };
+  const { date, staffId, clientId, duration } = req.query as { date: string, staffId: string, clientId?: string, duration?: string };
+  const requestedDuration = parseInt(duration || '30', 10);
 
   if (!date || !staffId) {
     return res.status(400).json({ message: 'Data e Profissional são obrigatórios.' });
@@ -118,7 +121,9 @@ export const getBusySlots = async (req: Request, res: Response) => {
 
   try {
     // 1. Lógica de Bloqueio por Calendário (Fins de Semana e Feriados)
-    const dayOfWeek = new Date(date).getUTCDay(); // 0 = Domingo, 6 = Sábado
+    // Usar T12:00:00Z para evitar que o dayOfWeek mude por causa do fuso horário
+    const checkDate = new Date(`${date}T12:00:00Z`);
+    const dayOfWeek = checkDate.getUTCDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     
     // Lista de feriados
@@ -172,7 +177,31 @@ export const getBusySlots = async (req: Request, res: Response) => {
     });
 
     // 4. Filtrar: O que é POSSÍVEL menos o que está OCUPADO
-    const availableSlots = ALL_POSSIBLE_SLOTS.filter(slot => !occupiedSlots.has(slot));
+    // E garantir que o slot tem largura suficiente para a duração pedida
+    const availableSlots = ALL_POSSIBLE_SLOTS.filter((slot, index) => {
+      // Se este slot já está ocupado, fora
+      if (occupiedSlots.has(slot)) return false;
+
+      // Verificar se os slots seguintes necessários para a duração também estão livres
+      const [h, m] = slot.split(':').map(Number);
+      let currentMinutes = h * 60 + m;
+      const endMinutes = currentMinutes + requestedDuration;
+
+      // Percorrer os subsists de 30 min e verificar se algum está ocupado ou fora do horário
+      while (currentMinutes < endMinutes) {
+        const checkH = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
+        const checkM = (currentMinutes % 60).toString().padStart(2, '0');
+        const checkSlot = `${checkH}:${checkM}`;
+
+        // Se o slot necessário está ocupado ou nem sequer existe na lista de possíveis, este ponto de partida é inválido
+        if (occupiedSlots.has(checkSlot) || !ALL_POSSIBLE_SLOTS.includes(checkSlot)) {
+          return false;
+        }
+        currentMinutes += 30;
+      }
+
+      return true;
+    });
 
     res.json(availableSlots);
   } catch (error: any) {
@@ -325,6 +354,7 @@ export const blockSchedule = async (req: Request, res: Response) => {
       totalDays: datesToBlock.length,
       totalClientsNotified
     });
+    syncHub.notifyChange(`Bloqueios efetuados em ${datesToBlock.length} dias`);
   } catch (error: any) {
     logger.error(`Erro ao trancar horários: ${error.message} `);
     res.status(500).json({ message: 'Erro ao bloquear horário.' });
@@ -350,6 +380,7 @@ export const batchDeleteBlocks = async (req: Request, res: Response) => {
     });
 
     res.json({ message: `${deleted.count} bloqueio(s) removido(s) com sucesso.`, count: deleted.count });
+    syncHub.notifyChange(`Remoção de ${deleted.count} bloqueios`);
   } catch (error: any) {
     logger.error(`Erro no batch delete: ${error.message} `);
     res.status(500).json({ message: 'Erro ao remover bloqueios.' });
@@ -364,7 +395,13 @@ export const getAllBookings = async (req: Request, res: Response) => {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
 
+    const requester = (req as any).user;
     const whereClause: any = { deletedAt: null };
+
+    // 🛡️ SEGURANÇA: Se for EQUIPA (Admin Staff), só vê a SUA agenda
+    if (requester.role === 'ADMIN_STAFF') {
+      whereClause.staffId = requester.id;
+    }
 
     // Só filtra por data se as datas forem fornecidas (retrocompatível)
     if (startDate || endDate) {
@@ -452,6 +489,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       }
     }
 
+    syncHub.notifyChange(`Status alterado: ${id} -> ${status}`);
     res.json(booking);
   } catch (error: any) {
     res.status(500).json({ message: 'Erro ao processar status.' });
@@ -486,6 +524,7 @@ export const deleteBooking = async (req: Request, res: Response) => {
       data: { deletedAt: new Date() }
     });
     res.status(204).send();
+    syncHub.notifyChange(`Agendamento eliminado: ${id}`);
   } catch (error: any) {
     res.status(500).json({ message: 'Erro ao remover.' });
   }
@@ -559,6 +598,7 @@ export const updateBooking = async (req: Request, res: Response) => {
       include: { client: true }
     });
 
+    syncHub.notifyChange(`Agendamento editado: ${id}`);
     logger.info(`Booking ${id} editado: ${service || 'mesmo'} em ${date || 'mesma data'} às ${time || 'mesma hora'} `);
     res.json(updated);
   } catch (error: any) {
@@ -577,14 +617,24 @@ export const getAllClients = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50; // Limite padrão de segurança
     const skip = (page - 1) * limit;
 
+    const requester = (req as any).user;
+    const whereClause: any = {};
+
+    // 🛡️ SEGURANÇA: Se for EQUIPA, só vê os SEUS clientes (que já marcaram com ela)
+    if (requester.role === 'ADMIN_STAFF') {
+      whereClause.bookings = { some: { staffId: requester.id } };
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     const clients = await prisma.client.findMany({
-      where: search ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phone: { contains: search, mode: 'insensitive' } },
-        ]
-      } : {},
+      where: whereClause,
       include: {
         _count: { select: { bookings: true } }
       },

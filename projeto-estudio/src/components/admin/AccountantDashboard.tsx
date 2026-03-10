@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Download, Filter, Calendar } from 'lucide-react';
+import { FileText, Download, Filter, Calendar, User } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AccountantDashboard: React.FC = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  
+  const targetStaffId = queryParams.get('targetStaffId');
+  const targetName = queryParams.get('targetName');
+  const initialNif = queryParams.get('targetNif') || '';
+
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [nif, setNif] = useState('');
+  const [nif, setNif] = useState(initialNif);
   const [isExporting, setIsExporting] = useState(false);
   const [report, setReport] = useState<any>(null);
 
+  // Atualizar NIF se mudar a funcionária no menu lateral
+  useEffect(() => {
+    setNif(initialNif);
+    setReport(null);
+  }, [initialNif, targetStaffId]);
+
   const handleFetchReport = async () => {
     try {
-      const response = await api.get(`/billing/report?month=${month}&year=${year}`);
+      const url = targetStaffId 
+        ? `/billing/report?month=${month}&year=${year}&staffId=${targetStaffId}`
+        : `/billing/report?month=${month}&year=${year}`;
+      const response = await api.get(url);
       setReport(response.data);
     } catch (error) {
       alert("Erro ao carregar relatório.");
@@ -34,8 +53,12 @@ const AccountantDashboard: React.FC = () => {
   return (
     <div className="p-8 space-y-10">
       <header>
-        <h2 className="text-3xl font-black uppercase text-white tracking-tighter">Painel de Contabilidade</h2>
-        <p className="text-white/40 text-xs uppercase tracking-widest mt-2">Extração de Dados SAFT-T e Relatórios por NIF</p>
+        <h2 className="text-3xl font-black uppercase text-white tracking-tighter">
+          {targetName ? `Contabilidade: ${targetName}` : 'Contabilidade Geral'}
+        </h2>
+        <p className="text-white/40 text-[10px] uppercase tracking-[0.3em] mt-2 font-bold">
+          {targetName ? `Faturação e Relatórios de Elite para ${targetName}` : 'Extração de Dados SAFT-T e Relatórios por NIF'}
+        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-[#121212] p-8 rounded-3xl border border-white/5 shadow-xl">
@@ -69,10 +92,12 @@ const AccountantDashboard: React.FC = () => {
                <p className="text-4xl font-black text-white">{report.revenue.toFixed(2)}€</p>
                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Faturação Total (Bruta)</p>
              </div>
-             <div className="text-right">
-               <p className="text-2xl font-black text-braz-gold">{report.profit.toFixed(2)}€</p>
-               <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Resultado Líquido Estimado</p>
-             </div>
+             {user?.role !== 'ACCOUNTANT' && (
+               <div className="text-right">
+                 <p className="text-2xl font-black text-braz-gold">{report.profit.toFixed(2)}€</p>
+                 <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Resultado Líquido Estimado</p>
+               </div>
+             )}
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
