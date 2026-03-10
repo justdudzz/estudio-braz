@@ -15,6 +15,11 @@ const BookingForm: React.FC = () => {
   const [bookingStep, setBookingStep] = useState(0); // 0: Staff, 1: Services, 2: Date/Time, 3: Contact
   const { user } = useAuth();
 
+  // 🚀 CEO Smooth Scroll: Garantir que o utilizador vê sempre o topo do passo atual
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [bookingStep]);
+
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);

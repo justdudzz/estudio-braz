@@ -16,13 +16,20 @@ const BookingCard = React.memo(({
     processingId,
     getBasePrice,
     handlePriceChange,
+    handleNotesChange,
+    checkoutNotes,
     handleWhatsApp,
     handleCancel,
     handleConfirm,
     handleCheckout
 }: any) => {
-    const basePrice = getBasePrice(booking.service);
-    const currentVal = prices[booking.id] !== undefined ? prices[booking.id] : String(basePrice);
+    const basePrice = getBasePrice(booking.services);
+    const currentPrice = prices[booking.id] !== undefined ? prices[booking.id] : String(basePrice);
+    const currentNotes = checkoutNotes[booking.id] !== undefined ? checkoutNotes[booking.id] : (booking.notes || '');
+
+    // 🛡️ CEO PRIVACY SHIELD
+    const isSuperAdmin = localStorage.getItem('braz_user') && JSON.parse(localStorage.getItem('braz_user') || '{}').role === 'SUPER_ADMIN';
+    const displayPrice = isSuperAdmin ? (booking.totalPrice || basePrice) : '---';
 
     return (
         <motion.div
@@ -82,9 +89,15 @@ const BookingCard = React.memo(({
 
             <div className="bg-white/[0.02] rounded-xl p-3 mb-4 space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/40 uppercase font-bold tracking-widest text-[9px]">Serviço</span>
-                    <span className="text-white/80 font-medium text-right max-w-[120px] truncate" title={booking.service}>
-                        {SERVICES_CONFIG[booking.service as keyof typeof SERVICES_CONFIG]?.label || booking.service}
+                    <span className="text-white/40 uppercase font-bold tracking-widest text-[9px]">Serviços</span>
+                    <span className="text-white/80 font-medium text-right max-w-[120px] truncate" title={booking.services?.map((s: any) => s.service?.label).join(' + ')}>
+                        {booking.services?.map((s: any) => s.service?.label).join(' + ') || 'Sem Serviços'}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/40 uppercase font-bold tracking-widest text-[9px]">Total</span>
+                    <span className={`font-black ${isSuperAdmin ? 'text-braz-gold' : 'text-white/20'}`}>
+                        {displayPrice !== '---' ? `€${Number(displayPrice).toFixed(2)}` : '---'}
                     </span>
                 </div>
                 {booking.notes && (
@@ -119,15 +132,28 @@ const BookingCard = React.memo(({
                     <div className="relative">
                         <Euro className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={14} />
                         <input
-                            type="number" step="0.01" value={currentVal}
+                            type="number" step="0.01" value={currentPrice}
                             onChange={(e) => handlePriceChange(booking.id, e.target.value)}
                             className="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-white font-black focus:outline-none focus:border-braz-gold transition-colors text-right"
+                            placeholder="Valor Final"
                         />
                     </div>
+                    
+                    {/* CEO NOTES INPUT */}
+                    <div className="relative">
+                        <FileText className="absolute left-3 top-3 text-white/30" size={14} />
+                        <textarea
+                            value={currentNotes}
+                            onChange={(e) => handleNotesChange(booking.id, e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-white text-[10px] focus:outline-none focus:border-braz-gold transition-colors resize-none h-16"
+                            placeholder="Adicionar nota interna (ex: Cliente VIP, desconto...)"
+                        />
+                    </div>
+
                     <button
                         onClick={() => handleCheckout(booking)}
                         disabled={processingId === booking.id}
-                        className="w-full bg-braz-gold/10 hover:bg-braz-gold text-braz-gold hover:text-black border border-braz-gold/20 hover:border-transparent transition-all py-2.5 rounded-xl font-black uppercase tracking-widest flex justify-center items-center gap-2 text-xs"
+                        className="w-full bg-braz-gold/10 hover:bg-braz-gold text-braz-gold hover:text-black border border-braz-gold/20 hover:border-transparent transition-all py-2.5 rounded-xl font-black uppercase tracking-widest flex justify-center items-center gap-2 text-[10px]"
                     >
                         {processingId === booking.id ? (
                             <div className="w-4 h-4 border-2 border-braz-gold border-t-transparent rounded-full animate-spin" />
@@ -156,6 +182,7 @@ const DayViewPage: React.FC = () => {
 
     // Estado para checkout
     const [prices, setPrices] = useState<Record<string, string>>({});
+    const [checkoutNotes, setCheckoutNotes] = useState<Record<string, string>>({});
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const formattedDate = useMemo(() => {
@@ -216,11 +243,18 @@ const DayViewPage: React.FC = () => {
         setPrices(prev => ({ ...prev, [id]: value }));
     };
 
-    const getBasePrice = (service: string) => SERVICES_CONFIG[service as keyof typeof SERVICES_CONFIG]?.price || 0;
+    const handleNotesChange = (id: string, value: string) => {
+        setCheckoutNotes(prev => ({ ...prev, [id]: value }));
+    };
+
+    const getBasePrice = (services: any[] = []) => {
+        if (!services) return 0;
+        return services.reduce((acc: number, s: any) => acc + (s.service?.price || 0), 0);
+    };
 
     const handleCheckout = async (booking: any) => {
         const inputVal = prices[booking.id];
-        const finalPrice = inputVal !== undefined && inputVal !== '' ? parseFloat(inputVal) : getBasePrice(booking.service);
+        const finalPrice = inputVal !== undefined && inputVal !== '' ? parseFloat(inputVal) : getBasePrice(booking.services);
 
         if (isNaN(finalPrice) || finalPrice < 0) {
             showToast('Por favor, introduza um valor válido.', 'warning');
@@ -235,7 +269,8 @@ const DayViewPage: React.FC = () => {
             onConfirm: async () => {
                 setProcessingId(booking.id);
                 try {
-                    await updateBookingStatus(booking.id, 'paid', finalPrice);
+                    const finalNotes = checkoutNotes[booking.id] !== undefined ? checkoutNotes[booking.id] : booking.notes;
+                    await updateBookingStatus(booking.id, 'paid', finalPrice, finalNotes);
                     showToast(`Pagamento registado no valor de €${finalPrice}`, 'success');
                     await refreshData(true);
                 } catch {
@@ -243,6 +278,7 @@ const DayViewPage: React.FC = () => {
                 } finally {
                     setProcessingId(null);
                     setPrices(prev => ({ ...prev, [booking.id]: '' }));
+                    setCheckoutNotes(prev => ({ ...prev, [booking.id]: '' }));
                 }
             }
         });
@@ -258,7 +294,8 @@ const DayViewPage: React.FC = () => {
     }
 
     const cardProps = {
-        prices, processingId, getBasePrice, handlePriceChange,
+        prices, checkoutNotes, processingId, getBasePrice, 
+        handlePriceChange, handleNotesChange,
         handleWhatsApp, handleCancel, handleConfirm, handleCheckout
     };
 
@@ -282,7 +319,10 @@ const DayViewPage: React.FC = () => {
                     <div className="text-center bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
                         <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Faturação do Dia</p>
                         <p className="text-lg font-black text-emerald-400">
-                            €{pagos.reduce((acc, b) => acc + (b.totalPrice || getBasePrice(b.service)), 0).toFixed(2)}
+                            {localStorage.getItem('braz_user') && JSON.parse(localStorage.getItem('braz_user') || '{}').role === 'SUPER_ADMIN' 
+                                ? `€${pagos.reduce((acc, b) => acc + (b.totalPrice || getBasePrice(b.services)), 0).toFixed(2)}`
+                                : '---'
+                            }
                         </p>
                     </div>
                 </div>

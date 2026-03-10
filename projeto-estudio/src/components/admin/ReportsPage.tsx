@@ -101,20 +101,33 @@ const ReportsPage: React.FC = () => {
         // Services breakdown
         const serviceCount: Record<string, number> = {};
         const serviceRevenue: Record<string, number> = {};
+        
         [...monthConfirmed, ...monthPaid].forEach(b => {
-            serviceCount[b.service] = (serviceCount[b.service] || 0) + 1;
-            const rev = b.totalPrice || SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.price || 0;
-            serviceRevenue[b.service] = (serviceRevenue[b.service] || 0) + rev;
+            // Nova Lógica: Suportar múltiplos serviços por agendamento
+            if (b.services && b.services.length > 0) {
+                b.services.forEach((ps: any) => {
+                    const s = ps.service;
+                    const sName = s.label || s.name || "Serviço Indefinido";
+                    serviceCount[sName] = (serviceCount[sName] || 0) + 1;
+                    serviceRevenue[sName] = (serviceRevenue[sName] || 0) + (s.price || 0);
+                });
+            } else if (b.service) {
+                // Fallback para agendamentos antigos (legacy)
+                const sName = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service || "Serviço Indefinido";
+                serviceCount[sName] = (serviceCount[sName] || 0) + 1;
+                const rev = b.totalPrice || SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.price || 0;
+                serviceRevenue[sName] = (serviceRevenue[sName] || 0) + rev;
+            }
         });
 
-        const totalValid = monthConfirmed.length + monthPaid.length;
+        const totalValidCount = Object.values(serviceCount).reduce((acc, c) => acc + c, 0);
         const serviceBreakdown = Object.entries(serviceCount)
-            .map(([service, count]) => ({
-                service,
-                label: SERVICES_CONFIG[service as keyof typeof SERVICES_CONFIG]?.label || service,
+            .map(([serviceName, count]) => ({
+                service: serviceName,
+                label: serviceName,
                 count,
-                revenue: serviceRevenue[service] || 0,
-                percentage: totalValid > 0 ? Math.round((count / totalValid) * 100) : 0,
+                revenue: serviceRevenue[serviceName] || 0,
+                percentage: totalValidCount > 0 ? Math.round((count / totalValidCount) * 100) : 0,
             }))
             .sort((a, b) => b.count - a.count);
 
@@ -165,7 +178,7 @@ const ReportsPage: React.FC = () => {
             monthlyTrend,
             topClients,
             totalClients: clients.length,
-            conversionRate: monthBookings.length > 0 ? Math.round((totalValid / monthBookings.length) * 100) : 0,
+            conversionRate: monthBookings.length > 0 ? Math.round((totalValidCount / monthBookings.length) * 100) : 0,
             avgRevenue: monthPaid.length > 0 ? Math.round(monthRevenue / monthPaid.length) : 0,
             revenueGrowth,
         };
@@ -197,8 +210,14 @@ const ReportsPage: React.FC = () => {
             const csvBookings = bookings.filter(b => b.date?.startsWith(selectedMonth) && (b.status === 'confirmed' || b.status === 'paid'));
             if (csvBookings.length > 0) {
                 csvBookings.forEach((b: any) => {
-                    const price = b.totalPrice || SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.price || 0;
-                    csv += `${b.date};${b.time};${b.client?.name || '-'};${b.client?.phone || '-'};${SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service};${b.status.toUpperCase()};€ ${price.toFixed(2)}\n`;
+                    const price = b.totalPrice || 0;
+                    let serviceLabel = '-';
+                    if (b.services && b.services.length > 0) {
+                        serviceLabel = b.services.map((ps: any) => ps.service.label || ps.service.name).join(' + ');
+                    } else if (b.service) {
+                        serviceLabel = SERVICES_CONFIG[b.service as keyof typeof SERVICES_CONFIG]?.label || b.service;
+                    }
+                    csv += `${b.date};${b.time};${b.client?.name || '-'};${b.client?.phone || '-'};${serviceLabel};${b.status.toUpperCase()};€ ${price.toFixed(2)}\n`;
                 });
             } else {
                 csv += `-;-;-;-;Sem Faturação;-;-\n`;

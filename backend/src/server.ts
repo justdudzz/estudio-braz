@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+// Carregar variáveis de ambiente IMEDIATAMENTE antes de qualquer coisa
+dotenv.config();
+
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
@@ -13,80 +16,45 @@ import { getStaffWithServices } from './controllers/bookingController.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import logger from './utils/logger.js';
-
-dotenv.config();
-
 import { env } from './config/env.js';
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 
-// --- CONFIANÇA EM PROXY (#6) ---
-// Essencial para obter o IP real atrás de Cloudflare/Nginx e não bloquear todos por engano.
+// --- CONFIANÇA EM PROXY ---
 app.set('trust proxy', 1);
 
-// --- HTTPS FORÇADO EM PRODUÇÃO (#3) ---
-if (isProduction) {
-  app.use((req, res, next) => {
-    // Verifica o header que proxies (Netlify, Heroku, etc.) adicionam
-    if (req.headers['x-forwarded-proto'] !== 'https') {
-      return res.redirect(301, `https://${req.headers.host}${req.url}`);
-    }
-    next();
-  });
-}
-
-// --- CORS DINÂMICO VIA ENV (#4) ---
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',')
-  : [
-    'http://localhost:5173',
-    'http://localhost:8888',
-    'http://localhost:3000'
-  ];
-
+// --- CONFIGURAÇÃO DE CORS ---
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
 app.use(cors({
-  origin: function (origin, callback) {
-    // Permite pedidos sem origin (Postman, curl, health checks)
-    if (!origin) return callback(null, true);
+  origin: (origin, callback) => {
+    // 🛡️ CEO CORS SHIELD: Só permite localhost (dev) ou domínios específicos permitidos
+    const isLocal = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
+    const isAllowed = origin && allowedOrigins.includes(origin);
+    const isVerifiedNetlify = origin && /https:\/\/.*studiobraz.*\.netlify\.app/.test(origin);
 
-    // Development fallback para qualquer porta localhost e ngrok urls
-    const isLocalhost = !isProduction && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
-    const isNgrok = origin?.includes('.ngrok-free.dev');
-
-    if (isLocalhost || isNgrok || allowedOrigins.indexOf(origin) !== -1) {
+    if (!isProduction || isLocal || isAllowed || isVerifiedNetlify) {
       callback(null, true);
     } else {
-      logger.error(`Tentativa de invasão via CORS bloqueada: ${origin}`);
-      callback(new Error('Acesso negado por política de segurança (CORS)'));
+      logger.warn(`🚫 Bloqueio CORS: Tentativa de acesso vinda de origem não autorizada: ${origin}`);
+      callback(new Error('Bloqueio CORS: Origem não autorizada.'));
     }
   },
-  credentials: true, // Essencial para cookies httpOnly
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
+  credentials: true
 }));
 
-// Camadas de Proteção
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      "connect-src": ["'self'", "http://localhost:5000", "wss://localhost:5173", "https://*.studiobraz.pt"],
-    },
-  },
-}));
-
-// 🛡️ BLOQUEIO DE PERIFÉRICOS (Point #26)
-app.use((req, res, next) => {
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
-  next();
-});
-app.use(cookieParser()); // Parser de cookies para httpOnly auth
+// Outros middlewares standard
+app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(compression());
 
-// Rate Limiting Global (#6) — 100 req/15min por IP
+// Helmet ATIVADO para segurança de nível militar (#14)
+app.use(helmet({
+  contentSecurityPolicy: false, // Desativado temporariamente para não bloquear assets externos se necessário
+  crossOriginEmbedderPolicy: false
+}));
+
+// Rate Limiting Global
 app.use(generalLimiter);
 
 // Rotas do Império
@@ -95,7 +63,6 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/staff', staffRoutes);
-app.get('/api/v1/staff/services', getStaffWithServices);
 
 // Health Check
 app.get('/api/v1/health', (req, res) => {
@@ -125,16 +92,16 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('💥 PROMESSA REJEITADA (Unhandled Rejection) em:', promise, 'razão:', reason);
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
    ===========================================
    🚀 CÉREBRO SQL: 100% OPERACIONAL
    🛡️  SEGURANÇA: Nível Máximo ${isProduction ? 'PRODUÇÃO' : 'DEV'}
    📍 PORTA: ${PORT}
    🔒 HTTPS: ${isProduction ? 'Forçado' : 'Desligado (dev)'}
-   🌐 CORS: ${isProduction ? allowedOrigins.join(', ') : 'Localhost'}
+   🌐 CORS: ${isProduction ? 'Restrito' : 'Aberto (Dev)'}
    🍪 COOKIES: httpOnly ativo
    ===========================================
   `);

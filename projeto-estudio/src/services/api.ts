@@ -3,12 +3,15 @@ import axios from 'axios';
 
 // 1. Criação da ligação com a base URL inteligente
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  // HARDCODE TOTAL: Força o uso do proxy do Netlify/Vite sem saltos de domínio.
+  baseURL: '/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // 🔐 Envia cookies httpOnly automaticamente (#1)
+  withCredentials: true,
 });
+
+console.log("🚀 [AXIOS] Base URL configurada como:", api.defaults.baseURL);
 
 // 2. Intercetor de Pedidos — Adiciona CSRF token (#5)
 api.interceptors.request.use((config) => {

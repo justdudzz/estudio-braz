@@ -322,14 +322,14 @@ const BlockManagement: React.FC = () => {
                                             {useRange ? 'Data Início' : 'Data'}
                                         </label>
                                         <input type="date" value={form.date}
-                                            className="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none focus:border-orange-500 text-white text-sm [color-scheme:dark]"
+                                            className="w-full bg-white/5 p-4 rounded-xl border border-white/10 outline-none focus:border-orange-500/50 focus:bg-white/[0.08] text-white text-sm [color-scheme:dark] transition-all"
                                             onChange={(e) => setForm({ ...form, date: e.target.value })} />
                                     </div>
                                     {useRange && (
                                         <div>
                                             <label className="text-[10px] font-bold text-white/40 uppercase block mb-2 tracking-widest">Data Fim</label>
                                             <input type="date" value={form.dateEnd} min={form.date}
-                                                className="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none focus:border-orange-500 text-white text-sm [color-scheme:dark]"
+                                                className="w-full bg-white/5 p-4 rounded-xl border border-white/10 outline-none focus:border-orange-500/50 focus:bg-white/[0.08] text-white text-sm [color-scheme:dark] transition-all"
                                                 onChange={(e) => setForm({ ...form, dateEnd: e.target.value })} />
                                         </div>
                                     )}

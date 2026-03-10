@@ -60,8 +60,8 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
 export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
-
-  if (user && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_STAFF' || user.role === 'admin')) {
+  // 🛡️ Normalização de Roles (Prisma Enum compatibility)
+  if (user && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_STAFF')) {
     return next();
   }
 
@@ -71,7 +71,7 @@ export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
 export const superAdminOnly = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
 
-  if (user && (user.role === 'SUPER_ADMIN' || user.role === 'admin')) {
+  if (user && user.role === 'SUPER_ADMIN') {
     return next();
   }
 

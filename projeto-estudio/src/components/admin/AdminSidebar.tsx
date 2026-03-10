@@ -33,7 +33,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
     const { logout, user } = useAuth();
     const location = useLocation();
-    const diretorNome = user?.email ? user.email.split('@')[0] : 'Staff';
+    const diretorNome = user?.displayName || user?.email?.split('@')[0] || 'Diretor';
 
     const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user?.role || ''));
 

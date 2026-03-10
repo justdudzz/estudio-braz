@@ -6,6 +6,8 @@ interface User {
   email: string;
   role: 'SUPER_ADMIN' | 'ADMIN_STAFF' | 'ACCOUNTANT' | 'CLIENT';
   name?: string;
+  displayName?: string;
+  photoUrl?: string;
   tier?: string;
   points?: number;
   clientId?: string;
@@ -54,6 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: userData.email,
       role: userData.role,
       name: userData.name,
+      displayName: userData.displayName,
+      photoUrl: userData.photoUrl,
       tier: userData.tier,
       points: userData.points,
       clientId: userData.clientId,

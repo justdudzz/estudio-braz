@@ -37,27 +37,10 @@ const getOrCreateAdminClient = async (): Promise<string> => {
  * Suporta múltiplos serviços e atribuição de staff.
  */
 export const createBooking = async (req: Request, res: Response) => {
-  const bodySchema = z.object({
-    name: z.string().min(3),
-    email: z.string().email().optional().nullable(),
-    phone: z.string().optional().nullable(),
-    serviceIds: z.array(z.string()).min(1).optional(),
-    staffId: z.string().optional(),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    time: z.string().regex(/^\d{2}:\d{2}$/),
-    // Suporte para múltiplos segmentos (interligados)
-    segments: z.array(z.object({
-      staffId: z.string(),
-      serviceIds: z.array(z.string()).min(1)
-    })).optional()
-  });
-
-  const result = bodySchema.safeParse(req.body);
-  if (!result.success) return res.status(400).json({ message: 'Dados inválidos.', errors: result.error.format() });
-
-  const { name, email, phone, date, time, segments, staffId, serviceIds } = result.data;
+  const { name, email, phone, date, time, serviceIds, staffId, segments } = req.body;
 
   try {
+    console.log(`🚀 [Agendamento] Iniciando criação para: ${name} em ${date} ${time}`);
     const cleanEmail = email?.trim().toLowerCase() || null;
     const cleanPhone = phone?.replace(/\D/g, '') || null;
 
@@ -66,7 +49,6 @@ export const createBooking = async (req: Request, res: Response) => {
     });
     if (!client) client = await prisma.client.create({ data: { name, email: cleanEmail, phone: cleanPhone } });
 
-    // Lógica Sequencial (Point #8 do Plano)
     if (segments && segments.length > 0) {
       let firstBookingId: string | null = null;
       const createdBookings = [];
@@ -78,12 +60,12 @@ export const createBooking = async (req: Request, res: Response) => {
         const b: any = await (prisma.booking as any).create({
           data: {
             date,
-            time, // TODO: No futuro, calcular offset de tempo real para cada segmento
+            time,
             staffId: segment.staffId,
             clientId: client.id,
             totalPrice,
             parentBookingId: firstBookingId,
-            services: { create: segment.serviceIds.map(id => ({ serviceId: id })) }
+            services: { create: segment.serviceIds.map((id: string) => ({ serviceId: id })) }
           }
         });
         if (!firstBookingId) firstBookingId = b.id;
@@ -92,25 +74,34 @@ export const createBooking = async (req: Request, res: Response) => {
       return res.status(201).json(createdBookings);
     }
 
-    // Fallback para agendamento simples
-    // 2. Obter serviços para info de duração/preço
     if (staffId && serviceIds) {
       const services = await (prisma as any).service.findMany({ where: { id: { in: serviceIds } } });
       const totalPrice = services.reduce((acc: number, s: any) => acc + s.price, 0);
       const booking = await (prisma.booking as any).create({
         data: {
           date, time, staffId, clientId: client.id, totalPrice,
-          services: { create: serviceIds.map(id => ({ serviceId: id })) }
+          services: { create: serviceIds.map((id: string) => ({ serviceId: id })) }
         },
         include: { client: true, staff: true, services: { include: { service: true } } }
       });
+
+      // 📧 Notificações de Elite (Enviado em background para não travar o utilizador)
+      sendLuxuryEmail(
+        client.email || '', 
+        'Marcação Recebida - Studio Braz', 
+        client.name,
+        services.map((s: any) => s.label).join(' + '),
+        date,
+        time
+      ).catch(err => logger.error("📧 Erro em background ao enviar email:", err));
+
       return res.status(201).json(booking);
     }
 
     return res.status(400).json({ message: 'Especifique staff/serviços ou segmentos.' });
   } catch (error: any) {
-    logger.error("❌ Erro no Agendamento Sequencial:", error);
-    return res.status(500).json({ message: "Erro interno." });
+    logger.error("❌ Erro na Criação do Agendamento:", error);
+    return res.status(500).json({ message: "Erro interno ao processar agendamento." });
   }
 };
 
@@ -130,30 +121,29 @@ export const getBusySlots = async (req: Request, res: Response) => {
     const dayOfWeek = new Date(date).getUTCDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     
-    // Lista simples de feriados (Exemplo)
+    // Lista de feriados
     const holidays = ['2026-01-01', '2026-04-25', '2026-05-01', '2026-06-10', '2026-08-15', '2026-10-05', '2026-11-01', '2026-12-01', '2026-12-08', '2026-12-25'];
     const isHoliday = holidays.includes(date);
 
     if (isWeekend || isHoliday) {
       let canBook = false;
-
-      // Regra de Ouro: Mariana + VIP = Desbloqueia
       if (clientId) {
         const client: any = await prisma.client.findUnique({ where: { id: clientId } });
         const staff: any = await prisma.user.findUnique({ where: { id: staffId } });
-        
         if (client?.isVIP && (staff?.role === 'SUPER_ADMIN' || staff?.email === 'mariana@studiobraz.com')) {
           canBook = true;
         }
       }
-
-      if (!canBook) {
-        // Se não pode marcar, retornamos todos os slots como ocupados (bloqueio total)
-        return res.json(["ALL_DAY_LOCKED"]); 
-      }
+      if (!canBook) return res.json([]); // Bloqueio total
     }
 
-    // 2. Buscar agendamentos existentes para este staff
+    // 2. Definir Período de Trabalho (Pode ser movido para config no futuro)
+    const ALL_POSSIBLE_SLOTS = [
+      "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", 
+      "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"
+    ];
+
+    // 3. Buscar agendamentos existentes (ocupados)
     const bookings = await (prisma.booking as any).findMany({
       where: {
         date,
@@ -162,16 +152,12 @@ export const getBusySlots = async (req: Request, res: Response) => {
         deletedAt: null,
       },
       include: {
-        services: {
-          include: { service: true }
-        }
+        services: { include: { service: true } }
       }
     });
 
     const occupiedSlots = new Set<string>();
-
     bookings.forEach((b: any) => {
-      // Somar duração de todos os serviços do agendamento
       const duration = b.services.reduce((acc: number, s: any) => acc + s.service.duration, 0);
       const [startH, startM] = b.time.split(':').map(Number);
       let currentMinutes = startH * 60 + startM;
@@ -181,13 +167,16 @@ export const getBusySlots = async (req: Request, res: Response) => {
         const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
         const m = (currentMinutes % 60).toString().padStart(2, '0');
         occupiedSlots.add(`${h}:${m}`);
-        currentMinutes += 30; // Slots de 30 min por padrão
+        currentMinutes += 30;
       }
     });
 
-    res.json(Array.from(occupiedSlots));
+    // 4. Filtrar: O que é POSSÍVEL menos o que está OCUPADO
+    const availableSlots = ALL_POSSIBLE_SLOTS.filter(slot => !occupiedSlots.has(slot));
+
+    res.json(availableSlots);
   } catch (error: any) {
-    logger.error(`Erro ao buscar slots ocupados:`, error);
+    logger.error(`Erro ao buscar slots:`, error);
     res.status(500).json([]);
   }
 };
@@ -420,11 +409,13 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Status inválido.', errors: result.error.format() });
   }
   const { id } = req.params;
-  const { status, totalPrice } = result.data.body;
+  const { status, totalPrice, notes } = result.data.body;
+  const requester = (req as any).user;
 
   try {
     const dataToUpdate: any = { status };
     if (totalPrice !== undefined) dataToUpdate.totalPrice = totalPrice;
+    if (notes !== undefined) dataToUpdate.notes = notes;
 
     const booking = await prisma.booking.update({
       where: { id },
@@ -798,22 +789,30 @@ export const exportClientsCSV = async (req: Request, res: Response) => {
  * 14. LISTAR STAFF E SEUS SERVIÇOS (Gatilho de Agendamento)
  */
 export const getStaffWithServices = async (req: Request, res: Response) => {
+  console.log("📥 [API] Pedido recebido em /staff/services");
   try {
-    const staff = await (prisma.user as any).findMany({
+    // Verificar se o prisma está definido
+    if (!prisma) {
+      console.error("❌ Erro Crítico: Prisma não inicializado!");
+      return res.status(500).json({ message: "Base de dados indisponível." });
+    }
+
+    const staff = await (prisma as any).user.findMany({
       where: {
         role: { in: ['SUPER_ADMIN', 'ADMIN_STAFF'] }
       },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        providedServices: true
+      include: {
+        providedServices: {
+          select: { id: true, name: true, label: true, duration: true, price: true }
+        }
       }
     });
 
+    console.log(`✅ [API] Staff carregado: ${staff?.length || 0} profissionais encontrados.`);
     res.json(staff);
   } catch (error: any) {
+    console.error("🔥 [API ERROR] Falha ao obter lista de staff:", error.message);
     logger.error("❌ Erro ao obter lista de staff para agendamento:", error);
-    res.status(500).json({ message: "Erro ao carregar equipa." });
+    res.status(500).json({ message: "Erro ao carregar equipa.", details: error.message });
   }
 };

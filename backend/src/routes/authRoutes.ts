@@ -22,6 +22,6 @@ router.post('/2fa/disable', protect, adminOnly, disable2FA);
 router.get('/users', protect, adminOnly, getAllUsers);
 router.post('/register-staff', protect, adminOnly, registerStaff);
 router.patch('/users/:id', protect, updateUser);
-router.get('/profile/:id', getUserProfile);
+router.get('/profile/:id', protect, getUserProfile);
 
 export default router;

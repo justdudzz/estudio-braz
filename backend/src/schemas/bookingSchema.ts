@@ -24,9 +24,11 @@ export const createBookingSchema = z.object({
       .nullable()
       .or(z.literal('')),
 
-    service: z.string()
-      .min(1, 'O serviço deve ser selecionado')
-      .max(50, 'Serviço inválido'),
+    staffId: z.string()
+      .min(1, 'O profissional deve ser selecionado'),
+
+    serviceIds: z.array(z.string())
+      .min(1, 'Pelo menos um serviço deve ser selecionado'),
 
     date: z.string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data deve ser YYYY-MM-DD'),

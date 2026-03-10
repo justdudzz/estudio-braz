@@ -22,7 +22,7 @@ const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const { bookings, loading, refreshData } = useAdminData();
-  const diretorNome = user?.email ? user.email.split('@')[0] : 'Diretor';
+  const diretorNome = user?.displayName || user?.email?.split('@')[0] || 'Diretor';
 
   // --- FILTER LOGIC ---
   const filteredBookings = React.useMemo(() => {

@@ -18,6 +18,7 @@ export interface Booking {
     clientId?: string;
     client?: Client;
     service: string;
+    services?: { service: { name: string; label: string; price: number; duration: number } }[];
     date: string;
     time: string;
     status: BookingStatus;

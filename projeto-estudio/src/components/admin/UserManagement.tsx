@@ -9,28 +9,37 @@ const UserManagement: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', role: 'ADMIN_STAFF' });
   const [editingUser, setEditingUser] = useState<any>(null);
-
   const fetchUsers = async () => {
     try {
       const usersRes = await api.get('/staff');
       setUsers(usersRes.data);
-      // Obter lista global de serviços para o formulário
+      
+      // Obter lista global de serviços (DEDUPLICADA POR ID para evitar repetições no modal)
       const servicesRes = await api.get('/staff/services'); 
-      // Se vier do endpoint de bookingController.getStaffWithServices
-      const allPossibleServices = Array.from(new Set(
-        servicesRes.data.flatMap((staff: any) => staff.providedServices || [])
-      )) as any[];
-      setServices(allPossibleServices);
+      const allPossibleServices = servicesRes.data.flatMap((staff: any) => staff.providedServices || []);
+      
+      const uniqueServices = Array.from(new Map(allPossibleServices.map((s: any) => [s.id, s])).values()) as any[];
+      setServices(uniqueServices);
     } catch (error) {
-      console.error("Erro ao carregar dados");
-      // Fallback para evitar erro se endpoint de serviços falhar
-      if (services.length === 0) {
-        const fallbackRes = await api.get('/staff/services');
-        const allServices = fallbackRes.data.flatMap((s: any) => s.providedServices);
-        setServices(Array.from(new Set(allServices.map((s: any) => s.id))).map(id => allServices.find((s: any) => s.id === id)));
-      }
+      console.error("Erro ao carregar dados", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, email: string) => {
+    if (email === 'mariana@studiobraz.com') {
+      alert("A Mariana é a fundadora e líder suprema. Não é possível remover o acesso principal.");
+      return;
+    }
+
+    if (window.confirm(`⚠️ AVISO: Deseja remover permanentemente o acesso de ${email}?`)) {
+      try {
+        await api.delete(`/staff/${id}`);
+        await fetchUsers();
+      } catch (error: any) {
+        alert("Erro ao remover: " + (error.response?.data?.error || "Serviço indisponível"));
+      }
     }
   };
 
@@ -150,8 +159,14 @@ const UserManagement: React.FC = () => {
                     </td>
                     <td className="p-6">
                       <div className="flex gap-2">
-                        <button onClick={() => setEditingUser({ ...u, services: u.providedServices?.map((s: any) => s.id) || [] })} className="p-2 text-white/20 hover:text-braz-gold transition-colors font-bold text-[10px] uppercase">Editar</button>
-                        <button className="p-2 text-white/20 hover:text-red-500 transition-colors"><UserMinus size={18} /></button>
+                        <button onClick={() => setEditingUser({ ...u, services: u.providedServices?.map((s: any) => s.id) || [] })} className="p-2 text-white/40 hover:text-braz-gold transition-colors font-black text-[10px] uppercase tracking-widest">Editar</button>
+                        <button 
+                          onClick={() => handleDeleteUser(u.id, u.email)}
+                          className={`p-2 transition-colors ${u.email === 'mariana@studiobraz.com' ? 'text-white/5 cursor-not-allowed' : 'text-white/20 hover:text-red-500'}`}
+                          disabled={u.email === 'mariana@studiobraz.com'}
+                        >
+                          <UserMinus size={18} />
+                        </button>
                       </div>
                     </td>
                   </tr>

@@ -40,17 +40,20 @@ export const login = async (req: Request, res: Response) => {
   const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
 
   try {
+    // Logging de auditoria via Logger centralizado
+    logger.info(`🔑 Tentativa de login iniciada para: ${email} | IP: ${clientIp}`);
     const user = await prisma.user.findUnique({
       where: { email }
     });
 
     if (!user) {
-      // Log de tentativa falhada com IP (#10)
+      console.log(`❌ [Login] Utilizador não encontrado: ${email}`);
       logger.warn(`Login admin falhado — email inexistente: ${email} | IP: ${clientIp}`);
       return res.status(401).json({ message: 'Credenciais de elite inválidas.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
       logger.warn(`Login admin falhado — password errada: ${email} | IP: ${clientIp}`);
       return res.status(401).json({ message: 'Credenciais de elite inválidas.' });
