@@ -4,6 +4,8 @@ import { AnimatePresence } from 'framer-motion';
 import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import ClientProfileModal from './ClientProfileModal';
+import Copyable from './ui/Copyable';
+import EmptyState from './ui/EmptyState';
 
 interface Client {
   id: string;
@@ -161,10 +163,11 @@ const AdminClientList: React.FC = () => {
           <Loader2 size={24} className="animate-spin text-[#C5A059]" />
         </div>
       ) : sorted.length === 0 ? (
-        <div className="bg-[#121212] rounded-2xl border border-white/5 p-16 text-center">
-          <Users className="mx-auto text-white/10 mb-3" size={40} />
-          <p className="text-white/30 text-sm">Nenhum cliente encontrado.</p>
-        </div>
+        <EmptyState 
+          title="Nenhum cliente encontrado" 
+          description={searchTerm ? `Não encontrámos resultados para "${searchTerm}". Tente outro termo.` : "A sua base de dados VIP ainda está vazia."}
+          type="search"
+        />
       ) : (
         <div className="bg-[#121212] rounded-2xl border border-white/5 overflow-hidden">
           {/* Desktop Table Header */}
@@ -212,14 +215,10 @@ const AdminClientList: React.FC = () => {
               {/* Contact */}
               <div className="hidden md:flex col-span-3 flex-col justify-center gap-1">
                 {client.email && (
-                  <span className="text-[10px] text-white/40 flex items-center gap-1.5 truncate">
-                    <Mail size={10} className="shrink-0" /> {client.email}
-                  </span>
+                  <Copyable value={client.email} className="text-[10px] text-white/40 flex items-center gap-1.5 truncate" />
                 )}
                 {client.phone && (
-                  <span className="text-[10px] text-white/40 flex items-center gap-1.5">
-                    <Phone size={10} className="shrink-0" /> {client.phone}
-                  </span>
+                  <Copyable value={client.phone} className="text-[10px] text-white/40 flex items-center gap-1.5" />
                 )}
                 {!client.email && !client.phone && (
                   <span className="text-[10px] text-white/15 italic">Sem contacto</span>

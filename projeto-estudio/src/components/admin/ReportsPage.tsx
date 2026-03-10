@@ -6,6 +6,8 @@ import { useToast } from '../common/Toast';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { MetricCard, GrowthCard, StatusCard } from './ui/StatCards';
 import { SERVICES_CONFIG } from '../../utils/constants';
+import EmptyState from './ui/EmptyState';
+import Tooltip from './ui/Tooltip';
 
 const ReportsPage: React.FC = () => {
     const location = useLocation();
@@ -272,7 +274,9 @@ const ReportsPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4 bg-[#1A1A1A] p-6 rounded-2xl border border-white/5">
                 <div>
                     <h1 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-                        <BarChart3 className="text-[#C5A059]" size={24} /> 
+                        <Tooltip content="Auditoria completa de faturamento e despesas">
+                            <BarChart3 className="text-[#C5A059]" size={24} /> 
+                        </Tooltip>
                         {targetName ? `Estatísticas: ${targetName}` : 'Estatísticas Gerais'}
                     </h1>
                     <p className="text-white/40 text-sm mt-1">
@@ -294,11 +298,13 @@ const ReportsPage: React.FC = () => {
                     </button>
                 </div>
 
-                <button onClick={exportMonthlyCSV} disabled={exporting}
-                    className="flex items-center gap-2 bg-[#C5A059] text-black px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-white transition-all disabled:opacity-50">
-                    {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                    {exporting ? 'A Exportar...' : 'Baixar Fecho Mensal'}
-                </button>
+                <Tooltip content="Gera um Excel pronto para a contabilidade">
+                    <button onClick={exportMonthlyCSV} disabled={exporting}
+                        className="flex items-center gap-2 bg-[#C5A059] text-black px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-white transition-all disabled:opacity-50">
+                        {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                        {exporting ? 'A Exportar...' : 'Baixar Fecho Mensal'}
+                    </button>
+                </Tooltip>
             </div>
 
             {/* ===== ROW 1: Key Metrics ===== */}
@@ -356,7 +362,11 @@ const ReportsPage: React.FC = () => {
                             </div>
                         ))}
                         {expenses.length === 0 && (
-                            <p className="text-center text-xs text-white/20 italic pt-4">Nenhuma despesa registada em {monthDisplay}.</p>
+                            <EmptyState 
+                                title="Sem Despesas" 
+                                description={`Nenhuma despesa registada em ${monthDisplay}.`}
+                                type="file"
+                            />
                         )}
                     </div>
                 </div>
@@ -404,7 +414,11 @@ const ReportsPage: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                        {stats.serviceBreakdown.length === 0 && (<p className="text-white/20 text-xs text-center py-8">Sem dados de serviços.</p>)}
+                        {stats.serviceBreakdown.length === 0 && (
+                            <div className="py-4">
+                                <EmptyState title="Sem dados de serviços" description="Não existem marcações faturadas neste período." type="search" />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

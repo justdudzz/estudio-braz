@@ -1,52 +1,63 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, LayoutDashboard } from 'lucide-react';
-
-const ROUTE_LABELS: Record<string, string> = {
-    '/dashboard': 'Dashboard',
-    '/dashboard/agenda': 'Agenda',
-    '/dashboard/clientes': 'Clientes VIP',
-    '/dashboard/bloqueios': 'Bloqueios',
-    '/dashboard/configuracoes': 'Configurações',
-    '/dashboard/relatorios': 'Relatórios',
-};
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronRight, Home } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Breadcrumbs: React.FC = () => {
     const location = useLocation();
-    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const pathnames = location.pathname.split('/').filter((x) => x);
 
-    // Build breadcrumb items
-    const crumbs: { label: string; path: string }[] = [];
-    let currentPath = '';
+    // Mapeamento de nomes amigáveis
+    const routeLabels: { [key: string]: string } = {
+        dashboard: 'Gestão',
+        agenda: 'Agenda',
+        staff: 'Equipa',
+        contabilidade: 'Caixa & Faturas',
+        relatorios: 'Análise de Performance',
+        vips: 'Base de Clientes VIP',
+        settings: 'Configurações',
+        perfil: 'Meu Perfil'
+    };
 
-    for (const segment of pathSegments) {
-        currentPath += `/${segment}`;
-        const label = ROUTE_LABELS[currentPath];
-        if (label) {
-            crumbs.push({ label, path: currentPath });
-        }
-    }
-
-    if (crumbs.length <= 1) return null; // Don't show breadcrumbs on dashboard home
+    if (pathnames.length <= 1) return null;
 
     return (
-        <nav className="flex items-center gap-2 text-xs text-white/30 mb-6">
-            <Link to="/dashboard" className="flex items-center gap-1 hover:text-white/60 transition-colors">
-                <LayoutDashboard size={12} strokeWidth={1.5} />
-                <span>Dashboard</span>
+        <nav className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-6">
+            <Link 
+                to="/dashboard" 
+                className="hover:text-braz-gold transition-colors flex items-center gap-1 group"
+            >
+                <Home size={12} className="group-hover:scale-110 transition-transform" />
+                <span>Início</span>
             </Link>
-            {crumbs.slice(1).map((crumb, i) => (
-                <React.Fragment key={crumb.path}>
-                    <ChevronRight size={12} className="text-white/15" strokeWidth={1.5} />
-                    <Link
-                        to={crumb.path}
-                        className={`hover:text-white/60 transition-colors ${i === crumbs.length - 2 ? 'text-braz-gold font-semibold' : ''
-                            }`}
-                    >
-                        {crumb.label}
-                    </Link>
-                </React.Fragment>
-            ))}
+
+            {pathnames.map((value, index) => {
+                const isLast = index === pathnames.length - 1;
+                const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+                const label = routeLabels[value] || value.charAt(0).toUpperCase() + value.slice(1);
+
+                return (
+                    <React.Fragment key={to}>
+                        <ChevronRight size={10} className="text-white/10" />
+                        {isLast ? (
+                            <motion.span 
+                                initial={{ opacity: 0, x: -5 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="text-braz-gold font-black"
+                            >
+                                {label}
+                            </motion.span>
+                        ) : (
+                            <Link 
+                                to={to} 
+                                className="hover:text-white/60 transition-colors"
+                            >
+                                {label}
+                            </Link>
+                        )}
+                    </React.Fragment>
+                );
+            })}
         </nav>
     );
 };

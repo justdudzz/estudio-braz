@@ -17,6 +17,7 @@ import {
 } from '../controllers/bookingController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 import validate from '../middleware/validateResource.js';
+import { validateIdParam } from '../middleware/validateMiddleware.js';
 import { createBookingSchema } from '../schemas/bookingSchema.js';
 import { updateBookingStatusSchema } from '../schemas/bookingStatusSchema.js';
 import { bookingLimiter } from '../middleware/rateLimiter.js';
@@ -34,8 +35,8 @@ router.post('/', bookingLimiter, validate(createBookingSchema), createBooking);
 // ==========================================
 router.get('/clients', protect, adminOnly, getAllClients);
 router.get('/clients/export-csv', protect, adminOnly, exportClientsCSV);
-router.get('/clients/:id', protect, adminOnly, getClientProfile);
-router.put('/clients/:id', protect, adminOnly, updateClient);
+router.get('/clients/:id', protect, adminOnly, validateIdParam(), getClientProfile);
+router.put('/clients/:id', protect, adminOnly, validateIdParam(), updateClient);
 
 // ==========================================
 // 🔒 ROTAS ADMIN — Bookings
@@ -44,9 +45,9 @@ router.get('/top-clients', protect, adminOnly, getTopClients);
 router.post('/block', protect, adminOnly, blockSchedule);
 router.post('/batch-delete', protect, adminOnly, batchDeleteBlocks);
 router.get('/', protect, adminOnly, getAllBookings);
-router.patch('/:id/status', protect, adminOnly, validate(updateBookingStatusSchema), updateBookingStatus);
-router.patch('/:id/restore', protect, adminOnly, restoreBooking);
-router.put('/:id', protect, adminOnly, updateBooking);
-router.delete('/:id', protect, adminOnly, deleteBooking);
+router.patch('/:id/status', protect, adminOnly, validateIdParam(), validate(updateBookingStatusSchema), updateBookingStatus);
+router.patch('/:id/restore', protect, adminOnly, validateIdParam(), restoreBooking);
+router.put('/:id', protect, adminOnly, validateIdParam(), updateBooking);
+router.delete('/:id', protect, adminOnly, validateIdParam(), deleteBooking);
 
 export default router;

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { useToast } from '../components/common/Toast';
 
 interface User {
   id: string;
@@ -29,6 +30,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { showToast } = useToast();
+
+  // 🛡️ SECURITY #10: Aviso de Sessão Prestes a Expirar (30 mins antes)
+  useEffect(() => {
+    const checkExpiry = () => {
+      const expiresAt = localStorage.getItem('braz_expires_at');
+      if (!user || !expiresAt) return;
+
+      const timeLeft = parseInt(expiresAt, 10) - Date.now();
+      const thirtyMinutes = 30 * 60 * 1000;
+
+      // Se falta menos de 30 mins e mais de 29 mins (para não spammar)
+      if (timeLeft > 0 && timeLeft < thirtyMinutes && timeLeft > (thirtyMinutes - 60000)) {
+        showToast('A sua sessão de elite irá expirar em menos de 30 minutos.', 'warning');
+      }
+    };
+
+    const interval = setInterval(checkExpiry, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [user, showToast]);
 
   // Carregar utilizador e validar sessão (#1, #2)
   useEffect(() => {
@@ -100,16 +121,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      // Chamar o servidor para limpar o cookie httpOnly (#13)
       await api.post('/auth/logout');
     } catch (err) {
-      // Se falhar o request, limpar localmente mesmo assim
       console.error('Erro ao fazer logout no servidor:', err);
     }
-
     logoutLocal();
     window.location.href = '/';
   };
+
+  // 🛡️ SECURITY #12: Inatividade Automática (Logout após 2h sem mexer)
+  useEffect(() => {
+    if (!user || user.role === 'CLIENT') return;
+
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        console.log('🚪 LOGOUT POR INATIVIDADE: Protegendo o painel admin.');
+        logout();
+      }, 2 * 60 * 60 * 1000); // 2 Horas
+    };
+
+    const events = ['mousedown', 'keydown', 'touchstart', 'mousemove'];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+
+    resetTimer(); // Iniciar ao montar
+
+    return () => {
+      clearTimeout(timeout);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{

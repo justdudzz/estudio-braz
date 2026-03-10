@@ -7,6 +7,10 @@ dotenv.config();
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
+// @ts-ignore
+import xss from 'xss-clean';
+// @ts-ignore
+import hpp from 'hpp';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
@@ -49,10 +53,23 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(compression());
+app.use(xss()); // Sanitização contra XSS (#19)
+app.use(hpp()); // Prevenção de Parameter Pollution
+app.disable('x-powered-by'); // Esconder Express (#16)
 
-// Helmet ATIVADO para segurança de nível militar (#14)
+// Helmet ATIVADO para segurança de nível militar (#11)
 app.use(helmet({
-  contentSecurityPolicy: false, // Desativado temporariamente para não bloquear assets externos se necessário
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://*.cloudinary.com"],
+      connectSrc: ["'self'", "https://*.studiobraz.com", "https://api.cloudinary.com"],
+      frameSrc: ["'self'", "https://www.google.com"],
+    },
+  },
   crossOriginEmbedderPolicy: false
 }));
 

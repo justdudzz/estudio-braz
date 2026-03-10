@@ -8,6 +8,7 @@ import { sendNotification } from '../services/notificationService.js';
 import { createBookingSchema } from '../schemas/bookingSchema.js';
 import { BUSINESS_HOURS, SERVICES_CONFIG } from '../config/businessRules.js';
 import { syncHub } from '../utils/syncHub.js';
+import { isTemporaryEmail } from '../utils/emailValidator.js';
 
 // 🛠️ DICIONÁRIO DE DURAÇÕES (em minutos) — Obtido da Versão de Elite Centralizada
 const SERVICE_DURATIONS: Record<string, number> = Object.fromEntries(
@@ -44,6 +45,11 @@ export const createBooking = async (req: Request, res: Response) => {
     console.log(`🚀 [Agendamento] Iniciando criação para: ${name} em ${date} ${time}`);
     const cleanEmail = email?.trim().toLowerCase() || null;
     const cleanPhone = phone?.replace(/\D/g, '') || null;
+
+    if (cleanEmail && isTemporaryEmail(cleanEmail)) {
+      logger.warn(`🚫 BLOQUEIO DE SEGURANÇA: Tentativa de agendamento com email temporário: ${cleanEmail}`);
+      return res.status(400).json({ message: 'Este endereço de email não é aceite por motivos de segurança.' });
+    }
 
     let client = await prisma.client.findFirst({
       where: { OR: [ ...(cleanEmail ? [{ email: cleanEmail }] : []), ...(cleanPhone ? [{ phone: cleanPhone }] : []) ] }

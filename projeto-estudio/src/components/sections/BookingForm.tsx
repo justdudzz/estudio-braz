@@ -136,9 +136,16 @@ const BookingForm: React.FC = () => {
         <button
           key={d} type="button" disabled={isDisabled}
           onClick={() => setFormData(prev => ({ ...prev, date: dateStr, time: '' }))}
-          className={`h-10 w-full flex items-center justify-center rounded-xl text-sm transition-all ${isDisabled ? 'opacity-10' : isSelected ? 'bg-braz-gold text-black font-bold' : 'text-white/60 hover:bg-white/5'}`}
+          className={`h-10 w-full flex items-center justify-center rounded-xl text-sm transition-all relative overflow-hidden ${
+            isDisabled 
+              ? 'opacity-20 cursor-not-allowed bg-white/[0.02]' 
+              : isSelected 
+                ? 'bg-braz-gold text-black font-bold shadow-[0_0_15px_rgba(197,160,89,0.3)]' 
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
+          }`}
         >
           {d}
+          {isDisabled && <div className="absolute inset-0 flex items-center justify-center"><div className="w-full h-[1px] bg-white/10 -rotate-45" /></div>}
         </button>
       );
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Save, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
@@ -52,6 +52,14 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({ booking, onClose, o
     const basePrice = SERVICES_CONFIG[formData.service as keyof typeof SERVICES_CONFIG]?.price || 0;
     const extrasTotal = extras.reduce((acc, e) => acc + e.price, 0);
     const totalPrice = basePrice + extrasTotal;
+
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

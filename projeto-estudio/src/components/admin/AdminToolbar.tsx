@@ -54,7 +54,11 @@ const AdminToolbar: React.FC = () => {
         <div className="w-[1px] h-6 bg-white/10 mx-1" />
 
         <button 
-          onClick={logout}
+          onClick={() => {
+            if (window.confirm('⚠️ DESEJA MESMO SAIR?\nA sua sessão será encerrada e precisará de novos acessos para entrar no painel.')) {
+              logout();
+            }
+          }}
           className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 transition-all hover:bg-red-500/5 px-4 py-2 rounded-lg"
         >
           <LogOut size={14} />

@@ -6,6 +6,10 @@ import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import { isValidNIF } from '../../utils/validators';
+import EmptyState from './ui/EmptyState';
+import Copyable from './ui/Copyable';
+import PasswordStrength from './ui/PasswordStrength';
+import PremiumImage from '../common/PremiumImage';
 
 const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -145,7 +149,7 @@ const UserManagement: React.FC = () => {
             <div className="flex -space-x-3">
                 {users.slice(0, 5).map(u => (
                     <div key={u.id} className="w-10 h-10 rounded-full border-2 border-black bg-braz-gold/10 flex items-center justify-center text-[10px] font-black overflow-hidden ring-1 ring-white/5">
-                        {u.photoUrl ? <img src={u.photoUrl} className="w-full h-full object-cover" /> : (u.displayName || u.email).charAt(0)}
+                        {u.photoUrl ? <PremiumImage src={u.photoUrl} alt={u.displayName} className="w-full h-full" /> : (u.displayName || u.email).charAt(0)}
                     </div>
                 ))}
                 {users.length > 5 && (
@@ -173,7 +177,7 @@ const UserManagement: React.FC = () => {
                     <div className="flex items-center gap-4">
                       {u.photoUrl ? (
                         <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 group-hover:border-braz-gold/50 transition-colors">
-                            <img src={u.photoUrl} alt={u.displayName} className="w-full h-full object-cover" />
+                            <PremiumImage src={u.photoUrl} alt={u.displayName} className="w-full h-full" />
                         </div>
                       ) : (
                         <div className="w-12 h-12 rounded-2xl bg-braz-gold/10 flex items-center justify-center text-braz-gold font-black uppercase text-sm border border-braz-gold/20">
@@ -182,7 +186,7 @@ const UserManagement: React.FC = () => {
                       )}
                       <div>
                         <p className="text-sm font-black text-white group-hover:text-braz-gold transition-colors">{u.displayName} {u.lastName}</p>
-                        <p className="text-[10px] text-white/30 font-medium">{u.email}</p>
+                        <Copyable value={u.email} className="text-[10px] text-white/30 font-medium" />
                       </div>
                     </div>
                   </td>
@@ -197,7 +201,11 @@ const UserManagement: React.FC = () => {
                   </td>
                   <td className="p-8">
                     <div className="flex flex-col">
-                        <span className="text-xs font-bold text-white/80">{u.nif || 'NIF em falta'}</span>
+                        {u.nif ? (
+                            <Copyable value={u.nif} className="text-xs font-bold text-white/80" />
+                        ) : (
+                            <span className="text-xs font-bold text-white/30 italic">NIF em falta</span>
+                        )}
                         <span className="text-[9px] text-white/20 uppercase font-black">{u.businessName || 'Pessoal'}</span>
                     </div>
                   </td>
@@ -240,11 +248,13 @@ const UserManagement: React.FC = () => {
             </tbody>
           </table>
           {users.length === 0 && !isLoadingGlobal && (
-              <div className="p-20 text-center space-y-4">
-                  <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
-                    <Users size={32} className="text-white/10" />
-                  </div>
-                  <p className="text-white/20 text-xs font-bold uppercase tracking-widest">Sem profissionais ativas no momento.</p>
+              <div className="p-10">
+                  <EmptyState 
+                    title="Nenhum membro na equipa" 
+                    description="O estúdio ainda não tem profissionais registadas. Clique em 'Novo Membro' para começar o recrutamento."
+                    type="inbox"
+                    action={{ label: 'Recrutar Agora', onClick: () => setIsCreatingModal(true) }}
+                  />
               </div>
           )}
         </div>
@@ -382,10 +392,11 @@ const UserManagement: React.FC = () => {
                            <label className="text-[9px] font-black uppercase tracking-widest text-white/30 ml-2">E-mail de Login</label>
                            <input type="email" placeholder="ana@studiobraz.com" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-white outline-none focus:border-braz-gold/50 transition-all" />
                         </div>
-                        <div className="space-y-2">
+                         <div className="space-y-2">
                            <label className="text-[9px] font-black uppercase tracking-widest text-white/30 ml-2">Password Inicial</label>
                            <input type="text" placeholder="Ex: AnaBraz2026" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-white outline-none focus:border-braz-gold/50 transition-all" />
-                        </div>
+                           <PasswordStrength password={newUser.password} />
+                         </div>
                       </div>
 
                       <div className="space-y-2">

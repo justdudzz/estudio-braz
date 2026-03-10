@@ -20,10 +20,10 @@
 
 [[redirects]]
   from = "/api/v1/*"
-  to = "http://127.0.0.1:5000/api/v1/:splat"
+  to = "/.netlify/functions/server/:splat" # Reservado caso use Netlify Functions
   status = 200
-  force = true
 
+# Esta é a configuração que realmente importa para SPAs (React)
 [[redirects]]
   from = "/*"
   to = "/index.html"

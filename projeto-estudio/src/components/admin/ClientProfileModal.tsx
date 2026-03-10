@@ -19,6 +19,14 @@ const ClientProfileModal: React.FC<ClientProfileModalProps> = ({ clientId, onClo
     const [form, setForm] = useState({ tier: '', points: 0, notes: '' });
 
     useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
+
+    useEffect(() => {
         const load = async () => {
             try {
                 const res = await api.get(`/bookings/clients/${clientId}`);

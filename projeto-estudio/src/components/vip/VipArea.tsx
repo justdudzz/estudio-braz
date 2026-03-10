@@ -87,7 +87,15 @@ const VipArea: React.FC = () => {
             <div className="relative z-10">
               <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden mb-3">
                 <motion.div
-                  initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} transition={{ duration: 1.5, ease: "easeOut" }}
+                  initial={{ width: 0 }} 
+                  animate={{ width: `${progressPercentage}%` }} 
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 50,
+                    damping: 20,
+                    delay: 0.5,
+                    duration: 2 
+                  }}
                   className="h-full bg-gold-gradient shadow-[0_0_15px_rgba(197,160,89,0.5)] rounded-full"
                 />
               </div>

@@ -9,6 +9,7 @@ import StatsBar from '../sections/StatsBar';
 import TestimonialCarousel from '../sections/TestimonialCarousel';
 import SuperAppMenu from '../common/SuperAppMenu';
 import FullScreenMenu from '../common/FullScreenMenu';
+import PremiumImage from '../common/PremiumImage';
 import { SERVICES_CONFIG, BUSINESS_INFO } from '../../utils/constants';
 
 const serviceHighlights: { key: string; icon: LucideIcon; desc: string }[] = [
@@ -122,7 +123,7 @@ const HomePage: React.FC = () => {
                 <div className="container mx-auto px-6">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
                         <p className="text-[#C5A059] text-xs font-bold uppercase tracking-[0.3em] mb-3">Experiências</p>
-                        <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">Os Nossos Serviços</h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-none break-words">Os Nossos Serviços</h2>
                     </motion.div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -169,7 +170,7 @@ const HomePage: React.FC = () => {
                         <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} className="w-full md:w-1/3">
                             <div className="rounded-sm overflow-hidden border border-white/10 shadow-2xl relative group">
                                 <div className="absolute inset-0 bg-gold-gradient mix-blend-overlay opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none" />
-                                <img src="/mariana-specialist.jpg" alt={BUSINESS_INFO.owner} className="w-full h-auto object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700" />
+                                <PremiumImage src="/mariana-specialist.jpg" alt={BUSINESS_INFO.owner} className="w-full h-auto grayscale-[20%] group-hover:grayscale-0 transition-all duration-700" />
                             </div>
                         </motion.div>
                         <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="w-full md:w-2/3 text-center md:text-left">

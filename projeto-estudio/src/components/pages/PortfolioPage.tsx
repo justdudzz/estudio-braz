@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter, Trash2 } from 'lucide-react';
 import { BUSINESS_INFO } from '../../utils/constants';
 import { useAuth } from '../../contexts/AuthContext';
+import PremiumImage from '../common/PremiumImage';
 import api from '../../services/api';
 
 interface PortfolioItem {
@@ -176,7 +177,7 @@ const PortfolioPage: React.FC = () => {
                                 >
                                     {/* Black and white to color effect on hover */}
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
-                                    <img src={item.src} alt={item.label} className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 ease-out" />
+                                    <PremiumImage src={item.src} alt={item.label} className="w-full h-full grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 ease-out" />
 
                                     {/* Gradient overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-700 z-20" />
@@ -237,7 +238,7 @@ const PortfolioPage: React.FC = () => {
 
                         <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", damping: 25 }} onClick={e => e.stopPropagation()} className="max-w-5xl w-full mx-auto relative group">
                             <div className="relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] border border-white/10">
-                                <img src={lightbox.src} alt={lightbox.label} className="w-full max-h-[80vh] object-contain bg-[#050505]" />
+                                <PremiumImage src={lightbox.src} alt={lightbox.label} className="w-full max-h-[80vh] bg-[#050505]" />
 
                                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 to-transparent p-8 md:p-12">
                                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

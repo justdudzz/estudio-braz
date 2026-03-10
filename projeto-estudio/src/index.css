@@ -48,6 +48,7 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    color-scheme: dark;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

@@ -92,3 +92,41 @@ export const sendLuxuryEmail = async (
     }
   }
 };
+
+/**
+ * 🛡️ AUDITORIA DE SEGURANÇA (Security #19)
+ * Envia um email de alerta para o Super Admin sobre mudanças críticas (ex: 2FA).
+ */
+export const sendSecurityAuditEmail = async (
+  action: string,
+  userEmail: string,
+  details: string
+) => {
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'mariana@studiobraz.com';
+  const fromEmail = process.env.SMTP_FROM || 'Studio Braz Security <noreply@estudiobraz.pt>';
+
+  try {
+    await transporter.sendMail({
+      from: fromEmail,
+      to: adminEmail,
+      subject: `🚨 ALERTA DE SEGURANÇA: ${action}`,
+      html: `
+        <div style="background-color: #0f0f0f; color: #ffffff; font-family: sans-serif; padding: 40px; border: 2px solid #ff4444; border-radius: 10px;">
+          <h2 style="color: #ff4444; text-transform: uppercase;">Evento Crítico de Segurança</h2>
+          <p>Olá Mariana,</p>
+          <p>O sistema detetou uma alteração de segurança importante:</p>
+          <div style="background-color: #1a1a1a; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ff4444;">
+            <p><strong>Ação:</strong> ${action}</p>
+            <p><strong>Utilizador:</strong> ${userEmail}</p>
+            <p><strong>Detalhes:</strong> ${details}</p>
+            <p><strong>Timestamp:</strong> ${new Date().toLocaleString('pt-PT')}</p>
+          </div>
+          <p style="font-size: 12px; color: #999;">Este é um aviso automático gerado pelo Braz Master Security Engine.</p>
+        </div>
+      `
+    });
+    logger.info(`🚨 Auditoria de segurança enviada para Super Admin: ${action}`);
+  } catch (err) {
+    logger.error('❌ Falha ao enviar email de auditoria de segurança:', err);
+  }
+};

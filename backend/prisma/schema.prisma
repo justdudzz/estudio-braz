@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:braz_master_2026@127.0.0.1:5432/studio_braz?schema=public"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {

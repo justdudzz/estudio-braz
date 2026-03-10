@@ -5,10 +5,12 @@ import crypto from 'crypto';
 // @ts-ignore
 import { authenticator } from '@otplib/preset-default';
 import qrcode from 'qrcode';
+import { sendSecurityAuditEmail } from '../services/emailService.js';
 import prisma from '../config/prisma.js';
 import logger from '../utils/logger.js';
 import { isValidNIF } from '../utils/nifValidator.js';
 import { loginSchema, verify2FASchema, disable2FASchema } from '../schemas/authSchema.js';
+import { blacklistToken } from '../utils/tokenBlacklist.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -84,10 +86,14 @@ export const login = async (req: Request, res: Response) => {
 
     // Gera o Token com claims de segurança (#12)
     const token = jwt.sign(
-      { id: user.id, role: user.role, email: user.email },
+      { 
+        id: user.id, 
+        role: user.role, 
+        jti: crypto.randomUUID() // ID Único da Sessão para revogação (#4)
+      },
       process.env.JWT_SECRET!,
       {
-        expiresIn: '30d',
+        expiresIn: '7d', // Reduzido de 30 para 7 dias para maior segurança
         ...JWT_OPTIONS
       }
     );
@@ -171,11 +177,26 @@ export const clientLogin = async (req: Request, res: Response) => {
   return login(req, res);
 };
 
-// --- 3. LOGOUT (Limpar cookies + blacklist) ---
+// --- 3. LOGOUT ---
 export const logout = async (req: Request, res: Response) => {
-  res.clearCookie('braz_token', { path: '/' });
-  res.clearCookie('braz_csrf', { path: '/' });
+  const token = req.cookies?.braz_token;
+  
+  if (token) {
+    try {
+      const decoded = jwt.decode(token) as any;
+      if (decoded && decoded.jti) {
+        // Blacklist o token até ele expirar naturalmente
+        const expiresAt = new Date((decoded.exp || 0) * 1000);
+        await blacklistToken(decoded.jti, expiresAt);
+        logger.info(`Token jti:${decoded.jti} revogado (Logout).`);
+      }
+    } catch (err) {
+      logger.warn('Falha ao processar blacklist no logout.');
+    }
+  }
 
+  res.clearCookie('braz_token', COOKIE_OPTIONS);
+  res.clearCookie('braz_csrf', COOKIE_OPTIONS);
   logger.info('Sessão terminada com sucesso.');
   res.json({ message: 'Sessão encerrada com segurança.' });
 };
@@ -244,6 +265,9 @@ export const verify2FA = async (req: Request, res: Response) => {
       data: { isTwoFactorEnabled: true }
     });
 
+    // 🛡️ SECURITY AUDIT (#19)
+    await sendSecurityAuditEmail('ATIVAÇÃO DE 2FA', user.email, 'Autenticação de Segundo Fator ativada com sucesso pelo utilizador.');
+
     res.json({ message: 'Autenticação de Dois Fatores (2FA) selada e ativada com sucesso militar.' });
   } catch (err: any) {
     logger.error(`Erro ao validar 2FA: ${err.message}`);
@@ -277,6 +301,9 @@ export const disable2FA = async (req: Request, res: Response) => {
       where: { id: userId },
       data: { isTwoFactorEnabled: false, twoFactorSecret: null }
     });
+
+    // 🛡️ SECURITY AUDIT (#19)
+    await sendSecurityAuditEmail('DESATIVAÇÃO DE 2FA', user.email, 'CUIDADO: Autenticação de Segundo Fator foi DESATIVADA após confirmação de password.');
 
     logger.info(`2FA desativado para UID: ${userId}`);
     res.json({ message: 'Autenticação de Dois Fatores (2FA) desativada com sucesso.' });

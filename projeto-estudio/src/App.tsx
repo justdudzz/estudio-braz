@@ -17,6 +17,8 @@ import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
 import AnimatedCursor from './components/common/AnimatedCursor';
 import FloatingWhatsApp from './components/common/FloatingWhatsApp';
 import AdminToolbar from './components/admin/AdminToolbar';
+import MaintenanceBanner from './components/common/MaintenanceBanner';
+import ScrollToTopButton from './components/common/ScrollToTopButton';
 
 // 🏠 Homepage (carregamento imediato — primeira impressão)
 import HomePage from './components/pages/HomePage';
@@ -89,6 +91,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => {
 const AppContent = () => {
   return (
     <>
+      <MaintenanceBanner isActive={false} />
       <ScrollToTop />
       <AdminToolbar />
       <PWAUpdatePrompt />
@@ -163,6 +166,7 @@ const AppContent = () => {
       </Suspense>
 
       <CookieBanner />
+      <ScrollToTopButton />
     </>
   );
 };
